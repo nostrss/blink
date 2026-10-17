@@ -49,8 +49,9 @@ final class PositionPane: NSStackView {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    // 창을 열 때마다 저장된 위치와 지금 이름으로 맞춘다.
+    // 항목을 열 때마다 저장된 위치·모양과 지금 이름으로 맞춘다.
     func reload() {
+        monitor.setLook(HUD.savedAppearance)
         reloadNames()
         show(HUD.savedPosition)
     }
@@ -89,7 +90,7 @@ private final class MiniMonitor: NSView {
     var position = HUDPosition.center { didSet { needsLayout = true } }
 
     private let menuBarStrip = Layer(fill: Tokens.surface)
-    private let chip = Chip()
+    private let chip = HUDChip(style: HUDChip.mini)
     private var dots: [Dot] = []
     private var dragOffset: CGPoint?
 
@@ -121,6 +122,12 @@ private final class MiniMonitor: NSView {
 
     func setNames(from: String, to: String?) {
         chip.set(from: from, to: to)
+        needsLayout = true
+    }
+
+    // 미니 HUD를 현재 모양으로 그린다. 크기가 바뀌므로 위치(비율)는 그대로 두고 자리만 다시 잡는다.
+    func setLook(_ look: HUDAppearance) {
+        chip.look = look
         needsLayout = true
     }
 
@@ -221,67 +228,6 @@ private final class Dot: NSButton {
     }
 
     override var focusRingMaskBounds: NSRect { bounds }
-}
-
-// 미니 HUD. HUD와 같은 색으로 '변경 전 → 변경 후'를 작게 그린다.
-private final class Chip: NSView {
-    // 폭은 이름에 맞추되 72–180pt 안. 넘치면 실제 HUD처럼 '변경 전'부터 말줄임한다.
-    private(set) var size = CGSize(width: 96, height: 24)
-    private let stack: NSStackView
-    private let from = Chip.label(Tokens.muted, weight: .regular)
-    private let to = Chip.label(Tokens.hudInk, weight: .semibold)
-
-    init() {
-        let arrow = Chip.label(Tokens.accent, weight: .regular)
-        stack = NSStackView(views: [from, arrow, to])
-        super.init(frame: .zero)
-        wantsLayer = true
-        layer?.cornerRadius = 6  // radius-sm
-        shadow = NSShadow()
-        layer?.shadowOpacity = 0.18
-        layer?.shadowRadius = 4
-        layer?.shadowOffset = CGSize(width: 0, height: -2)
-        arrow.stringValue = "→"
-        from.lineBreakMode = .byTruncatingTail
-        from.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        to.lineBreakMode = .byTruncatingTail
-        // 이름은 실제 HUD처럼 VoiceOver가 따로 읽지 않는다.
-        [self.from, arrow, self.to].forEach { $0.setAccessibilityElement(false) }
-        stack.spacing = 4  // space-1
-        stack.edgeInsets = NSEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(stack)
-        NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
-            stack.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor),
-            stack.centerXAnchor.constraint(equalTo: centerXAnchor),
-            stack.centerYAnchor.constraint(equalTo: centerYAnchor),
-        ])
-    }
-
-    required init?(coder: NSCoder) { fatalError() }
-
-    func set(from: String, to: String?) {
-        self.from.stringValue = from
-        self.to.stringValue = to ?? String(localized: "None")
-        self.to.font = .systemFont(ofSize: 11, weight: to == nil ? .regular : .semibold)
-        self.to.textColor = to == nil ? Tokens.muted : Tokens.hudInk
-        size.width = min(max(stack.fittingSize.width, 72), 180)
-    }
-
-    override var wantsUpdateLayer: Bool { true }
-
-    override func updateLayer() {
-        let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
-        layer?.backgroundColor = (reduce ? Tokens.surface : Tokens.hudBg).cgColor
-    }
-
-    private static func label(_ color: NSColor, weight: NSFont.Weight) -> NSTextField {
-        let label = NSTextField(labelWithString: "")
-        label.font = .systemFont(ofSize: 11, weight: weight)  // caption
-        label.textColor = color
-        return label
-    }
 }
 
 // 색 하나로 채운 사각형. updateLayer는 현재 외관으로 불리므로 라이트/다크를 따라간다.

@@ -7,12 +7,13 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private static let step = 0.5
 
     private enum Pane: Int, CaseIterable {
-        case general, position
+        case general, position, appearance
 
         var title: String {
             switch self {
             case .general: String(localized: "General")
             case .position: String(localized: "Position")
+            case .appearance: String(localized: "Appearance")
             }
         }
     }
@@ -22,8 +23,9 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private let split = NSSplitViewController()
     private let sidebar = NSTableView()
     private let detail = NSView()
-    private lazy var panes: [Pane: NSView] = [.general: makeGeneralPane(), .position: positionPane]
+    private lazy var panes: [Pane: NSView] = [.general: makeGeneralPane(), .position: positionPane, .appearance: appearancePane]
     private let positionPane: PositionPane
+    private let appearancePane: AppearancePane
 
     private let showSwitch = NSSwitch()
     private let loginSwitch = NSSwitch()
@@ -39,11 +41,12 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     }()
 
     // onShowChanged: '언어 전환 표시'를 바꾼 직후(메뉴바 아이콘 갱신용)
-    // preview: 위치를 고르는 동안 실제 화면에 HUD를 띄운다. sampleNames: 미니 HUD와 미리보기에 쓸 이름
+    // preview: 위치·모양을 고르는 동안 실제 화면에 HUD를 띄운다. sampleNames: 미니 HUD와 미리보기에 쓸 이름
     init(onShowChanged: @escaping () -> Void, preview: @escaping (HUDPosition) -> Void,
          sampleNames: @escaping () -> (from: String, to: String?)) {
         self.onShowChanged = onShowChanged
         positionPane = PositionPane(preview: preview, sampleNames: sampleNames)
+        appearancePane = AppearancePane(preview: { preview(HUD.savedPosition) }, sampleNames: sampleNames)
         super.init()
         window.isReleasedWhenClosed = false
         window.backgroundColor = Tokens.surface
@@ -95,7 +98,6 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         showSwitch.state = UserDefaults.standard.bool(forKey: AppDelegate.showOnSwitchKey) ? .on : .off
         loginSwitch.state = LoginItem.isEnabled ? .on : .off
         apply(UserDefaults.standard.double(forKey: HUD.durationKey))
-        positionPane.reload()
         NSApp.activateForWindow()
         window.makeKeyAndOrderFront(nil)
     }
@@ -103,11 +105,15 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     // 창이 열려 있는 동안 입력소스가 바뀌면 미니 HUD 이름을 맞춘다.
     func reloadNames() {
         positionPane.reloadNames()
+        appearancePane.reloadNames()
     }
 
     private func select(_ pane: Pane) {
         window.title = pane.title
         detail.subviews.forEach { $0.removeFromSuperview() }
+        // 항목을 열 때마다 저장된 값으로 맞춘다('모양'에서 바꾼 모양이 '위치'의 미니 HUD에 보이도록).
+        if pane == .position { positionPane.reload() }
+        if pane == .appearance { appearancePane.reload() }
         let view = panes[pane]!
         view.translatesAutoresizingMaskIntoConstraints = false
         detail.addSubview(view)
@@ -115,7 +121,8 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
             view.topAnchor.constraint(equalTo: detail.safeAreaLayoutGuide.topAnchor),
             view.leadingAnchor.constraint(equalTo: detail.leadingAnchor),
             view.trailingAnchor.constraint(equalTo: detail.trailingAnchor),
-            view.bottomAnchor.constraint(lessThanOrEqualTo: detail.bottomAnchor),
+            // 스크롤하는 항목은 창 높이를 채운다.
+            view is NSScrollView ? view.bottomAnchor.constraint(equalTo: detail.bottomAnchor) : view.bottomAnchor.constraint(lessThanOrEqualTo: detail.bottomAnchor),
         ])
     }
 
@@ -200,7 +207,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     }
 
     // 라벨은 왼쪽, 컨트롤은 오른쪽 끝. 첫 컨트롤은 VoiceOver가 라벨 이름으로 읽는다.
-    private static func row(_ title: String, _ controls: [NSView]) -> NSView {
+    static func row(_ title: String, _ controls: [NSView]) -> NSView {
         controls.first?.setAccessibilityLabel(title)
         let label = NSTextField(labelWithString: title)
         label.font = .systemFont(ofSize: 13)  // body
@@ -212,7 +219,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         return row
     }
 
-    private static func caption(_ text: String) -> NSTextField {
+    static func caption(_ text: String) -> NSTextField {
         let caption = NSTextField(wrappingLabelWithString: text)
         caption.font = .systemFont(ofSize: 11)  // caption
         caption.textColor = Tokens.muted

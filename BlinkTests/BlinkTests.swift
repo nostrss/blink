@@ -64,11 +64,109 @@ final class BlinkTests: XCTestCase {
 
     func testPanelWidth() {
         // 480pt 안이면 그대로
-        XCTAssertEqual(HUD.panelWidth(fitting: 300, from: 60, ellipsis: 20), 300)
+        XCTAssertEqual(HUD.panelWidth(fitting: 300, from: 60, ellipsis: 20, maxWidth: 480), 300)
         // 넘치면 480pt로 줄인다('변경 전' 말줄임)
-        XCTAssertEqual(HUD.panelWidth(fitting: 600, from: 300, ellipsis: 20), 480)
+        XCTAssertEqual(HUD.panelWidth(fitting: 600, from: 300, ellipsis: 20, maxWidth: 480), 480)
         // '변경 후'만으로 480pt를 넘으면 '변경 전'을 "…"만 남기고 넓힌다
-        XCTAssertEqual(HUD.panelWidth(fitting: 700, from: 100, ellipsis: 20), 620)
+        XCTAssertEqual(HUD.panelWidth(fitting: 700, from: 100, ellipsis: 20, maxWidth: 480), 620)
+        // '변경 전'을 숨기면 자를 것이 없으므로 '변경 후'에 맞춘다
+        XCTAssertEqual(HUD.panelWidth(fitting: 700, from: 0, ellipsis: 0, maxWidth: 480), 700)
+    }
+
+    // MARK: 모양
+
+    func testSizeScalesTypeAndMetrics() {
+        var look = HUDAppearance()
+        XCTAssertEqual([look.scaled(28), look.scaled(20), look.scaled(480)], [28, 20, 480])
+        look.size = .small
+        XCTAssertEqual([look.scaled(28), look.scaled(20), look.scaled(480)], [22, 16, 384])
+        look.size = .large
+        XCTAssertEqual([look.scaled(28), look.scaled(20), look.scaled(480)], [36, 26, 624])
+    }
+
+    func testCornerRadius() {
+        var look = HUDAppearance()
+        XCTAssertEqual(look.cornerRadius(height: 66, standard: 18), 18)
+        look.corners = .square
+        XCTAssertEqual(look.cornerRadius(height: 66, standard: 18), 0)
+        look.corners = .pill
+        XCTAssertEqual(look.cornerRadius(height: 66, standard: 18), 33)
+    }
+
+    // 프리셋 글자는 배경과 4.5:1, 화살표는 3:1 이상(디자인 시스템 규칙).
+    func testPresetsAreReadableInBothModes() throws {
+        for theme in HUDTheme.presets {
+            for mode in HUDMode.allCases {
+                let c = try XCTUnwrap(theme.presetColors(mode))
+                XCTAssertGreaterThanOrEqual(c.to.contrast(with: c.background), 4.5, "\(theme) \(mode) to")
+                XCTAssertGreaterThanOrEqual(c.from.contrast(with: c.background), 4.5, "\(theme) \(mode) from")
+                XCTAssertGreaterThanOrEqual(c.arrow.contrast(with: c.background), 3, "\(theme) \(mode) arrow")
+            }
+        }
+        XCTAssertEqual(RGBA(hex: 0x000000).contrast(with: RGBA(hex: 0xffffff)), 21, accuracy: 0.01)
+    }
+
+    func testColorsFollowModeAndReduceTransparency() {
+        var look = HUDAppearance()
+        XCTAssertEqual(look.colors(.light).to, RGBA(hex: 0x1d1d1f))
+        XCTAssertEqual(look.colors(.dark).to, RGBA(hex: 0xffffff))
+        // 투명도 줄이기: 기본 테마는 불투명 surface
+        XCTAssertEqual(look.colors(.light, reduceTransparency: true).background, RGBA(hex: 0xf5f5f7))
+        // 다른 테마는 같은 색을 불투명하게
+        look.select(.gruvbox)
+        XCTAssertEqual(look.colors(.dark).background.alpha, 0.92)
+        XCTAssertEqual(look.colors(.dark, reduceTransparency: true).background, RGBA(hex: 0x282828))
+        // Dracula는 라이트에서도 같은 색
+        look.select(.dracula)
+        XCTAssertEqual(look.colors(.light), look.colors(.dark))
+    }
+
+    // 사용자 지정은 처음 고를 때 직전 테마 색에서 시작하고, 그 뒤로는 저장한 색을 유지한다.
+    func testCustomStartsFromPreviousThemeOnce() throws {
+        var look = HUDAppearance()
+        look.select(.dracula)
+        look.select(.custom)
+        let dracula = try XCTUnwrap(HUDTheme.dracula.presetColors(.light))
+        XCTAssertEqual(look.custom(.light), CustomColors(text: dracula.to, background: dracula.background))
+        XCTAssertEqual(look.custom(.dark)?.text, dracula.to)
+
+        var edited = try XCTUnwrap(look.custom(.dark))
+        edited.background = RGBA(hex: 0x123456, alpha: 0.5)
+        look.setCustom(edited, for: .dark)
+        look.select(.gruvbox)
+        look.select(.custom)
+        XCTAssertEqual(look.custom(.dark), edited)  // Gruvbox 색으로 덮지 않는다
+        XCTAssertEqual(look.custom(.light)?.text, dracula.to)  // 라이트는 그대로
+    }
+
+    func testCustomColorsDeriveFromAndArrow() throws {
+        var look = HUDAppearance()
+        look.select(.custom)
+        look.setCustom(CustomColors(text: RGBA(hex: 0x112233), background: RGBA(hex: 0xffeedd, alpha: 0.7)), for: .light)
+        let c = look.colors(.light)
+        XCTAssertEqual(c.to, RGBA(hex: 0x112233))
+        XCTAssertEqual(c.from, RGBA(hex: 0x112233, alpha: 0.6))
+        XCTAssertEqual(c.arrow, RGBA(hex: 0x0a66d6))  // 강조색
+        XCTAssertEqual(c.background.alpha, 0.7)
+        XCTAssertEqual(look.colors(.light, reduceTransparency: true).background.alpha, 1)
+    }
+
+    func testLowContrastWarning() {
+        XCTAssertTrue(CustomColors(text: RGBA(hex: 0x777777), background: RGBA(hex: 0x888888)).isLowContrast)
+        XCTAssertFalse(CustomColors(text: RGBA(hex: 0x000000), background: RGBA(hex: 0xffffff)).isLowContrast)
+    }
+
+    func testAppearanceSavesAndFallsBackToDefault() {
+        XCTAssertEqual(HUDAppearance(data: nil), .standard)
+        XCTAssertEqual(HUDAppearance(data: Data("garbage".utf8)), .standard)
+        var look = HUDAppearance()
+        look.select(.rosePine)
+        look.select(.custom)
+        look.size = .large
+        look.corners = .pill
+        look.bold = true
+        look.showsFrom = false
+        XCTAssertEqual(HUDAppearance(data: look.data), look)
     }
 
     // 메뉴바(위)와 Dock(아래 80pt)을 뺀 1440×900 화면의 visibleFrame, 여백 24pt, HUD 300×66.

@@ -5,17 +5,21 @@ final class HUD {
     static let durationKey = "hudDuration"
     static let positionXKey = "hudPositionX"
     static let positionYKey = "hudPositionY"
+    static let appearanceKey = "hudAppearance"
     private static let screenMargin: CGFloat = 24  // space-4
     private static let fadeDuration = 0.3
-    private static let maxWidth: CGFloat = 480
 
     private let panel = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
+    private let effect = NSVisualEffectView()
     private let tint = NSView()
-    private let fromLabel = HUD.label(size: 20, weight: .medium, color: Tokens.muted)   // hud-from
-    private let toLabel = HUD.label(size: 28, weight: .semibold, color: Tokens.hudInk)  // hud-to
+    private let fromLabel = HUD.label()
+    private let arrow = HUD.label()
+    private let toLabel = HUD.label()
+    private let stack: NSStackView
     private var hideTimer: Timer?
 
     init() {
+        stack = NSStackView(views: [fromLabel, arrow, toLabel])
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
@@ -23,28 +27,20 @@ final class HUD {
         panel.level = .screenSaver
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
 
-        let effect = NSVisualEffectView()
         effect.material = .hudWindow
         effect.state = .active
-        // 창 뒤 흐림은 layer cornerRadius로 잘리지 않아 모서리에 네모가 비친다. maskImage로 자른다.
-        effect.maskImage = HUD.roundedMask(radius: 18)  // radius-hud
 
         tint.wantsLayer = true
-        tint.layer?.cornerRadius = 18  // maskImage는 흐림만 자르므로 덧칠 색도 따로 둥글린다.
         tint.frame = effect.bounds
         tint.autoresizingMask = [.width, .height]
         effect.addSubview(tint)
 
-        let arrow = HUD.label(size: 20, weight: .medium, color: Tokens.accent)
         arrow.stringValue = "→"
         // 폭이 모자라면 '변경 전'만 말줄임하고 '변경 후'는 자르지 않는다.
         fromLabel.lineBreakMode = .byTruncatingTail
         fromLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         toLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
-        let stack = NSStackView(views: [fromLabel, arrow, toLabel])
-        stack.spacing = 8  // space-2
         stack.alignment = .centerY
-        stack.edgeInsets = NSEdgeInsets(top: 16, left: 24, bottom: 16, right: 24)  // 좌우 space-4, 위아래 space-3
         stack.translatesAutoresizingMaskIntoConstraints = false
         effect.addSubview(stack)
         NSLayoutConstraint.activate([
@@ -65,23 +61,43 @@ final class HUD {
         }
     }
 
+    // 설정 창 '모양'에서 정한 모양. 없으면 기본 모양.
+    static var savedAppearance: HUDAppearance {
+        get { HUDAppearance(data: UserDefaults.standard.data(forKey: appearanceKey)) }
+        set { UserDefaults.standard.set(newValue.data, forKey: appearanceKey) }
+    }
+
     // 설정 창의 미리보기는 아직 저장하지 않은 위치를 넘긴다. to가 nil이면 바꿀 입력소스가 없다는 뜻으로 "없음"을 흐리게 쓴다.
     func show(from: String, to: String?, at position: HUDPosition = HUD.savedPosition) {
-        fromLabel.stringValue = from
-        toLabel.stringValue = to ?? String(localized: "None")
-        toLabel.font = to == nil ? .systemFont(ofSize: 20, weight: .medium) : .systemFont(ofSize: 28, weight: .semibold)  // hud-from / hud-to
-        toLabel.textColor = to == nil ? Tokens.muted : Tokens.hudInk
-        // layer 색은 외관·손쉬운 사용 설정 변경을 따라가지 않으므로 표시할 때마다 다시 칠한다.
-        // '투명도 줄이기'가 켜져 있으면 불투명 surface로 칠한다.
+        // 모양과 색은 외관·손쉬운 사용 설정 변경을 따라가지 않으므로 표시할 때마다 다시 정한다.
+        let look = Self.savedAppearance
         let workspace = NSWorkspace.shared
-        NSApp.effectiveAppearance.performAsCurrentDrawingAppearance {
-            let bg = workspace.accessibilityDisplayShouldReduceTransparency ? Tokens.surface : Tokens.hudBg
-            tint.layer?.backgroundColor = bg.cgColor
-        }
+        let colors = look.colors(NSApp.effectiveAppearance.hudMode, reduceTransparency: workspace.accessibilityDisplayShouldReduceTransparency)
+        let fromFont = NSFont.systemFont(ofSize: look.scaled(20), weight: look.bold ? .semibold : .medium)  // hud-from
+        let toFont = NSFont.systemFont(ofSize: look.scaled(28), weight: look.bold ? .bold : .semibold)     // hud-to
+        fromLabel.stringValue = from
+        fromLabel.font = fromFont
+        fromLabel.textColor = NSColor(colors.from)
+        fromLabel.isHidden = !look.showsFrom
+        arrow.font = fromFont
+        arrow.textColor = NSColor(colors.arrow)
+        toLabel.stringValue = to ?? String(localized: "None")
+        toLabel.font = to == nil ? fromFont : toFont
+        toLabel.textColor = NSColor(to == nil ? colors.from : colors.to)
+        tint.layer?.backgroundColor = NSColor(colors.background).cgColor
+        stack.spacing = look.scaled(8)  // space-2
+        let (v, h) = (look.scaled(16), look.scaled(24))  // 위아래 space-3, 좌우 space-4
+        stack.edgeInsets = NSEdgeInsets(top: v, left: h, bottom: v, right: h)
 
         var size = panel.contentView!.fittingSize
-        let ellipsis = NSAttributedString(string: "…", attributes: [.font: fromLabel.font!]).size().width.rounded(.up) + 4
-        size.width = Self.panelWidth(fitting: size.width, from: fromLabel.fittingSize.width, ellipsis: ellipsis)
+        let ellipsis = NSAttributedString(string: "…", attributes: [.font: fromFont]).size().width.rounded(.up) + 4
+        size.width = look.showsFrom
+            ? Self.panelWidth(fitting: size.width, from: fromLabel.fittingSize.width, ellipsis: ellipsis, maxWidth: look.scaled(480))
+            : size.width
+        // 창 뒤 흐림은 layer cornerRadius로 잘리지 않아 모서리에 네모가 비친다. maskImage로 자르고, 덧칠 색도 따로 둥글린다.
+        let radius = look.cornerRadius(height: size.height, standard: 18)  // radius-hud
+        effect.maskImage = Self.roundedMask(radius: radius)
+        tint.layer?.cornerRadius = radius
         let mouse = NSEvent.mouseLocation
         let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
         // 화면은 frame으로 고르고, 자리는 메뉴바·Dock을 뺀 visibleFrame 안에서 정한다.
@@ -105,8 +121,8 @@ final class HUD {
         }
     }
 
-    // 최대 480pt. 단, '변경 후'가 그보다 길면 '변경 전'이 "…"만 남을 만큼까지는 넓힌다.
-    static func panelWidth(fitting: CGFloat, from: CGFloat, ellipsis: CGFloat) -> CGFloat {
+    // 최대 폭(기본 480pt, 크기 배율을 곱함). 단, '변경 후'가 그보다 길면 '변경 전'이 "…"만 남을 만큼까지는 넓힌다.
+    static func panelWidth(fitting: CGFloat, from: CGFloat, ellipsis: CGFloat, maxWidth: CGFloat) -> CGFloat {
         max(min(fitting, maxWidth), fitting - from + ellipsis)
     }
 
@@ -130,10 +146,8 @@ final class HUD {
         return image
     }
 
-    private static func label(size: CGFloat, weight: NSFont.Weight, color: NSColor) -> NSTextField {
+    private static func label() -> NSTextField {
         let label = NSTextField(labelWithString: "")
-        label.font = .systemFont(ofSize: size, weight: weight)
-        label.textColor = color
         label.setAccessibilityElement(false)  // 입력소스는 VoiceOver가 이미 읽어 준다.
         return label
     }
