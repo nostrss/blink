@@ -17,7 +17,9 @@ final class AppearancePane: NSScrollView {
     private let opacitySlider = NSSlider(value: 1, minValue: 0, maxValue: 1, target: nil, action: nil)
     private let opacityLabel = NSTextField(labelWithString: "")
     private let lowContrastNote = SettingsWindow.caption(String(localized: "Text may be hard to read."))
-    private let reduceTransparencyNote = SettingsWindow.caption(String(localized: "Reduce Transparency is on in Accessibility settings, so the background is shown opaque."))
+    // 투명도 줄이기가 켜져 있으면 슬라이더와 숫자 대신 보인다. 누르면 시스템 설정의 그 화면을 연다.
+    private let reduceTransparencyLink = LinkLabel(String(localized: "Turn Off Reduce Transparency"))
+    private let reduceTransparencyNote = SettingsWindow.caption(String(localized: "Reduce Transparency is on in Accessibility, so the background is always shown opaque."))
     private let sizeControl = AppearancePane.segments([String(localized: "Small"), String(localized: "Medium"), String(localized: "Large")])
     private let cornersControl = AppearancePane.segments([String(localized: "Square"), String(localized: "Default"), String(localized: "Pill")])
     private let weightControl = AppearancePane.segments([String(localized: "Regular"), String(localized: "Bold")])
@@ -73,6 +75,7 @@ final class AppearancePane: NSScrollView {
         opacityLabel.textColor = Tokens.ink
         opacityLabel.alignment = .right
         opacityLabel.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        reduceTransparencyLink.onClick = { Self.openReduceTransparencySettings() }
         let customViews = [
             SettingsWindow.caption(String(localized: "Click the Light or Dark preview to choose which colors to edit.")),
             // HUD 왼쪽부터: 변경 전 → 화살표 → 변경 후.
@@ -80,7 +83,7 @@ final class AppearancePane: NSScrollView {
             SettingsWindow.row(String(localized: "Arrow Color"), [arrowWell]),
             SettingsWindow.row(String(localized: "New Source Color"), [textWell]),
             SettingsWindow.row(String(localized: "Background Color"), [backgroundWell]),
-            SettingsWindow.row(String(localized: "Background Opacity"), [opacitySlider, opacityLabel]),
+            SettingsWindow.row(String(localized: "Background Opacity"), [opacitySlider, opacityLabel, reduceTransparencyLink]),
             reduceTransparencyNote,
             lowContrastNote,
         ]
@@ -157,7 +160,7 @@ final class AppearancePane: NSScrollView {
         let fixed = column.widthAnchor.constraint(equalToConstant: width)
         fixed.isActive = true
         // 여러 줄 도움말은 폭을 알려 줘야 줄바꿈한 높이로 잰다.
-        let captions = Self.wrappingLabels(in: column)
+        let captions = Self.wrappingLabels(in: column).filter { !($0 is LinkLabel) }
         captions.forEach { $0.preferredMaxLayoutWidth = width - 32 }
         defer {
             fixed.isActive = false
@@ -242,8 +245,13 @@ final class AppearancePane: NSScrollView {
             opacityLabel.stringValue = colors.background.alpha.formatted(.percent.precision(.fractionLength(0)))
             lowContrastNote.isHidden = !colors.isLowContrast
         }
-        // 켜져 있으면 HUD 배경을 불투명하게 그리므로, 불투명도를 바꿔도 보이지 않는 이유를 알린다. 값은 저장해 둔다.
-        reduceTransparencyNote.isHidden = !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+        // 켜져 있으면 HUD 배경을 늘 불투명하게 그리므로, 슬라이더와 숫자 대신 끄러 가는 링크와 이유를 보인다.
+        // 저장된 불투명도는 그대로 두었다가 끄면 다시 보인다.
+        let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+        reduceTransparencyNote.isHidden = !reduce
+        reduceTransparencyLink.isHidden = !reduce
+        opacitySlider.isHidden = reduce
+        opacityLabel.isHidden = reduce
         sizeControl.selectedSegment = HUDAppearance.Size.allCases.firstIndex(of: look.size)!
         cornersControl.selectedSegment = HUDAppearance.Corners.allCases.firstIndex(of: look.corners)!
         weightControl.selectedSegment = look.bold ? 1 : 0
@@ -264,6 +272,17 @@ final class AppearancePane: NSScrollView {
             if let label = sub as? NSTextField, label.cell?.wraps == true { return [label] }
             return wrappingLabels(in: sub)
         }
+    }
+
+    // 시스템 설정의 손쉬운 사용 > 디스플레이. 주소는 공식 문서가 없어 버전마다 다를 수 있으므로,
+    // 먼저 macOS 13 이후 주소로 디스플레이 화면을, 안 되면 손쉬운 사용 첫 화면을 연다.
+    private static func openReduceTransparencySettings() {
+        let urls = [
+            "x-apple.systempreferences:com.apple.Accessibility-Settings.extension?Display",
+            "x-apple.systempreferences:com.apple.preference.universalaccess?Seeing_Display",
+            "x-apple.systempreferences:com.apple.preference.universalaccess",
+        ].compactMap(URL.init(string:))
+        _ = urls.first { NSWorkspace.shared.open($0) }
     }
 
     private static func separator() -> NSBox {
@@ -355,4 +374,36 @@ private final class PreviewCell: NSView {
 
 private final class FlippedView: NSView {
     override var isFlipped: Bool { true }
+}
+
+// 누르면 onClick을 부르는 링크 모양 글자(강조색, ↗). 오른쪽 정렬이고, 길면 220pt에서 줄바꿈해 두 줄까지 쓴다.
+private final class LinkLabel: NSTextField {
+    var onClick: (() -> Void)?
+
+    init(_ text: String) {
+        super.init(frame: .zero)
+        stringValue = text + " ↗"
+        isEditable = false
+        isSelectable = false
+        isBordered = false
+        drawsBackground = false
+        font = .systemFont(ofSize: 13)  // body
+        textColor = .linkColor
+        alignment = .right
+        cell?.wraps = true
+        maximumNumberOfLines = 2
+        preferredMaxLayoutWidth = 220
+        setAccessibilityRole(.link)
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func mouseDown(with event: NSEvent) { onClick?() }
+
+    override func resetCursorRects() { addCursorRect(bounds, cursor: .pointingHand) }
+
+    override func accessibilityPerformPress() -> Bool {
+        onClick?()
+        return true
+    }
 }

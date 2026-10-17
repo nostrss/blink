@@ -122,25 +122,38 @@ final class BlinkTests: XCTestCase {
     }
 
     // 사용자 지정은 처음 고를 때 직전 테마 색에서 시작하고, 그 뒤로는 저장한 색을 유지한다.
-    func testCustomStartsFromPreviousThemeOnce() throws {
+    // 사용자 지정은 바꾸는 순간의 모습을 그대로 이어받는다. 어느 테마에서 바꿔도 HUD가 하나도 바뀌지 않아야 한다.
+    func testSwitchingToCustomKeepsTheLook() {
+        for theme in HUDTheme.presets {
+            var look = HUDAppearance()
+            look.select(theme)
+            let before = HUDMode.allCases.map { look.colors($0) }
+            look.select(.custom)
+            XCTAssertEqual(HUDMode.allCases.map { look.colors($0) }, before, "\(theme)")
+        }
+    }
+
+    // 사용자 지정은 바꿀 때마다 그때 쓰던 테마에서 이어서 시작한다(예전에 저장한 사용자 지정 색으로 돌아가지 않는다).
+    func testCustomContinuesFromCurrentThemeEveryTime() throws {
         var look = HUDAppearance()
+        look.select(.custom)  // 기본에서 한 번 바꿔 둔 상태
         look.select(.dracula)
         look.select(.custom)
-        // 글자·배경뿐 아니라 변경 전·화살표 색도 가져온다(Dracula의 보라·분홍이 기본 파랑으로 바뀌지 않게).
-        let dracula = try XCTUnwrap(HUDTheme.dracula.presetColors(.light))
-        XCTAssertEqual(look.custom(.light), CustomColors(text: dracula.to, from: dracula.from, arrow: dracula.arrow, background: dracula.background))
-        var seeded = dracula
-        seeded.blur = dracula.background.alpha  // 사용자 지정은 불투명도가 흐림도 조절한다
-        XCTAssertEqual(look.colors(.light), seeded)
-        XCTAssertEqual(look.custom(.dark)?.text, dracula.to)
+        let dracula = try XCTUnwrap(HUDTheme.dracula.presetColors(.dark))
+        XCTAssertEqual(look.custom(.dark), CustomColors(text: dracula.to, from: dracula.from, arrow: dracula.arrow, background: dracula.background))
 
+        // 사용자 지정에 머무는 동안 고친 색은 남는다.
         var edited = try XCTUnwrap(look.custom(.dark))
         edited.background = RGBA(hex: 0x123456, alpha: 0.5)
         look.setCustom(edited, for: .dark)
+        look.select(.custom)
+        XCTAssertEqual(look.custom(.dark), edited)
+        XCTAssertEqual(HUDAppearance(data: look.data).custom(.dark), edited)
+
+        // 다른 테마를 고르면 다음 사용자 지정은 그 테마에서 시작한다.
         look.select(.gruvbox)
         look.select(.custom)
-        XCTAssertEqual(look.custom(.dark), edited)  // Gruvbox 색으로 덮지 않는다
-        XCTAssertEqual(look.custom(.light)?.text, dracula.to)  // 라이트는 그대로
+        XCTAssertEqual(look.custom(.dark)?.background, HUDTheme.gruvbox.presetColors(.dark)?.background)
     }
 
     func testCustomColorsAreUsedAsIs() throws {
@@ -148,7 +161,7 @@ final class BlinkTests: XCTestCase {
         look.select(.custom)
         let custom = CustomColors(text: RGBA(hex: 0x112233), from: RGBA(hex: 0x445566), arrow: RGBA(hex: 0xaa0000), background: RGBA(hex: 0xffeedd, alpha: 0.7))
         look.setCustom(custom, for: .light)
-        XCTAssertEqual(look.colors(.light), HUDColors(background: custom.background, from: custom.from, arrow: custom.arrow, to: custom.text, blur: 0.7))
+        XCTAssertEqual(look.colors(.light), HUDColors(background: custom.background, from: custom.from, arrow: custom.arrow, to: custom.text, blur: 1))
         XCTAssertEqual(look.colors(.light, reduceTransparency: true).background.alpha, 1)
     }
 
@@ -158,10 +171,11 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(look.colors(.light).blur, 1)  // 프리셋은 흐림을 그대로 깐다
         look.select(.custom)
         var custom = try XCTUnwrap(look.custom(.light))
-        for alpha in [0.0, 0.4, 1.0] {
+        // 흐림 = min(1, 불투명도 ÷ 0.55). 기본 테마(0.55)·Dracula 계열(0.92)과 같은 모습이 나오고, 그 아래로 내리면 흐림도 옅어진다.
+        for (alpha, blur) in [(0.0, 0.0), (0.275, 0.5), (0.55, 1.0), (0.92, 1.0), (1.0, 1.0)] {
             custom.background = custom.background.withAlpha(alpha)
             look.setCustom(custom, for: .light)
-            XCTAssertEqual(look.colors(.light).blur, alpha)
+            XCTAssertEqual(look.colors(.light).blur, blur, accuracy: 0.0001, "\(alpha)")
             XCTAssertEqual(look.colors(.light).background.alpha, alpha)
         }
     }

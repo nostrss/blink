@@ -2241,66 +2241,66 @@
         }
       }
     },
-    "Reduce Transparency is on in Accessibility settings, so the background is shown opaque.": {
+    "Reduce Transparency is on in Accessibility, so the background is always shown opaque.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "„Transparenz reduzieren“ ist in den Bedienungshilfen aktiviert, daher wird der Hintergrund deckend angezeigt."
+            "value": "„Transparenz reduzieren“ ist in den Bedienungshilfen aktiviert, daher wird der Hintergrund immer deckend angezeigt."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reduce Transparency is on in Accessibility settings, so the background is shown opaque."
+            "value": "Reduce Transparency is on in Accessibility, so the background is always shown opaque."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "«Reducir transparencia» está activado en Accesibilidad, así que el fondo se muestra opaco."
+            "value": "«Reducir transparencia» está activado en Accesibilidad, así que el fondo siempre se muestra opaco."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "« Réduire la transparence » est activé dans Accessibilité, le fond s’affiche donc opaque."
+            "value": "« Réduire la transparence » est activé dans Accessibilité, le fond est donc toujours opaque."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "アクセシビリティの「透明度を下げる」がオンのため、背景は不透明で表示されます。"
+            "value": "アクセシビリティの「透明度を下げる」がオンのため、背景は常に不透明で表示されます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "손쉬운 사용에서 ‘투명도 줄이기’가 켜져 있어 배경이 불투명하게 보입니다."
+            "value": "손쉬운 사용의 ‘투명도 줄이기’가 켜져 있어 배경이 항상 불투명하게 표시됩니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "“Reduzir transparência” está ativado em Acessibilidade, então o fundo aparece opaco."
+            "value": "“Reduzir transparência” está ativado em Acessibilidade, então o fundo sempre aparece opaco."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "В Универсальном доступе включено «Уменьшение прозрачности», поэтому фон непрозрачный."
+            "value": "В Универсальном доступе включено «Уменьшение прозрачности», поэтому фон всегда непрозрачный."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "由于辅助功能中的“降低透明度”已打开，背景以不透明方式显示。"
+            "value": "由于辅助功能中的“降低透明度”已打开，背景始终以不透明方式显示。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "由於輔助使用中的「減少透明度」已開啟，背景會以不透明方式顯示。"
+            "value": "由於輔助使用中的「減少透明度」已開啟，背景會一律以不透明方式顯示。"
           }
         }
       }
@@ -3197,6 +3197,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "右上"
+          }
+        }
+      }
+    },
+    "Turn Off Reduce Transparency": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Transparenz reduzieren“ ausschalten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn Off Reduce Transparency"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactivar «Reducir transparencia»"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactiver « Réduire la transparence »"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「透明度を下げる」をオフにする"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "투명도 줄이기 끄기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desativar “Reduzir transparência”"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выключить уменьшение прозрачности"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭“降低透明度”"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關閉「減少透明度」"
           }
         }
       }

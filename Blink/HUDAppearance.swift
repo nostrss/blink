@@ -74,6 +74,10 @@ struct CustomColors: Codable, Equatable {
         (self.text, self.from, self.arrow, self.background) = (text, from, arrow, background)
     }
 
+    init(_ colors: HUDColors) {
+        self.init(text: colors.to, from: colors.from, arrow: colors.arrow, background: colors.background)
+    }
+
     // 예전에는 글자색과 배경색만 저장했다. 없으면 변경 전은 글자색을 흐리게, 화살표는 강조색으로 채운다.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -108,7 +112,7 @@ struct HUDAppearance: Codable, Equatable {
     var corners = Corners.standard
     var bold = false
     var showsFrom = true
-    // 사용자 지정을 처음 고를 때 채운다. 다른 테마로 바꿔도 남겨 둔다.
+    // 사용자 지정으로 바꿀 때 그때 쓰던 테마 색으로 채우고, 사용자 지정에 있는 동안 고친 값을 저장한다.
     var customLight: CustomColors?
     var customDark: CustomColors?
 
@@ -123,16 +127,14 @@ struct HUDAppearance: Codable, Equatable {
 
     var data: Data { (try? JSONEncoder().encode(self)) ?? Data() }
 
-    // 테마를 고른다. 사용자 지정을 처음 고르면 그때 보던 테마의 네 가지 색으로 라이트·다크를 채운다.
+    // 테마를 고른다.
     mutating func select(_ newTheme: HUDTheme) {
-        if newTheme == .custom, customLight == nil || customDark == nil {
+        // 프리셋에서 사용자 지정으로 바꾸면 그 프리셋의 라이트·다크 색을 그대로 이어받아, 바꾸는 순간 모습이 바뀌지 않는다.
+        // 이미 사용자 지정이면 지금 색을 그대로 두고, 저장된 색이 없으면 기본 테마에서 시작한다.
+        if newTheme == .custom {
             let base = theme == .custom ? HUDTheme.standard : theme
-            func seed(_ mode: HUDMode) -> CustomColors {
-                let colors = base.presetColors(mode)!
-                return CustomColors(text: colors.to, from: colors.from, arrow: colors.arrow, background: colors.background)
-            }
-            customLight = customLight ?? seed(.light)
-            customDark = customDark ?? seed(.dark)
+            if theme != .custom || customLight == nil { customLight = CustomColors(base.presetColors(.light)!) }
+            if theme != .custom || customDark == nil { customDark = CustomColors(base.presetColors(.dark)!) }
         }
         theme = newTheme
     }
@@ -147,8 +149,8 @@ struct HUDAppearance: Codable, Equatable {
     func colors(_ mode: HUDMode, reduceTransparency: Bool = false) -> HUDColors {
         var colors: HUDColors
         if theme == .custom, let custom = custom(mode) {
-            // 불투명도가 흐림까지 함께 조절해야 0%에서 판이 사라진다(흐림 재질은 그 자체로 회색 판으로 보인다).
-            colors = HUDColors(background: custom.background, from: custom.from, arrow: custom.arrow, to: custom.text, blur: custom.background.alpha)
+            // 흐림 = min(1, 불투명도 ÷ 0.55): 기본(0.55)·Dracula 계열(0.92) 이상에서는 프리셋처럼 흐림을 다 깔고, 그 아래로 내리면 흐림도 옅어진다.
+            colors = HUDColors(background: custom.background, from: custom.from, arrow: custom.arrow, to: custom.text, blur: min(1, custom.background.alpha / 0.55))
         } else {
             colors = (theme.presetColors(mode) ?? HUDTheme.standard.presetColors(mode))!
         }
