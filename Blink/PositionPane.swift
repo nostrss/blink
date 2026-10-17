@@ -77,14 +77,14 @@ final class PositionPane: NSStackView {
 
 // 화면을 줄여 그린 사각형. 위쪽 띠는 메뉴바로, HUD가 못 가는 영역이다.
 private final class MiniMonitor: NSView {
-    private static let menuBar: CGFloat = 8
+    private static let menuBar: CGFloat = 12
     private static let margin: CGFloat = 6  // space-4를 미니 모니터 비율로 줄인 여백
     private static let snap: CGFloat = 12
 
     var onChange: ((HUDPosition, _ done: Bool) -> Void)?
     var position = HUDPosition.center { didSet { needsLayout = true } }
 
-    private let menuBarStrip = Layer(fill: Tokens.surface)
+    private let menuBarStrip = MenuBarSkeleton()
     private let chip = HUDChip(style: HUDChip.mini)
     private var dots: [Dot] = []
     private var dragOffset: CGPoint?
@@ -225,21 +225,27 @@ private final class Dot: NSButton {
     override var focusRingMaskBounds: NSRect { bounds }
 }
 
-// 색 하나로 채운 사각형. updateLayer는 현재 외관으로 불리므로 라이트/다크를 따라간다.
-private final class Layer: NSView {
-    private let fill: NSColor
-
-    init(fill: NSColor) {
-        self.fill = fill
-        super.init(frame: .zero)
-        wantsLayer = true
-    }
-
-    required init?(coder: NSCoder) { fatalError() }
-
-    override var wantsUpdateLayer: Bool { true }
-
-    override func updateLayer() {
-        layer?.backgroundColor = fill.withAlphaComponent(0.8).cgColor
+// 미니 모니터 위쪽의 메뉴바. 글자·아이콘 없이 스켈레톤으로 그린다.
+// 왼쪽은 Apple 메뉴 자리 점과 앱 메뉴 막대 3개, 오른쪽은 상태 아이콘 점 2개와 시계 막대.
+// Apple 로고는 상표라 점으로 대신한다. draw는 현재 외관으로 불리므로 라이트/다크를 따라간다.
+private final class MenuBarSkeleton: NSView {
+    override func draw(_ dirtyRect: NSRect) {
+        Tokens.surface.withAlphaComponent(0.8).setFill()
+        bounds.fill()
+        Tokens.muted.setFill()
+        let mid = bounds.midY
+        func dot(_ x: CGFloat) { NSBezierPath(ovalIn: NSRect(x: x, y: mid - 2.5, width: 5, height: 5)).fill() }
+        func bar(_ x: CGFloat, _ width: CGFloat) {
+            NSBezierPath(roundedRect: NSRect(x: x, y: mid - 2, width: width, height: 4), xRadius: 2, yRadius: 2).fill()
+        }
+        // 왼쪽 끝에서 오른쪽으로
+        var x: CGFloat = 6
+        dot(x); x += 5 + 5
+        for width: CGFloat in [16, 12, 14] { bar(x, width); x += width + 5 }
+        // 오른쪽 끝에서 왼쪽으로
+        x = bounds.maxX - 6 - 22
+        bar(x, 22); x -= 5 + 5
+        dot(x); x -= 5 + 5
+        dot(x)
     }
 }
