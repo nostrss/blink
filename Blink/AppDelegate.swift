@@ -19,16 +19,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
     private var tracker = InputSourceTracker()
-    private var lastChange: (from: String, to: String)?
     private lazy var hud = HUD()
-    private lazy var settingsWindow = SettingsWindow(
-        onShowChanged: { [weak self] in self?.refreshShowState() },
-        preview: { [weak self] position in
-            guard let self else { return }
-            let names = self.sampleNames()
-            self.hud.show(from: names.from, to: names.to, at: position)
-        },
-        sampleNames: { [weak self] in self?.sampleNames() ?? (from: "", to: "") })
+    // 입력소스가 바뀔 때 열려 있는 창의 이름만 갱신하려고, 처음 열 때 만든다.
+    private var settingsWindow: SettingsWindow?
     private lazy var aboutWindow = AboutWindow()
 
     private var showOnSwitch: Bool { UserDefaults.standard.bool(forKey: Self.showOnSwitchKey) }
@@ -68,31 +61,54 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // 처음 실행하면 안내 창 대신 설정 창 '일반'을 연다.
         if !UserDefaults.standard.bool(forKey: Self.didShowWelcomeKey) {
             UserDefaults.standard.set(true, forKey: Self.didShowWelcomeKey)
-            settingsWindow.show()
+            openSettings()
         }
     }
 
     @objc private func inputSourceChanged() {
         guard let change = tracker.update(Self.currentInputSourceName()) else { return }
         NSLog("입력소스 변경: %@ → %@", change.from, change.to)
-        lastChange = change
         if showOnSwitch { hud.show(from: change.from, to: change.to) }
+        settingsWindow?.reloadNames()
     }
 
     private static func currentInputSourceName() -> String? {
-        guard let source = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue(),
-              let ptr = TISGetInputSourceProperty(source, kTISPropertyLocalizedName) else { return nil }
+        TISCopyCurrentKeyboardInputSource().flatMap { name(of: $0.takeRetainedValue()) }
+    }
+
+    // 키보드 설정에서 켜 둔, 고를 수 있는 입력소스 이름(입력기 자체가 아니라 그 안의 입력 방식). 읽기만 하므로 샌드박스에서도 쓸 수 있다.
+    private static func enabledInputSourceNames() -> [String] {
+        let filter = [kTISPropertyInputSourceCategory: kTISCategoryKeyboardInputSource,
+                      kTISPropertyInputSourceIsSelectCapable: true] as CFDictionary
+        guard let list = TISCreateInputSourceList(filter, false)?.takeRetainedValue() as? [TISInputSource] else { return [] }
+        var names: [String] = []
+        for name in list.compactMap(name(of:)) where !names.contains(name) { names.append(name) }
+        return names
+    }
+
+    private static func name(of source: TISInputSource) -> String? {
+        guard let ptr = TISGetInputSourceProperty(source, kTISPropertyLocalizedName) else { return nil }
         return Unmanaged<CFString>.fromOpaque(ptr).takeUnretainedValue() as String
     }
 
-    // 위치를 고를 때 보여 줄 이름: 직전 전환, 아직 없으면 현재 입력소스 이름.
-    private func sampleNames() -> (from: String, to: String) {
-        let current = tracker.last ?? "ABC"
-        return lastChange ?? (from: current, to: current)
+    // 위치를 고를 때 보여 줄 이름: 왼쪽은 현재, 오른쪽은 다음에 바뀔 입력소스(없으면 nil = "없음").
+    private func sampleNames() -> (from: String, to: String?) {
+        let current = Self.currentInputSourceName() ?? tracker.last ?? ""
+        return (current, InputSourceTracker.next(current: current, previous: tracker.previous, enabled: Self.enabledInputSourceNames()))
     }
 
     @objc private func openSettings() {
-        settingsWindow.show()
+        if settingsWindow == nil {
+            settingsWindow = SettingsWindow(
+                onShowChanged: { [weak self] in self?.refreshShowState() },
+                preview: { [weak self] position in
+                    guard let self else { return }
+                    let names = self.sampleNames()
+                    self.hud.show(from: names.from, to: names.to, at: position)
+                },
+                sampleNames: { [weak self] in self?.sampleNames() ?? (from: "", to: nil) })
+        }
+        settingsWindow?.show()
     }
 
     @objc private func openAbout() {
@@ -128,10 +144,20 @@ extension NSApplication {
 // 한 번 전환에 알림이 여러 번 올 수 있어 같은 이름은 무시한다.
 struct InputSourceTracker {
     private(set) var last: String?
+    // 지금 입력소스 바로 전에 쓰던 것. 시작한 뒤 아직 전환이 없으면 nil.
+    private(set) var previous: String?
 
     mutating func update(_ name: String?) -> (from: String, to: String)? {
         guard let name, name != last else { return nil }
-        defer { last = name }
+        defer { previous = last; last = name }
         return last.map { (from: $0, to: name) } ?? (from: "?", to: name)
+    }
+
+    // 다음에 바뀔 입력소스. ⌃Space 한 번이나 한/영 키는 직전에 쓰던 것으로 돌아가므로 그것을 먼저 고르고,
+    // 없거나 목록에서 빠졌으면 켜진 목록에서 현재가 아닌 첫 번째를 고른다. 바꿀 곳이 없으면 nil.
+    // enabled가 비어 있으면(목록을 못 읽음) 직전 것을 그대로 믿는다.
+    static func next(current: String, previous: String?, enabled: [String]) -> String? {
+        if let previous, previous != current, enabled.isEmpty || enabled.contains(previous) { return previous }
+        return enabled.first { $0 != current }
     }
 }

@@ -897,6 +897,70 @@
         }
       }
     },
+    "None": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguna"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "なし"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "없음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無"
+          }
+        }
+      }
+    },
     "Position": {
       "localizations": {
         "de": {
@@ -1213,6 +1277,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "顯示輸入法切換"
+          }
+        }
+      }
+    },
+    "There’s only one input source, so the HUD never appears. You can add more in System Settings > Keyboard > Input Sources.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es gibt nur eine Eingabequelle, daher erscheint kein HUD. Weitere kannst du unter Systemeinstellungen > Tastatur > Eingabequellen hinzufügen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There’s only one input source, so the HUD never appears. You can add more in System Settings > Keyboard > Input Sources."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo hay una fuente de entrada, así que el HUD no aparece. Puedes añadir más en Ajustes del Sistema > Teclado > Fuentes de entrada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il n’y a qu’une seule méthode de saisie, le HUD n’apparaît donc pas. Vous pouvez en ajouter dans Réglages Système > Clavier > Méthodes de saisie."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力ソースが1つだけなので、HUDは表示されません。システム設定 > キーボード > 入力ソースで追加できます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입력소스가 하나뿐이라 HUD가 뜨지 않습니다. 시스템 설정 > 키보드 > 입력 소스에서 추가할 수 있습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Há apenas uma fonte de entrada, então o HUD não aparece. Você pode adicionar outras em Ajustes do Sistema > Teclado > Fontes de Entrada."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Источник ввода только один, поэтому HUD не появляется. Добавить источники можно в Системных настройках > Клавиатура > Источники ввода."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有一个输入法，因此不会显示 HUD。可在“系统设置”>“键盘”>“输入法”中添加。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有一個輸入方式，因此不會顯示 HUD。可在「系統設定」>「鍵盤」>「輸入方式」中加入。"
           }
         }
       }

@@ -65,10 +65,12 @@ final class HUD {
         }
     }
 
-    // 설정 창의 미리보기는 아직 저장하지 않은 위치를 넘긴다.
-    func show(from: String, to: String, at position: HUDPosition = HUD.savedPosition) {
+    // 설정 창의 미리보기는 아직 저장하지 않은 위치를 넘긴다. to가 nil이면 바꿀 입력소스가 없다는 뜻으로 "없음"을 흐리게 쓴다.
+    func show(from: String, to: String?, at position: HUDPosition = HUD.savedPosition) {
         fromLabel.stringValue = from
-        toLabel.stringValue = to
+        toLabel.stringValue = to ?? String(localized: "None")
+        toLabel.font = to == nil ? .systemFont(ofSize: 20, weight: .medium) : .systemFont(ofSize: 28, weight: .semibold)  // hud-from / hud-to
+        toLabel.textColor = to == nil ? Tokens.muted : Tokens.hudInk
         // layer 색은 외관·손쉬운 사용 설정 변경을 따라가지 않으므로 표시할 때마다 다시 칠한다.
         // '투명도 줄이기'가 켜져 있으면 불투명 surface로 칠한다.
         let workspace = NSWorkspace.shared

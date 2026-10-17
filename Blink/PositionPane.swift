@@ -5,10 +5,11 @@ final class PositionPane: NSStackView {
     private let monitor = MiniMonitor()
     private let nameLabel = NSTextField(labelWithString: "")
     private let resetButton = NSButton(title: String(localized: "Reset to Default"), target: nil, action: nil)
+    private let oneSourceNote = NSTextField(wrappingLabelWithString: String(localized: "There’s only one input source, so the HUD never appears. You can add more in System Settings > Keyboard > Input Sources."))
     private let preview: (HUDPosition) -> Void
-    private let sampleNames: () -> (from: String, to: String)
+    private let sampleNames: () -> (from: String, to: String?)
 
-    init(preview: @escaping (HUDPosition) -> Void, sampleNames: @escaping () -> (from: String, to: String)) {
+    init(preview: @escaping (HUDPosition) -> Void, sampleNames: @escaping () -> (from: String, to: String?)) {
         self.preview = preview
         self.sampleNames = sampleNames
         super.init(frame: .zero)
@@ -25,26 +26,40 @@ final class PositionPane: NSStackView {
         caption.font = .systemFont(ofSize: 11)  // caption
         caption.textColor = Tokens.muted
 
+        oneSourceNote.font = .systemFont(ofSize: 11)  // caption
+        oneSourceNote.textColor = Tokens.muted
+
         orientation = .vertical
         alignment = .leading
         spacing = 8  // space-2
         edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)  // space-3
-        [monitor, foot, caption].forEach(addArrangedSubview)
+        [monitor, foot, caption, oneSourceNote].forEach(addArrangedSubview)
+        // 미니 모니터는 16:10을 지키며 내용 폭을 채운다. 창이 낮으면 높이에 맞춰 줄어든다(폭 채우기가 가장 약한 조건).
+        let fill = monitor.widthAnchor.constraint(equalTo: widthAnchor, constant: -32)
+        fill.priority = NSLayoutConstraint.Priority(490)  // 창 크기 유지(500)보다 약해야 창이 저절로 커지지 않는다
         NSLayoutConstraint.activate([
-            monitor.widthAnchor.constraint(equalToConstant: MiniMonitor.size.width),
-            monitor.heightAnchor.constraint(equalToConstant: MiniMonitor.size.height),
+            fill,
+            monitor.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor, constant: -32),
+            monitor.heightAnchor.constraint(equalTo: monitor.widthAnchor, multiplier: 10.0 / 16.0),
             foot.widthAnchor.constraint(equalTo: monitor.widthAnchor),
             caption.widthAnchor.constraint(equalTo: monitor.widthAnchor),
+            oneSourceNote.widthAnchor.constraint(equalTo: monitor.widthAnchor),
         ])
     }
 
     required init?(coder: NSCoder) { fatalError() }
 
-    // 창을 열 때마다 저장된 위치와 최근 이름으로 맞춘다.
+    // 창을 열 때마다 저장된 위치와 지금 이름으로 맞춘다.
     func reload() {
+        reloadNames()
+        show(HUD.savedPosition)
+    }
+
+    // 왼쪽은 현재 입력소스, 오른쪽은 다음에 바뀔 입력소스. 바꿀 곳이 없으면 "없음"과 안내를 보인다.
+    func reloadNames() {
         let names = sampleNames()
         monitor.setNames(from: names.from, to: names.to)
-        show(HUD.savedPosition)
+        oneSourceNote.isHidden = names.to != nil
     }
 
     private func moved(to position: HUDPosition, save: Bool) {
@@ -66,7 +81,6 @@ final class PositionPane: NSStackView {
 
 // 화면을 줄여 그린 사각형. 위쪽 띠는 메뉴바로, HUD가 못 가는 영역이다.
 private final class MiniMonitor: NSView {
-    static let size = CGSize(width: 408, height: 255)  // 16:10
     private static let menuBar: CGFloat = 8
     private static let margin: CGFloat = 6  // space-4를 미니 모니터 비율로 줄인 여백
     private static let snap: CGFloat = 12
@@ -105,7 +119,7 @@ private final class MiniMonitor: NSView {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    func setNames(from: String, to: String) {
+    func setNames(from: String, to: String?) {
         chip.set(from: from, to: to)
         needsLayout = true
     }
@@ -247,9 +261,11 @@ private final class Chip: NSView {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    func set(from: String, to: String) {
+    func set(from: String, to: String?) {
         self.from.stringValue = from
-        self.to.stringValue = to
+        self.to.stringValue = to ?? String(localized: "None")
+        self.to.font = .systemFont(ofSize: 11, weight: to == nil ? .regular : .semibold)
+        self.to.textColor = to == nil ? Tokens.muted : Tokens.hudInk
         size.width = min(max(stack.fittingSize.width, 72), 180)
     }
 

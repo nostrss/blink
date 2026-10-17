@@ -17,6 +17,36 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(tracker.update("ABC")?.from, "2-Set Korean")
     }
 
+    func testTrackerRemembersPreviousSource() {
+        var tracker = InputSourceTracker()
+        _ = tracker.update("ABC")
+        XCTAssertNil(tracker.previous)  // 시작 값은 전환이 아니다
+        _ = tracker.update("2-Set Korean")
+        XCTAssertEqual(tracker.previous, "ABC")
+        _ = tracker.update("2-Set Korean")  // 같은 이름 알림은 무시
+        XCTAssertEqual(tracker.previous, "ABC")
+        _ = tracker.update("Kana")
+        XCTAssertEqual(tracker.previous, "2-Set Korean")
+    }
+
+    // 미니 HUD 오른쪽: 직전 입력소스, 없으면 켜진 목록에서 현재가 아닌 첫 번째, 그것도 없으면 nil("없음").
+    func testNextSourceForPreview() {
+        let next = { InputSourceTracker.next(current: $0, previous: $1, enabled: $2) }
+        // 1개: 바꿀 곳이 없다
+        XCTAssertNil(next("ABC", nil, ["ABC"]))
+        // 2개: 다른 하나
+        XCTAssertEqual(next("ABC", nil, ["ABC", "2-Set Korean"]), "2-Set Korean")
+        // 3개 이상: 전환한 적이 없으면 목록 순서, 있으면 직전 것(⌃Space·한/영 키가 돌아가는 곳)
+        let three = ["ABC", "2-Set Korean", "Kana"]
+        XCTAssertEqual(next("Kana", nil, three), "ABC")
+        XCTAssertEqual(next("Kana", "2-Set Korean", three), "2-Set Korean")
+        // 직전 것이 목록에서 빠졌으면 목록에서 고른다
+        XCTAssertEqual(next("Kana", "Dvorak", three), "ABC")
+        // 목록을 못 읽었으면(빈 목록) 직전 것을 믿는다
+        XCTAssertEqual(next("Kana", "ABC", []), "ABC")
+        XCTAssertNil(next("ABC", "ABC", []))
+    }
+
     func testDurationSnapsToHalfSecondsWithinRange() {
         let cases: [(Double, Double)] = [(0.2, 0.5), (-1, 0.5), (0.5, 0.5), (1.2, 1.0), (1.3, 1.5), (2.75, 3.0), (5.0, 5.0), (7, 5.0)]
         for (input, expected) in cases {

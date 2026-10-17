@@ -18,7 +18,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     }
 
     private let window = ClosableWindow(contentRect: NSRect(x: 0, y: 0, width: 620, height: 440),
-                                        styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: true)
+                                        styleMask: [.titled, .closable, .resizable, .fullSizeContentView], backing: .buffered, defer: true)
     private let split = NSSplitViewController()
     private let sidebar = NSTableView()
     private let detail = NSView()
@@ -41,7 +41,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     // onShowChanged: '언어 전환 표시'를 바꾼 직후(메뉴바 아이콘 갱신용)
     // preview: 위치를 고르는 동안 실제 화면에 HUD를 띄운다. sampleNames: 미니 HUD와 미리보기에 쓸 이름
     init(onShowChanged: @escaping () -> Void, preview: @escaping (HUDPosition) -> Void,
-         sampleNames: @escaping () -> (from: String, to: String)) {
+         sampleNames: @escaping () -> (from: String, to: String?)) {
         self.onShowChanged = onShowChanged
         positionPane = PositionPane(preview: preview, sampleNames: sampleNames)
         super.init()
@@ -78,6 +78,10 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         window.toolbar = toolbar
         window.toolbarStyle = .unified
         window.setContentSize(NSSize(width: 620, height: 440))
+        // 이보다 작으면 도움말이 잘린다. 늘린 만큼은 내용 영역이 가져가고(사이드바는 180 고정), 마지막 크기·자리를 기억한다.
+        window.contentMinSize = NSSize(width: 620, height: 440)
+        if !window.setFrameUsingName("Settings") { window.center() }
+        window.setFrameAutosaveName("Settings")
 
         // 로그인 항목은 시스템 설정에서도 바뀌므로 창이 앞으로 올 때마다 다시 읽는다.
         NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: window, queue: .main) { [weak self] _ in
@@ -92,9 +96,13 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         loginSwitch.state = LoginItem.isEnabled ? .on : .off
         apply(UserDefaults.standard.double(forKey: HUD.durationKey))
         positionPane.reload()
-        if !window.isVisible { window.center() }
         NSApp.activateForWindow()
         window.makeKeyAndOrderFront(nil)
+    }
+
+    // 창이 열려 있는 동안 입력소스가 바뀌면 미니 HUD 이름을 맞춘다.
+    func reloadNames() {
+        positionPane.reloadNames()
     }
 
     private func select(_ pane: Pane) {
@@ -107,6 +115,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
             view.topAnchor.constraint(equalTo: detail.safeAreaLayoutGuide.topAnchor),
             view.leadingAnchor.constraint(equalTo: detail.leadingAnchor),
             view.trailingAnchor.constraint(equalTo: detail.trailingAnchor),
+            view.bottomAnchor.constraint(lessThanOrEqualTo: detail.bottomAnchor),
         ])
     }
 
