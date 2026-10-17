@@ -27,13 +27,16 @@ final class HUD {
         panel.level = .screenSaver
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
 
+        // 흐림, 덧칠 색, 글자를 나란히 쌓는다. 흐림만 따로 옅게 할 수 있어야 사용자 지정 불투명도가 판까지 조절한다.
+        let content = NSView()
         effect.material = .hudWindow
         effect.state = .active
-
         tint.wantsLayer = true
-        tint.frame = effect.bounds
-        tint.autoresizingMask = [.width, .height]
-        effect.addSubview(tint)
+        for view in [effect, tint] {
+            view.frame = content.bounds
+            view.autoresizingMask = [.width, .height]
+            content.addSubview(view)
+        }
 
         arrow.stringValue = "→"
         // 폭이 모자라면 '변경 전'만 말줄임하고 '변경 후'는 자르지 않는다.
@@ -42,14 +45,14 @@ final class HUD {
         toLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         stack.alignment = .centerY
         stack.translatesAutoresizingMaskIntoConstraints = false
-        effect.addSubview(stack)
+        content.addSubview(stack)
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: effect.leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: effect.trailingAnchor),
-            stack.topAnchor.constraint(equalTo: effect.topAnchor),
-            stack.bottomAnchor.constraint(equalTo: effect.bottomAnchor),
+            stack.leadingAnchor.constraint(equalTo: content.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: content.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: content.bottomAnchor),
         ])
-        panel.contentView = effect
+        panel.contentView = content
     }
 
     // 저장된 표시 위치. 기본값(가운데)은 AppDelegate가 register(defaults:)로 넣는다.
@@ -85,6 +88,7 @@ final class HUD {
         toLabel.font = to == nil ? fromFont : toFont
         toLabel.textColor = NSColor(to == nil ? colors.from : colors.to)
         tint.layer?.backgroundColor = NSColor(colors.background).cgColor
+        effect.alphaValue = colors.blur
         stack.spacing = look.scaled(8)  // space-2
         let (v, h) = (look.scaled(16), look.scaled(24))  // 위아래 space-3, 좌우 space-4
         stack.edgeInsets = NSEdgeInsets(top: v, left: h, bottom: v, right: h)

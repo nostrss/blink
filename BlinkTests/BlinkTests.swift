@@ -129,7 +129,9 @@ final class BlinkTests: XCTestCase {
         // 글자·배경뿐 아니라 변경 전·화살표 색도 가져온다(Dracula의 보라·분홍이 기본 파랑으로 바뀌지 않게).
         let dracula = try XCTUnwrap(HUDTheme.dracula.presetColors(.light))
         XCTAssertEqual(look.custom(.light), CustomColors(text: dracula.to, from: dracula.from, arrow: dracula.arrow, background: dracula.background))
-        XCTAssertEqual(look.colors(.light), dracula)
+        var seeded = dracula
+        seeded.blur = dracula.background.alpha  // 사용자 지정은 불투명도가 흐림도 조절한다
+        XCTAssertEqual(look.colors(.light), seeded)
         XCTAssertEqual(look.custom(.dark)?.text, dracula.to)
 
         var edited = try XCTUnwrap(look.custom(.dark))
@@ -146,8 +148,22 @@ final class BlinkTests: XCTestCase {
         look.select(.custom)
         let custom = CustomColors(text: RGBA(hex: 0x112233), from: RGBA(hex: 0x445566), arrow: RGBA(hex: 0xaa0000), background: RGBA(hex: 0xffeedd, alpha: 0.7))
         look.setCustom(custom, for: .light)
-        XCTAssertEqual(look.colors(.light), HUDColors(background: custom.background, from: custom.from, arrow: custom.arrow, to: custom.text))
+        XCTAssertEqual(look.colors(.light), HUDColors(background: custom.background, from: custom.from, arrow: custom.arrow, to: custom.text, blur: 0.7))
         XCTAssertEqual(look.colors(.light, reduceTransparency: true).background.alpha, 1)
+    }
+
+    // 사용자 지정의 배경 불투명도는 덧칠 색과 그 아래 흐림을 함께 조절한다. 0이면 판 없이 글자만 남는다.
+    func testCustomOpacityAlsoFadesBlur() throws {
+        var look = HUDAppearance()
+        XCTAssertEqual(look.colors(.light).blur, 1)  // 프리셋은 흐림을 그대로 깐다
+        look.select(.custom)
+        var custom = try XCTUnwrap(look.custom(.light))
+        for alpha in [0.0, 0.4, 1.0] {
+            custom.background = custom.background.withAlpha(alpha)
+            look.setCustom(custom, for: .light)
+            XCTAssertEqual(look.colors(.light).blur, alpha)
+            XCTAssertEqual(look.colors(.light).background.alpha, alpha)
+        }
     }
 
     // 예전에 저장한 사용자 지정(글자·배경만)도 읽는다. 변경 전은 글자색을 흐리게, 화살표는 강조색.
@@ -167,6 +183,8 @@ final class BlinkTests: XCTestCase {
         XCTAssertTrue(CustomColors(text: RGBA(hex: 0x777777), from: black, arrow: black, background: gray).isLowContrast)
         XCTAssertTrue(CustomColors(text: black, from: RGBA(hex: 0xeeeeee), arrow: black, background: white).isLowContrast)  // 변경 전 글자도 본다
         XCTAssertFalse(CustomColors(text: black, from: black, arrow: black, background: white).isLowContrast)
+        // 배경이 거의 투명하면 뒤 화면에 따라 글자가 묻힐 수 있다
+        XCTAssertTrue(CustomColors(text: black, from: black, arrow: black, background: white.withAlpha(0.2)).isLowContrast)
     }
 
     // 이름이 바뀌어 미니 HUD 크기가 달라지면 놓인 자리도 다시 잡아야 한다(설정 창이 열린 채 입력소스를 바꾼 경우).

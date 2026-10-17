@@ -32,12 +32,13 @@ struct RGBA: Codable, Equatable {
 
 enum HUDMode: CaseIterable { case light, dark }
 
-// HUD 한 번을 칠할 색. 배경의 알파가 불투명도다.
+// HUD 한 번을 칠할 색. 배경의 알파가 덧칠 색의 불투명도이고, blur는 그 아래 흐림 재질을 얼마나 보일지(0–1)다.
 struct HUDColors: Equatable {
     var background: RGBA
     var from: RGBA
     var arrow: RGBA
     var to: RGBA
+    var blur: Double = 1
 }
 
 enum HUDTheme: String, Codable, CaseIterable {
@@ -82,8 +83,9 @@ struct CustomColors: Codable, Equatable {
         arrow = try c.decodeIfPresent(RGBA.self, forKey: .arrow) ?? RGBA(hex: 0x0a66d6)
     }
 
-    // 변경 후·변경 전 글자와 배경의 대비가 3:1보다 낮으면 설정 창에 경고를 띄운다(막지는 않는다).
-    var isLowContrast: Bool { min(text.contrast(with: background), from.contrast(with: background)) < 3 }
+    // 변경 후·변경 전 글자와 배경의 대비가 3:1보다 낮거나, 배경이 거의 투명해(30% 미만) 뒤 화면에 글자가 묻힐 수 있으면
+    // 설정 창에 경고를 띄운다(막지는 않는다).
+    var isLowContrast: Bool { min(text.contrast(with: background), from.contrast(with: background)) < 3 || background.alpha < 0.3 }
 }
 
 // 설정 창 '모양'에서 정하는 HUD 모양. 기본값이 지금까지의 HUD 그대로다.
@@ -145,7 +147,8 @@ struct HUDAppearance: Codable, Equatable {
     func colors(_ mode: HUDMode, reduceTransparency: Bool = false) -> HUDColors {
         var colors: HUDColors
         if theme == .custom, let custom = custom(mode) {
-            colors = HUDColors(background: custom.background, from: custom.from, arrow: custom.arrow, to: custom.text)
+            // 불투명도가 흐림까지 함께 조절해야 0%에서 판이 사라진다(흐림 재질은 그 자체로 회색 판으로 보인다).
+            colors = HUDColors(background: custom.background, from: custom.from, arrow: custom.arrow, to: custom.text, blur: custom.background.alpha)
         } else {
             colors = (theme.presetColors(mode) ?? HUDTheme.standard.presetColors(mode))!
         }

@@ -21,6 +21,8 @@ final class HUDChip: NSView {
     static let preview = Style(fromSize: 12, toSize: 17, height: 40, padding: 13, gap: 5, minWidth: 0, maxWidth: nil, radius: 12)
 
     private let style: Style
+    private let effect = NSVisualEffectView()  // 실제 HUD처럼 흐림 위에 덧칠 색을 얹는다
+    private let tint = NSView()
     private let stack: NSStackView
     private let from = HUDChip.label()
     private let arrow = HUDChip.label()
@@ -41,6 +43,15 @@ final class HUDChip: NSView {
         layer?.shadowOpacity = 0.18
         layer?.shadowRadius = 4
         layer?.shadowOffset = CGSize(width: 0, height: -2)
+        effect.material = .hudWindow
+        effect.blendingMode = .withinWindow  // 설정 창 안에서 칸 배경을 흐린다
+        effect.state = .active
+        for view in [effect, tint] {
+            view.wantsLayer = true
+            view.layer?.masksToBounds = true
+            view.autoresizingMask = [.width, .height]
+            addSubview(view)
+        }
         arrow.stringValue = "→"
         from.lineBreakMode = .byTruncatingTail
         from.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
@@ -95,8 +106,10 @@ final class HUDChip: NSView {
             size = newSize
             superview?.needsLayout = true
         }
-        layer?.backgroundColor = NSColor(colors.background).cgColor
-        layer?.cornerRadius = look.cornerRadius(height: height, standard: style.radius)
+        let radius = look.cornerRadius(height: height, standard: style.radius)
+        tint.layer?.backgroundColor = NSColor(colors.background).cgColor
+        effect.alphaValue = colors.blur
+        for view in [effect, tint] { view.layer?.cornerRadius = radius }
     }
 
     private static func label() -> NSTextField {
