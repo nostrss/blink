@@ -110,3 +110,9 @@
 - [ ] 시스템 언어가 지원 언어가 아니면 영어로 나온다. (Claude)
 - [ ] 문구가 긴 언어(독일어·프랑스어·러시아어)에서 메뉴, 설정 창(일반·위치·모양, 내용 폭 440pt), 정보 창의 글자가 잘리거나 겹치지 않는다. (Claude 캡처 / 사용자)
 - [ ] 일본어·중국어 번역은 원어민이 한 번 검토했다. (사용자, 첫 출시 전)
+
+## 출시
+
+- [ ] 빌드된 앱의 `Info.plist`에 `LSApplicationCategoryType`(`public.app-category.utilities`)과 `ITSAppUsesNonExemptEncryption = NO`가 있고, 번들 `Contents/Resources`에 `PrivacyInfo.xcprivacy`가 들어 있다. (Claude)
+- [ ] Xcode Organizer에서 Archive의 Validate App이 통과한다. (사용자)
+- [ ] 업로드 후 App Store Connect에서 수출 규정 질문이 나오지 않고, 개인정보 매니페스트 관련 거절 메일이 오지 않는다. (사용자)
