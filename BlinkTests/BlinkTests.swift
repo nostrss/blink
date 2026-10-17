@@ -40,4 +40,22 @@ final class BlinkTests: XCTestCase {
         // '변경 후'만으로 480pt를 넘으면 '변경 전'을 "…"만 남기고 넓힌다
         XCTAssertEqual(HUD.panelWidth(fitting: 700, from: 100, ellipsis: 20), 620)
     }
+
+    // 지원 언어 10개가 앱에 들어 있고, 각 언어가 영어와 같은 문자열을 빠짐없이 번역했는지 본다.
+    func testEveryLanguageTranslatesEveryString() throws {
+        let languages = ["en", "ko", "ja", "zh-Hans", "zh-Hant", "ru", "de", "fr", "es", "pt-BR"]
+        func strings(_ language: String) -> [String: String]? {
+            Bundle.main.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: language)
+                .flatMap { NSDictionary(contentsOf: $0) as? [String: String] }
+        }
+        let english = try XCTUnwrap(strings("en"))
+        XCTAssertFalse(english.isEmpty)
+        for language in languages {
+            let translated = try XCTUnwrap(strings(language), language)
+            XCTAssertEqual(Set(translated.keys), Set(english.keys), language)
+            XCTAssertFalse(translated.values.contains(where: \.isEmpty), language)
+        }
+        // 번역 대신 영어 원문이 들어가지 않았는지 하나만 확인한다.
+        XCTAssertEqual(strings("ko")?["About Blink"], "Blink 정보")
+    }
 }

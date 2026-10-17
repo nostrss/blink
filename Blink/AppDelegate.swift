@@ -16,8 +16,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let didShowWelcomeKey = "didShowWelcome"
 
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-    private let showItem = NSMenuItem(title: "언어 전환 표시", action: #selector(toggleShowOnSwitch), keyEquivalent: "")
-    private let loginItem = NSMenuItem(title: "로그인 시 실행", action: #selector(toggleLoginItem), keyEquivalent: "")
+    private let showItem = NSMenuItem(title: String(localized: "Show Input Switch"), action: #selector(toggleShowOnSwitch), keyEquivalent: "")
+    private let loginItem = NSMenuItem(title: String(localized: "Launch at Login"), action: #selector(toggleLoginItem), keyEquivalent: "")
 
     private var tracker = InputSourceTracker()
     private lazy var hud = HUD()
@@ -39,14 +39,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         let menu = NSMenu()
         menu.delegate = self
-        let settingsItem = NSMenuItem(title: "설정…", action: #selector(openSettings), keyEquivalent: ",")
-        let aboutItem = NSMenuItem(title: "정보…", action: #selector(openAbout), keyEquivalent: "")
+        let settingsItem = NSMenuItem(title: String(localized: "Settings…"), action: #selector(openSettings), keyEquivalent: ",")
+        let aboutItem = NSMenuItem(title: String(localized: "About Blink"), action: #selector(openAbout), keyEquivalent: "")
         for item in [showItem, loginItem, settingsItem, aboutItem] {
             item.target = self
             menu.addItem(item)
         }
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Blink 종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: String(localized: "Quit Blink"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         statusItem.menu = menu
 
         refreshShowState()

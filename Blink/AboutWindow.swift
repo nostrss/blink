@@ -1,6 +1,6 @@
 import AppKit
 
-// 메뉴 "정보…"와 첫 실행 때 여는 창. 무엇을 하는 앱인지, 지금 켜져 있는지, 어디서 끄는지만 알려 준다.
+// 메뉴 "Blink 정보"와 첫 실행 때 여는 창. 무엇을 하는 앱인지, 지금 켜져 있는지, 어디서 끄는지만 알려 준다.
 final class AboutWindow: NSObject {
     private let window = EscClosableWindow(contentRect: .zero, styleMask: [.titled, .closable], backing: .buffered, defer: true)
 
@@ -30,23 +30,23 @@ final class AboutWindow: NSObject {
     private func makeContent(firstLaunch: Bool) -> NSView {
         let isOn = UserDefaults.standard.bool(forKey: AppDelegate.showOnSwitchKey)
 
-        let title = Self.label(firstLaunch ? "Blink에 오신 것을 환영합니다" : "Blink", size: 15, weight: .semibold, color: Tokens.ink)  // title
-        let summary = Self.label("입력소스가 바뀌면 화면 중앙에 '변경 전 → 변경 후'를 잠깐 보여 줍니다.", color: Tokens.ink)
+        let title = Self.label(firstLaunch ? String(localized: "Welcome to Blink") : "Blink", size: 15, weight: .semibold, color: Tokens.ink)  // title
+        let summary = Self.label(String(localized: "When your input source changes, Blink briefly shows “before → after” in the center of the screen."), color: Tokens.ink)
         let state = Self.stateCard(isOn: isOn)
-        let howTo = Self.label("메뉴바의 •→ 아이콘에서 끄거나 켤 수 있습니다.", color: Tokens.muted)
+        let howTo = Self.label(String(localized: "Turn it on or off from the •→ icon in the menu bar."), color: Tokens.muted)
 
         var rows: [NSView] = [title, summary, state, howTo]
         if firstLaunch {
             // 기본은 체크 해제. 사용자가 체크해야 로그인 항목에 등록한다.
-            let checkbox = NSButton(checkboxWithTitle: "로그인 시 자동 실행", target: self, action: #selector(toggleLoginItem))
+            let checkbox = NSButton(checkboxWithTitle: String(localized: "Launch automatically at login"), target: self, action: #selector(toggleLoginItem))
             checkbox.font = .systemFont(ofSize: 13)
             checkbox.state = LoginItem.isEnabled ? .on : .off
             rows.append(checkbox)
         }
 
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
-        let versionLabel = Self.label("버전 \(version)", size: 11, color: Tokens.muted)  // caption
-        let button = NSButton(title: firstLaunch ? "시작하기" : "확인", target: self, action: #selector(close))
+        let versionLabel = Self.label(String(localized: "Version \(version)"), size: 11, color: Tokens.muted)  // caption
+        let button = NSButton(title: firstLaunch ? String(localized: "Get Started") : String(localized: "OK"), target: self, action: #selector(close))
         button.keyEquivalent = "\r"  // 기본 버튼: 시스템 강조색, Return으로 닫힘
         let spacer = NSView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -76,7 +76,7 @@ final class AboutWindow: NSObject {
         dot.widthAnchor.constraint(equalToConstant: 8).isActive = true
         dot.heightAnchor.constraint(equalToConstant: 8).isActive = true
 
-        let text = label(isOn ? "언어 전환 표시 켜짐" : "언어 전환 표시 꺼짐", color: Tokens.ink)
+        let text = label(isOn ? String(localized: "Show Input Switch: On") : String(localized: "Show Input Switch: Off"), color: Tokens.ink)
         let row = NSStackView(views: [dot, text])
         row.spacing = 8  // space-2
         row.translatesAutoresizingMaskIntoConstraints = false

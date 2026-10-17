@@ -18,12 +18,12 @@ final class SettingsWindow: NSObject {
 
     override init() {
         super.init()
-        window.title = "설정"
+        window.title = String(localized: "Settings")
         window.isReleasedWhenClosed = false
         window.backgroundColor = Tokens.surface
 
         let body = NSFont.systemFont(ofSize: 13)  // body
-        let label = NSTextField(labelWithString: "표시 시간")
+        let label = NSTextField(labelWithString: String(localized: "Display Time"))
         label.font = body
         label.textColor = Tokens.ink
 
@@ -41,11 +41,11 @@ final class SettingsWindow: NSObject {
         stepper.target = self
         stepper.action = #selector(stepperChanged)
 
-        let unit = NSTextField(labelWithString: "초")
+        let unit = NSTextField(labelWithString: String(localized: "sec"))
         unit.font = body
         unit.textColor = Tokens.ink
 
-        let caption = NSTextField(wrappingLabelWithString: "0.5–5.0초, 0.5초 단위. 사라지는 0.3초는 따로 더해집니다.")
+        let caption = NSTextField(wrappingLabelWithString: String(localized: "0.5–5.0 seconds, in 0.5-second steps. The 0.3-second fade-out is added on top."))
         caption.font = .systemFont(ofSize: 11)  // caption
         caption.textColor = Tokens.muted
 
