@@ -23,6 +23,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Bli
 ## 제약
 
 - Mac App Store로만 배포하므로 App Sandbox는 항상 켠다. 샌드박스에서 막히는 API는 쓰지 않는다. 이유는 [docs/adr/0001-app-sandbox-from-start.md](docs/adr/0001-app-sandbox-from-start.md) 참고.
+- 커밋은 항상 사용자의 확인을 받은 뒤에 한다. 작업이 끝나도 바로 커밋하지 말고, 무엇을 커밋할지 보여 주고 승인을 기다린다. 한 번 승인받았다고 다음 커밋까지 승인된 것으로 보지 않는다.
 
 ## 디자인 시스템
 
