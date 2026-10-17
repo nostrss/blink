@@ -40,6 +40,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Bli
 - 코드를 바꿀 때마다 단위 테스트를 돌린다.
 - 영역 코드를 바꿨으면 체크리스트에서 그 영역 항목만 확인한다. Claude 표시 항목은 직접 확인하고, 사용자 표시 항목은 확인을 요청한다. 매 작업마다 전체를 돌리지 않는다.
 - App Store 제출 전(첫 출시와 업데이트마다)에는 전체를 확인한다.
+- 기능을 추가·삭제·변경하면 같은 작업 안에서 `docs/CHECKLIST.md`도 고친다. 새 기능은 확인 항목과 확인 주체(Claude/사용자/테스트)를 추가하고, 없어진 기능의 항목은 지우고, 동작이 바뀐 항목은 문구를 맞춘다.
 
 ## 디자인 시스템
 
