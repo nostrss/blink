@@ -69,7 +69,7 @@ final class SettingsWindow: NSObject {
     func show() {
         apply(UserDefaults.standard.double(forKey: HUD.durationKey))
         window.center()
-        NSApp.activate(ignoringOtherApps: true)  // LSUIElement 앱이라 직접 앞으로 가져온다.
+        NSApp.activateForWindow()
         window.makeKeyAndOrderFront(nil)
     }
 

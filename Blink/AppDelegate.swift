@@ -1,8 +1,9 @@
 import AppKit
 import Carbon
+import ServiceManagement
 
 @main
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MainMenu nib이 없으므로 delegate를 직접 연결한다.
     static func main() {
         let app = NSApplication.shared
@@ -11,14 +12,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         app.run()
     }
 
-    private static let showOnSwitchKey = "showOnSwitch"
+    static let showOnSwitchKey = "showOnSwitch"
+    private static let didShowWelcomeKey = "didShowWelcome"
 
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let showItem = NSMenuItem(title: "언어 전환 표시", action: #selector(toggleShowOnSwitch), keyEquivalent: "")
+    private let loginItem = NSMenuItem(title: "로그인 시 실행", action: #selector(toggleLoginItem), keyEquivalent: "")
 
     private var lastSourceName: String?
     private lazy var hud = HUD()
     private lazy var settingsWindow = SettingsWindow()
+    private lazy var aboutWindow = AboutWindow()
 
     private var showOnSwitch: Bool {
         get { UserDefaults.standard.bool(forKey: Self.showOnSwitchKey) }
@@ -33,15 +37,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         image?.accessibilityDescription = "Blink"
         statusItem.button?.image = image
 
-        showItem.target = self
         let menu = NSMenu()
-        menu.addItem(showItem)
-        // action이 없는 항목은 NSMenu가 비활성으로 표시한다. 로그인 항목과 정보는 5단계에서 연결.
-        menu.addItem(NSMenuItem(title: "로그인 시 실행", action: nil, keyEquivalent: ""))
+        menu.delegate = self
         let settingsItem = NSMenuItem(title: "설정…", action: #selector(openSettings), keyEquivalent: ",")
-        settingsItem.target = self
-        menu.addItem(settingsItem)
-        menu.addItem(NSMenuItem(title: "정보…", action: nil, keyEquivalent: ""))
+        let aboutItem = NSMenuItem(title: "정보…", action: #selector(openAbout), keyEquivalent: "")
+        for item in [showItem, loginItem, settingsItem, aboutItem] {
+            item.target = self
+            menu.addItem(item)
+        }
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Blink 종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         statusItem.menu = menu
@@ -56,6 +59,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil,
             suspensionBehavior: .deliverImmediately
         )
+
+        if !UserDefaults.standard.bool(forKey: Self.didShowWelcomeKey) {
+            UserDefaults.standard.set(true, forKey: Self.didShowWelcomeKey)
+            aboutWindow.show(firstLaunch: true)
+        }
+    }
+
+    // 로그인 항목은 시스템 설정에서도 끌 수 있으므로 저장하지 않고 메뉴를 열 때마다 읽는다.
+    func menuWillOpen(_ menu: NSMenu) {
+        loginItem.state = LoginItem.isEnabled ? .on : .off
     }
 
     // 한 번 전환에 알림이 여러 번 올 수 있어 직전 이름과 같으면 무시한다.
@@ -76,6 +89,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsWindow.show()
     }
 
+    @objc private func openAbout() {
+        aboutWindow.show(firstLaunch: false)
+    }
+
+    @objc private func toggleLoginItem() {
+        LoginItem.set(!LoginItem.isEnabled)
+    }
+
     @objc private func toggleShowOnSwitch() {
         showOnSwitch.toggle()
         refreshShowState()
@@ -84,5 +105,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func refreshShowState() {
         showItem.state = showOnSwitch ? .on : .off
         statusItem.button?.appearsDisabled = !showOnSwitch
+    }
+}
+
+// 사용자가 켤 때만 등록한다(기본 꺼짐). App Store 심사 가이드라인 2.4.5(iii)가 동의 없는 자동 실행을 금지한다.
+enum LoginItem {
+    static var isEnabled: Bool { SMAppService.mainApp.status == .enabled }
+
+    static func set(_ enabled: Bool) {
+        do {
+            if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
+        } catch {
+            NSLog("로그인 항목 %@ 실패: %@", enabled ? "등록" : "해제", error.localizedDescription)
+        }
+    }
+}
+
+extension NSApplication {
+    // LSUIElement 앱이라 창을 열 때 직접 앞으로 가져온다. macOS 14부터 activate(ignoringOtherApps:)는 무시된다.
+    func activateForWindow() {
+        if #available(macOS 14, *) { activate() } else { activate(ignoringOtherApps: true) }
     }
 }
