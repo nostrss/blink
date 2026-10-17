@@ -41,6 +41,41 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(HUD.panelWidth(fitting: 700, from: 100, ellipsis: 20), 620)
     }
 
+    // 메뉴바(위)와 Dock(아래 80pt)을 뺀 1440×900 화면의 visibleFrame, 여백 24pt, HUD 300×66.
+    private let visible = CGRect(x: 0, y: 80, width: 1440, height: 795)
+    private let hud = CGSize(width: 300, height: 66)
+
+    func testPositionClampsAndNamesPresets() {
+        XCTAssertEqual(HUDPosition(x: 2, y: -1), HUDPosition(x: 1, y: 0))
+        XCTAssertEqual(HUDPosition(x: .nan, y: .infinity), .center)
+        XCTAssertEqual(HUDPosition.presets.count, 9)
+        XCTAssertEqual(HUDPosition.center.presetIndex, 4)
+        XCTAssertEqual(HUDPosition(x: 1, y: 0).presetIndex, 2)  // 오른쪽 위
+        XCTAssertNil(HUDPosition(x: 0.3, y: 0.5).presetIndex)  // 직접 지정
+    }
+
+    func testOriginKeepsHUDInsideVisibleFrame() {
+        // 왼쪽 위: 여백에 붙는다(y는 위로 증가하므로 위쪽 가장자리 = maxY - 여백 - 높이).
+        XCTAssertEqual(HUDPosition(x: 0, y: 0).origin(size: hud, in: visible, margin: 24), CGPoint(x: 24, y: 785))
+        XCTAssertEqual(HUDPosition.center.origin(size: hud, in: visible, margin: 24), CGPoint(x: 570, y: 445))
+        // 오른쪽 아래: Dock 위 여백에 붙는다.
+        XCTAssertEqual(HUDPosition(x: 1, y: 1).origin(size: hud, in: visible, margin: 24), CGPoint(x: 1116, y: 104))
+        // HUD가 영역보다 넓으면 위치와 상관없이 가로는 가운데.
+        let wide = CGSize(width: 1500, height: 66)
+        XCTAssertEqual(HUDPosition(x: 0, y: 0).origin(size: wide, in: visible, margin: 24).x, -30)
+    }
+
+    func testDraggedPositionSnapsToNearPreset() {
+        func drag(_ x: CGFloat, _ y: CGFloat) -> HUDPosition {
+            HUDPosition.dragged(to: CGPoint(x: x, y: y), size: hud, in: visible, margin: 24, snap: 12)
+        }
+        XCTAssertEqual(drag(1110, 780), HUDPosition(x: 1, y: 0))  // 오른쪽 위에서 8pt 떨어짐 → 붙음
+        XCTAssertEqual(drag(-100, 2000), HUDPosition(x: 0, y: 0))  // 영역 밖 → 가장자리로
+        let free = drag(800, 600)  // 프리셋에서 멀면 직접 지정
+        XCTAssertNil(free.presetIndex)
+        XCTAssertEqual(free.origin(size: hud, in: visible, margin: 24), CGPoint(x: 800, y: 600))
+    }
+
     // 지원 언어 10개가 앱에 들어 있고, 각 언어가 영어와 같은 문자열을 빠짐없이 번역했는지 본다.
     func testEveryLanguageTranslatesEveryString() throws {
         let languages = ["en", "ko", "ja", "zh-Hans", "zh-Hant", "ru", "de", "fr", "es", "pt-BR"]

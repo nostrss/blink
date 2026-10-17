@@ -31,12 +31,12 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Bli
 ## 테스트
 
 - 기능을 추가하거나 로직을 바꿀 때는 항상 테스트 코드를 같이 작성한다. 버그를 고칠 때는 그 버그를 재현하는 테스트를 먼저 쓴다.
-- 테스트하기 쉬운 구조로 설계한다. 판단·계산·상태 변화(무엇을 보여 줄지, 값을 어떻게 고칠지, 크기를 얼마로 할지)는 AppKit과 시스템 API(TIS, `SMAppService`, `UserDefaults`, `NSPanel`)에 의존하지 않는 순수 함수나 값 타입으로 분리하고, 입력을 값으로 받아 결과를 값으로 돌려주게 한다. AppKit 쪽은 그 결과를 화면과 시스템에 반영하는 얇은 층으로 둔다. 지금 예시: `InputSourceTracker`, `SettingsWindow.duration(from:current:)`·`snapped(_:)`, `HUD.panelWidth(fitting:from:ellipsis:)`.
+- 테스트하기 쉬운 구조로 설계한다. 판단·계산·상태 변화(무엇을 보여 줄지, 값을 어떻게 고칠지, 크기를 얼마로 할지)는 AppKit과 시스템 API(TIS, `SMAppService`, `UserDefaults`, `NSPanel`)에 의존하지 않는 순수 함수나 값 타입으로 분리하고, 입력을 값으로 받아 결과를 값으로 돌려주게 한다. AppKit 쪽은 그 결과를 화면과 시스템에 반영하는 얇은 층으로 둔다. 지금 예시: `InputSourceTracker`, `SettingsWindow.duration(from:current:)`·`snapped(_:)`, `HUD.panelWidth(fitting:from:ellipsis:)`, `HUDPosition`(`origin(size:in:margin:)`·`dragged(to:size:in:margin:snap:)`).
 - 화면, 시스템 설정, 하드웨어처럼 단위 테스트로 확인할 수 없는 동작은 [docs/CHECKLIST.md](docs/CHECKLIST.md)에 항목을 추가한다.
 
 ## 검증
 
-[docs/CHECKLIST.md](docs/CHECKLIST.md)에 영역별(입력소스 감지, HUD, 설정 창, 메뉴·로그인 항목, 정보·첫 실행 창) 확인 항목이 있다.
+[docs/CHECKLIST.md](docs/CHECKLIST.md)에 영역별(입력소스 감지, HUD, 설정 창, 메뉴·로그인 항목, 정보 창·첫 실행, 현지화) 확인 항목이 있다.
 
 - 코드를 바꿀 때마다 단위 테스트를 돌린다.
 - 영역 코드를 바꿨으면 체크리스트에서 그 영역 항목만 확인한다. Claude 표시 항목은 직접 확인하고, 사용자 표시 항목은 확인을 요청한다. 매 작업마다 전체를 돌리지 않는다.

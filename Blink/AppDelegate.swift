@@ -3,7 +3,7 @@ import Carbon
 import ServiceManagement
 
 @main
-final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate {
     // MainMenu nib이 없으므로 delegate를 직접 연결한다.
     static func main() {
         let app = NSApplication.shared
@@ -13,35 +13,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     static let showOnSwitchKey = "showOnSwitch"
+    // 첫 실행 여부. 예전 안내 창 시절의 키 이름을 그대로 쓴다.
     private static let didShowWelcomeKey = "didShowWelcome"
 
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-    private let showItem = NSMenuItem(title: String(localized: "Show Input Switch"), action: #selector(toggleShowOnSwitch), keyEquivalent: "")
-    private let loginItem = NSMenuItem(title: String(localized: "Launch at Login"), action: #selector(toggleLoginItem), keyEquivalent: "")
 
     private var tracker = InputSourceTracker()
+    private var lastChange: (from: String, to: String)?
     private lazy var hud = HUD()
-    private lazy var settingsWindow = SettingsWindow()
+    private lazy var settingsWindow = SettingsWindow(
+        onShowChanged: { [weak self] in self?.refreshShowState() },
+        preview: { [weak self] position in
+            guard let self else { return }
+            let names = self.sampleNames()
+            self.hud.show(from: names.from, to: names.to, at: position)
+        },
+        sampleNames: { [weak self] in self?.sampleNames() ?? (from: "", to: "") })
     private lazy var aboutWindow = AboutWindow()
 
-    private var showOnSwitch: Bool {
-        get { UserDefaults.standard.bool(forKey: Self.showOnSwitchKey) }
-        set { UserDefaults.standard.set(newValue, forKey: Self.showOnSwitchKey) }
-    }
+    private var showOnSwitch: Bool { UserDefaults.standard.bool(forKey: Self.showOnSwitchKey) }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        UserDefaults.standard.register(defaults: [Self.showOnSwitchKey: true, HUD.durationKey: 1.0])
+        UserDefaults.standard.register(defaults: [Self.showOnSwitchKey: true, HUD.durationKey: 1.0,
+                                                  HUD.positionXKey: 0.5, HUD.positionYKey: 0.5])
 
         let image = NSImage(named: "MenuBarIcon")
         image?.isTemplate = true
         image?.accessibilityDescription = "Blink"
         statusItem.button?.image = image
 
+        // 켜고 끄는 설정은 메뉴가 아니라 설정 창 '일반'에 둔다.
         let menu = NSMenu()
-        menu.delegate = self
         let settingsItem = NSMenuItem(title: String(localized: "Settings…"), action: #selector(openSettings), keyEquivalent: ",")
         let aboutItem = NSMenuItem(title: String(localized: "About Blink"), action: #selector(openAbout), keyEquivalent: "")
-        for item in [showItem, loginItem, settingsItem, aboutItem] {
+        for item in [settingsItem, aboutItem] {
             item.target = self
             menu.addItem(item)
         }
@@ -60,20 +65,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             suspensionBehavior: .deliverImmediately
         )
 
+        // 처음 실행하면 안내 창 대신 설정 창 '일반'을 연다.
         if !UserDefaults.standard.bool(forKey: Self.didShowWelcomeKey) {
             UserDefaults.standard.set(true, forKey: Self.didShowWelcomeKey)
-            aboutWindow.show(firstLaunch: true)
+            settingsWindow.show()
         }
-    }
-
-    // 로그인 항목은 시스템 설정에서도 끌 수 있으므로 저장하지 않고 메뉴를 열 때마다 읽는다.
-    func menuWillOpen(_ menu: NSMenu) {
-        loginItem.state = LoginItem.isEnabled ? .on : .off
     }
 
     @objc private func inputSourceChanged() {
         guard let change = tracker.update(Self.currentInputSourceName()) else { return }
         NSLog("입력소스 변경: %@ → %@", change.from, change.to)
+        lastChange = change
         if showOnSwitch { hud.show(from: change.from, to: change.to) }
     }
 
@@ -83,25 +85,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         return Unmanaged<CFString>.fromOpaque(ptr).takeUnretainedValue() as String
     }
 
+    // 위치를 고를 때 보여 줄 이름: 직전 전환, 아직 없으면 현재 입력소스 이름.
+    private func sampleNames() -> (from: String, to: String) {
+        let current = tracker.last ?? "ABC"
+        return lastChange ?? (from: current, to: current)
+    }
+
     @objc private func openSettings() {
         settingsWindow.show()
     }
 
     @objc private func openAbout() {
-        aboutWindow.show(firstLaunch: false)
-    }
-
-    @objc private func toggleLoginItem() {
-        LoginItem.set(!LoginItem.isEnabled)
-    }
-
-    @objc private func toggleShowOnSwitch() {
-        showOnSwitch.toggle()
-        refreshShowState()
+        aboutWindow.show()
     }
 
     private func refreshShowState() {
-        showItem.state = showOnSwitch ? .on : .off
         statusItem.button?.appearsDisabled = !showOnSwitch
     }
 }

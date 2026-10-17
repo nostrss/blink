@@ -1,8 +1,11 @@
 import AppKit
 
-// "변경 전 → 변경 후"를 마우스가 있는 화면 중앙에 잠깐 띄우는 오버레이. 패널 하나를 재사용한다.
+// "변경 전 → 변경 후"를 마우스가 있는 화면의 표시 위치에 잠깐 띄우는 오버레이. 패널 하나를 재사용한다.
 final class HUD {
     static let durationKey = "hudDuration"
+    static let positionXKey = "hudPositionX"
+    static let positionYKey = "hudPositionY"
+    private static let screenMargin: CGFloat = 24  // space-4
     private static let fadeDuration = 0.3
     private static let maxWidth: CGFloat = 480
 
@@ -53,7 +56,17 @@ final class HUD {
         panel.contentView = effect
     }
 
-    func show(from: String, to: String) {
+    // 저장된 표시 위치. 기본값(가운데)은 AppDelegate가 register(defaults:)로 넣는다.
+    static var savedPosition: HUDPosition {
+        get { HUDPosition(x: UserDefaults.standard.double(forKey: positionXKey), y: UserDefaults.standard.double(forKey: positionYKey)) }
+        set {
+            UserDefaults.standard.set(newValue.x, forKey: positionXKey)
+            UserDefaults.standard.set(newValue.y, forKey: positionYKey)
+        }
+    }
+
+    // 설정 창의 미리보기는 아직 저장하지 않은 위치를 넘긴다.
+    func show(from: String, to: String, at position: HUDPosition = HUD.savedPosition) {
         fromLabel.stringValue = from
         toLabel.stringValue = to
         // layer 색은 외관·손쉬운 사용 설정 변경을 따라가지 않으므로 표시할 때마다 다시 칠한다.
@@ -69,9 +82,9 @@ final class HUD {
         size.width = Self.panelWidth(fitting: size.width, from: fromLabel.fittingSize.width, ellipsis: ellipsis)
         let mouse = NSEvent.mouseLocation
         let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
-        if let frame = screen?.frame {
-            panel.setFrame(NSRect(x: frame.midX - size.width / 2, y: frame.midY - size.height / 2,
-                                  width: size.width, height: size.height), display: true)
+        // 화면은 frame으로 고르고, 자리는 메뉴바·Dock을 뺀 visibleFrame 안에서 정한다.
+        if let frame = screen?.visibleFrame {
+            panel.setFrame(NSRect(origin: position.origin(size: size, in: frame, margin: Self.screenMargin), size: size), display: true)
         }
 
         panel.invalidateShadow()  // 그림자를 둥근 모양에 맞춘다.

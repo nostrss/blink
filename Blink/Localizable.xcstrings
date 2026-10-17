@@ -1,66 +1,66 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "0.5–5.0 seconds, in 0.5-second steps. The 0.3-second fade-out is added on top.": {
+    "0.5–5.0 seconds, in 0.5-second steps.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "0,5–5,0 s in Schritten von 0,5 s. Das Ausblenden (0,3 s) kommt hinzu."
+            "value": "0,5–5,0 s in Schritten von 0,5 s."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "0.5–5.0 seconds, in 0.5-second steps. The 0.3-second fade-out is added on top."
+            "value": "0.5–5.0 seconds, in 0.5-second steps."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "De 0,5 a 5,0 s, en intervalos de 0,5 s. El fundido de 0,3 s se suma aparte."
+            "value": "De 0,5 a 5,0 s, en intervalos de 0,5 s."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "0,5 à 5,0 s, par pas de 0,5 s. Le fondu de 0,3 s s’y ajoute."
+            "value": "0,5 à 5,0 s, par pas de 0,5 s."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "0.5〜5.0秒、0.5秒単位。消えるまでの0.3秒は別に加算されます。"
+            "value": "0.5〜5.0秒、0.5秒単位。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "0.5–5.0초, 0.5초 단위. 사라지는 0.3초는 따로 더해집니다."
+            "value": "0.5–5.0초, 0.5초 단위."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "De 0,5 a 5,0 s, em intervalos de 0,5 s. O esmaecimento de 0,3 s é somado à parte."
+            "value": "De 0,5 a 5,0 s, em intervalos de 0,5 s."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "0,5–5,0 с, шаг 0,5 с. Плавное исчезновение (0,3 с) добавляется отдельно."
+            "value": "0,5–5,0 с, шаг 0,5 с."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "0.5–5.0 秒，以 0.5 秒为单位。另外还有 0.3 秒的淡出时间。"
+            "value": "0.5–5.0 秒，以 0.5 秒为单位。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "0.5–5.0 秒，以 0.5 秒為單位。另外還有 0.3 秒的淡出時間。"
+            "value": "0.5–5.0 秒，以 0.5 秒為單位。"
           }
         }
       }
@@ -129,6 +129,454 @@
         }
       }
     },
+    "Bottom Center": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unten Mitte"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottom Center"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abajo en el centro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En bas au centre"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下中央"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아래 가운데"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inferior central"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Внизу по центру"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "底部居中"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "底部置中"
+          }
+        }
+      }
+    },
+    "Bottom Left": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unten links"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottom Left"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abajo a la izquierda"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En bas à gauche"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左下"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "왼쪽 아래"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inferior esquerda"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Внизу слева"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左下"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左下"
+          }
+        }
+      }
+    },
+    "Bottom Right": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unten rechts"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottom Right"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abajo a la derecha"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En bas à droite"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右下"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오른쪽 아래"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inferior direita"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Внизу справа"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右下"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右下"
+          }
+        }
+      }
+    },
+    "Center": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitte"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Center"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Centro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Au centre"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中央"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "가운데"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Centro"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По центру"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "居中"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "置中"
+          }
+        }
+      }
+    },
+    "Click a dot or drag the HUD to move it. While you move it, a preview appears at the same spot on your screen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klicke auf einen Punkt oder ziehe das HUD. Beim Verschieben erscheint eine Vorschau an derselben Stelle auf dem Bildschirm."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Click a dot or drag the HUD to move it. While you move it, a preview appears at the same spot on your screen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz clic en un punto o arrastra el HUD. Mientras lo mueves, aparece una vista previa en el mismo lugar de la pantalla."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cliquez sur un point ou faites glisser le HUD. Pendant le déplacement, un aperçu s’affiche au même endroit de l’écran."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点をクリックするかHUDをドラッグして移動します。移動中は画面上の同じ位置にプレビューが表示されます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "점을 누르거나 HUD를 끌어서 옮깁니다. 옮기는 동안 실제 화면의 같은 자리에 HUD를 미리 보여 줍니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clique em um ponto ou arraste o HUD. Enquanto você o move, uma prévia aparece no mesmo lugar da tela."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нажмите точку или перетащите HUD. Во время перемещения в том же месте экрана появляется превью."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点按圆点或拖移 HUD 来移动它。移动时，屏幕上的相同位置会显示预览。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點按圓點或拖移 HUD 來移動它。移動時，螢幕上的相同位置會顯示預覽。"
+          }
+        }
+      }
+    },
+    "Custom": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigene"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personnalisée"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カスタム"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "직접 지정"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizada"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вручную"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自訂"
+          }
+        }
+      }
+    },
+    "Display Position": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anzeigeposition"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display Position"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posición en pantalla"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position d’affichage"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示位置"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "표시 위치"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posição na tela"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Положение на экране"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示位置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示位置"
+          }
+        }
+      }
+    },
     "Display Time": {
       "localizations": {
         "de": {
@@ -193,66 +641,66 @@
         }
       }
     },
-    "Get Started": {
+    "General": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los geht’s"
+            "value": "Allgemein"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Get Started"
+            "value": "General"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Empezar"
+            "value": "General"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Commencer"
+            "value": "Général"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "はじめる"
+            "value": "一般"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "시작하기"
+            "value": "일반"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Começar"
+            "value": "Geral"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Начать"
+            "value": "Основные"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始使用"
+            "value": "通用"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "開始使用"
+            "value": "一般"
           }
         }
       }
@@ -321,130 +769,194 @@
         }
       }
     },
-    "Launch automatically at login": {
+    "Middle Left": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bei Anmeldung automatisch öffnen"
+            "value": "Mitte links"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Launch automatically at login"
+            "value": "Middle Left"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abrir automáticamente al iniciar sesión"
+            "value": "Centro a la izquierda"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ouvrir automatiquement à la connexion"
+            "value": "Au centre à gauche"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ログイン時に自動で起動"
+            "value": "左中央"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "로그인 시 자동 실행"
+            "value": "왼쪽 가운데"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abrir automaticamente ao iniciar sessão"
+            "value": "Centro à esquerda"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Автоматически открывать при входе"
+            "value": "Слева по центру"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录时自动启动"
+            "value": "左侧居中"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "登入時自動啟動"
+            "value": "左側置中"
           }
         }
       }
     },
-    "OK": {
+    "Middle Right": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "OK"
+            "value": "Mitte rechts"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "OK"
+            "value": "Middle Right"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "OK"
+            "value": "Centro a la derecha"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "OK"
+            "value": "Au centre à droite"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "OK"
+            "value": "右中央"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "확인"
+            "value": "오른쪽 가운데"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "OK"
+            "value": "Centro à direita"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "OK"
+            "value": "Справа по центру"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "好"
+            "value": "右侧居中"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "好"
+            "value": "右側置中"
+          }
+        }
+      }
+    },
+    "Position": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posición"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "위치"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posição"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Положение"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置"
           }
         }
       }
@@ -513,66 +1025,66 @@
         }
       }
     },
-    "Settings": {
+    "Reset to Default": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Einstellungen"
+            "value": "Zurücksetzen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settings"
+            "value": "Reset to Default"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ajustes"
+            "value": "Restablecer"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Réglages"
+            "value": "Réinitialiser"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "設定"
+            "value": "デフォルトに戻す"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "설정"
+            "value": "기본값으로"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ajustes"
+            "value": "Restaurar padrão"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Настройки"
+            "value": "Сбросить"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "设置"
+            "value": "恢复默认"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "設定"
+            "value": "恢復預設值"
           }
         }
       }
@@ -705,194 +1217,194 @@
         }
       }
     },
-    "Show Input Switch: Off": {
+    "Top Center": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eingabewechsel anzeigen: Aus"
+            "value": "Oben Mitte"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show Input Switch: Off"
+            "value": "Top Center"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar cambio de entrada: desactivado"
+            "value": "Arriba en el centro"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Affichage du changement de saisie : désactivé"
+            "value": "En haut au centre"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "入力切り替えの表示：オフ"
+            "value": "上中央"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "언어 전환 표시 꺼짐"
+            "value": "위 가운데"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar troca de entrada: desativado"
+            "value": "Superior central"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Показ смены раскладки: выкл."
+            "value": "Вверху по центру"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "显示输入法切换：关"
+            "value": "顶部居中"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示輸入法切換：關閉"
+            "value": "頂部置中"
           }
         }
       }
     },
-    "Show Input Switch: On": {
+    "Top Left": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eingabewechsel anzeigen: Ein"
+            "value": "Oben links"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show Input Switch: On"
+            "value": "Top Left"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar cambio de entrada: activado"
+            "value": "Arriba a la izquierda"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Affichage du changement de saisie : activé"
+            "value": "En haut à gauche"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "入力切り替えの表示：オン"
+            "value": "左上"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "언어 전환 표시 켜짐"
+            "value": "왼쪽 위"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar troca de entrada: ativado"
+            "value": "Superior esquerda"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Показ смены раскладки: вкл."
+            "value": "Вверху слева"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "显示输入法切换：开"
+            "value": "左上"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示輸入法切換：開啟"
+            "value": "左上"
           }
         }
       }
     },
-    "Turn it on or off from the •→ icon in the menu bar.": {
+    "Top Right": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Über das Symbol •→ in der Menüleiste ein- oder ausschalten."
+            "value": "Oben rechts"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turn it on or off from the •→ icon in the menu bar."
+            "value": "Top Right"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Actívalo o desactívalo desde el icono •→ de la barra de menús."
+            "value": "Arriba a la derecha"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activez ou désactivez-le depuis l’icône •→ de la barre des menus."
+            "value": "En haut à droite"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "メニューバーの •→ アイコンからオン・オフできます。"
+            "value": "右上"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "메뉴바의 •→ 아이콘에서 끄거나 켤 수 있습니다."
+            "value": "오른쪽 위"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ative ou desative pelo ícone •→ na barra de menus."
+            "value": "Superior direita"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Включить или выключить можно через значок •→ в строке меню."
+            "value": "Вверху справа"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可在菜单栏的 •→ 图标中开启或关闭。"
+            "value": "右上"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "可在選單列的 •→ 圖像中開啟或關閉。"
+            "value": "右上"
           }
         }
       }
@@ -961,130 +1473,66 @@
         }
       }
     },
-    "Welcome to Blink": {
+    "When off, no HUD appears and the menu bar icon is dimmed.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Willkommen bei Blink"
+            "value": "Wenn aus, erscheint kein HUD und das Menüleistensymbol wird abgeblendet."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Welcome to Blink"
+            "value": "When off, no HUD appears and the menu bar icon is dimmed."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Te damos la bienvenida a Blink"
+            "value": "Si está desactivado, no aparece el HUD y el icono de la barra de menús se atenúa."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bienvenue dans Blink"
+            "value": "Désactivé, le HUD n’apparaît plus et l’icône de la barre des menus est estompée."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blinkへようこそ"
+            "value": "オフにするとHUDは表示されず、メニューバーのアイコンが薄くなります。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blink에 오신 것을 환영합니다"
+            "value": "끄면 HUD가 뜨지 않고 메뉴바 아이콘이 흐려집니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Boas-vindas ao Blink"
+            "value": "Desativado, o HUD não aparece e o ícone da barra de menus fica esmaecido."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Добро пожаловать в Blink"
+            "value": "Когда выключено, HUD не появляется, а значок в строке меню тускнеет."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "欢迎使用 Blink"
+            "value": "关闭后不再显示 HUD，菜单栏图标会变暗。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "歡迎使用 Blink"
-          }
-        }
-      }
-    },
-    "When your input source changes, Blink briefly shows “before → after” in the center of the screen.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wenn sich die Eingabequelle ändert, zeigt Blink kurz „vorher → nachher“ in der Bildschirmmitte an."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "When your input source changes, Blink briefly shows “before → after” in the center of the screen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cuando cambia la fuente de entrada, Blink muestra brevemente «antes → después» en el centro de la pantalla."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quand la source de saisie change, Blink affiche brièvement « avant → après » au centre de l’écran."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "入力ソースが切り替わると、画面中央に「切り替え前 → 切り替え後」を一瞬表示します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "입력소스가 바뀌면 화면 중앙에 '변경 전 → 변경 후'를 잠깐 보여 줍니다."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quando a fonte de entrada muda, o Blink mostra rapidamente “antes → depois” no centro da tela."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "При смене источника ввода Blink ненадолго показывает «было → стало» в центре экрана."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "输入法切换时，Blink 会在屏幕中央短暂显示“切换前 → 切换后”。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切換輸入法時，Blink 會在螢幕中央短暫顯示「切換前 → 切換後」。"
+            "value": "關閉後不再顯示 HUD，選單列圖像會變暗。"
           }
         }
       }

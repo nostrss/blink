@@ -1,13 +1,35 @@
 import AppKit
 
-// 메뉴 "설정…"으로 여는 창. 지금은 HUD 표시 시간 한 줄뿐이다. 저장 버튼 없이 바로 적용한다.
-final class SettingsWindow: NSObject {
+// 메뉴 "설정…"으로 여는 창. 왼쪽 사이드바에서 항목을 고르면 오른쪽에 그 항목의 설정이 나온다.
+// 저장 버튼 없이 바로 적용한다. 새 설정은 사이드바에 항목을 추가해서 넣는다.
+final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSToolbarDelegate {
     private static let range = 0.5...5.0
     private static let step = 0.5
 
-    private let window = NSWindow(contentRect: .zero, styleMask: [.titled, .closable], backing: .buffered, defer: true)
+    private enum Pane: Int, CaseIterable {
+        case general, position
+
+        var title: String {
+            switch self {
+            case .general: String(localized: "General")
+            case .position: String(localized: "Position")
+            }
+        }
+    }
+
+    private let window = ClosableWindow(contentRect: NSRect(x: 0, y: 0, width: 620, height: 440),
+                                        styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: true)
+    private let split = NSSplitViewController()
+    private let sidebar = NSTableView()
+    private let detail = NSView()
+    private lazy var panes: [Pane: NSView] = [.general: makeGeneralPane(), .position: positionPane]
+    private let positionPane: PositionPane
+
+    private let showSwitch = NSSwitch()
+    private let loginSwitch = NSSwitch()
     private let field = NSTextField()
     private let stepper = NSStepper()
+    private let onShowChanged: () -> Void
     private static let formatter: NumberFormatter = {
         let f = NumberFormatter()
         f.numberStyle = .decimal
@@ -16,16 +38,121 @@ final class SettingsWindow: NSObject {
         return f
     }()
 
-    override init() {
+    // onShowChanged: '언어 전환 표시'를 바꾼 직후(메뉴바 아이콘 갱신용)
+    // preview: 위치를 고르는 동안 실제 화면에 HUD를 띄운다. sampleNames: 미니 HUD와 미리보기에 쓸 이름
+    init(onShowChanged: @escaping () -> Void, preview: @escaping (HUDPosition) -> Void,
+         sampleNames: @escaping () -> (from: String, to: String)) {
+        self.onShowChanged = onShowChanged
+        positionPane = PositionPane(preview: preview, sampleNames: sampleNames)
         super.init()
-        window.title = String(localized: "Settings")
         window.isReleasedWhenClosed = false
         window.backgroundColor = Tokens.surface
 
+        sidebar.style = .sourceList
+        sidebar.allowsEmptySelection = false  // 빈 곳을 눌러도 고른 항목을 유지한다
+        sidebar.headerView = nil
+        sidebar.addTableColumn(NSTableColumn(identifier: .init("pane")))
+        sidebar.dataSource = self
+        sidebar.delegate = self
+        let scroll = NSScrollView()
+        scroll.documentView = sidebar
+        scroll.drawsBackground = false
+        let sidebarController = NSViewController()
+        sidebarController.view = scroll
+        let sidebarItem = NSSplitViewItem(sidebarWithViewController: sidebarController)
+        sidebarItem.canCollapse = false
+        sidebarItem.minimumThickness = 180
+        sidebarItem.maximumThickness = 180
+
+        let detailController = NSViewController()
+        detailController.view = detail
+        let detailItem = NSSplitViewItem(viewController: detailController)
+        split.addSplitViewItem(sidebarItem)
+        split.addSplitViewItem(detailItem)
+        split.view.frame = NSRect(x: 0, y: 0, width: 620, height: 440)
+        window.contentViewController = split
+
+        // 고른 항목 이름을 사이드바 오른쪽 제목 자리에 둔다(시스템 설정과 같은 배치).
+        let toolbar = NSToolbar(identifier: "settings")
+        toolbar.delegate = self
+        window.toolbar = toolbar
+        window.toolbarStyle = .unified
+        window.setContentSize(NSSize(width: 620, height: 440))
+
+        // 로그인 항목은 시스템 설정에서도 바뀌므로 창이 앞으로 올 때마다 다시 읽는다.
+        NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: window, queue: .main) { [weak self] _ in
+            self?.loginSwitch.state = LoginItem.isEnabled ? .on : .off
+        }
+    }
+
+    func show() {
+        select(.general)
+        sidebar.selectRowIndexes([Pane.general.rawValue], byExtendingSelection: false)
+        showSwitch.state = UserDefaults.standard.bool(forKey: AppDelegate.showOnSwitchKey) ? .on : .off
+        loginSwitch.state = LoginItem.isEnabled ? .on : .off
+        apply(UserDefaults.standard.double(forKey: HUD.durationKey))
+        positionPane.reload()
+        if !window.isVisible { window.center() }
+        NSApp.activateForWindow()
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    private func select(_ pane: Pane) {
+        window.title = pane.title
+        detail.subviews.forEach { $0.removeFromSuperview() }
+        let view = panes[pane]!
+        view.translatesAutoresizingMaskIntoConstraints = false
+        detail.addSubview(view)
+        NSLayoutConstraint.activate([
+            view.topAnchor.constraint(equalTo: detail.safeAreaLayoutGuide.topAnchor),
+            view.leadingAnchor.constraint(equalTo: detail.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: detail.trailingAnchor),
+        ])
+    }
+
+    // MARK: 사이드바
+
+    func numberOfRows(in tableView: NSTableView) -> Int { Pane.allCases.count }
+
+    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+        let cell = NSTableCellView()
+        let label = NSTextField(labelWithString: Pane(rawValue: row)!.title)
+        label.font = .systemFont(ofSize: 13)  // body
+        label.translatesAutoresizingMaskIntoConstraints = false
+        cell.addSubview(label)
+        cell.textField = label
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 4),  // space-1
+            label.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -4),
+            label.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
+        ])
+        return cell
+    }
+
+    func tableViewSelectionDidChange(_ notification: Notification) {
+        if let pane = Pane(rawValue: sidebar.selectedRow) { select(pane) }
+    }
+
+    // 사이드바 위 제목이 내용 영역 위로 오도록 사이드바 경계에 맞춘다.
+    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] { [.sidebarTrackingSeparator] }
+    func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] { [.sidebarTrackingSeparator] }
+    func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
+        NSTrackingSeparatorToolbarItem(identifier: itemIdentifier, splitView: split.splitView, dividerIndex: 0)
+    }
+
+    // MARK: 일반
+
+    private func makeGeneralPane() -> NSView {
         let body = NSFont.systemFont(ofSize: 13)  // body
-        let label = NSTextField(labelWithString: String(localized: "Display Time"))
-        label.font = body
-        label.textColor = Tokens.ink
+        for toggle in [showSwitch, loginSwitch] {
+            toggle.controlSize = .small
+            toggle.target = self
+        }
+        showSwitch.action = #selector(showChanged)
+        loginSwitch.action = #selector(loginChanged)
+        let showRow = Self.row(String(localized: "Show Input Switch"), [showSwitch])
+        let showCaption = Self.caption(String(localized: "When off, no HUD appears and the menu bar icon is dimmed."))
+        let loginRow = Self.row(String(localized: "Launch at Login"), [loginSwitch])
 
         // NumberFormatter를 붙이면 잘못된 입력에 경고를 띄우므로, 표시에만 쓰고 해석·보정은 직접 한다.
         field.font = body
@@ -34,43 +161,64 @@ final class SettingsWindow: NSObject {
         field.target = self
         field.action = #selector(fieldChanged)
         field.widthAnchor.constraint(equalToConstant: 56).isActive = true
-
         stepper.minValue = Self.range.lowerBound
         stepper.maxValue = Self.range.upperBound
         stepper.increment = Self.step
         stepper.target = self
         stepper.action = #selector(stepperChanged)
-
         let unit = NSTextField(labelWithString: String(localized: "sec"))
         unit.font = body
         unit.textColor = Tokens.ink
+        let durationRow = Self.row(String(localized: "Display Time"), [field, stepper, unit])
+        let durationCaption = Self.caption(String(localized: "0.5–5.0 seconds, in 0.5-second steps."))
 
-        let caption = NSTextField(wrappingLabelWithString: String(localized: "0.5–5.0 seconds, in 0.5-second steps. The 0.3-second fade-out is added on top."))
-        caption.font = .systemFont(ofSize: 11)  // caption
-        caption.textColor = Tokens.muted
+        let separator = NSBox()
+        separator.boxType = .separator
 
-        let spacer = NSView()
-        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        let row = NSStackView(views: [label, spacer, field, stepper, unit])
-        row.spacing = 8  // space-2
-        let column = NSStackView(views: [row, caption])
+        let rows = [showRow, showCaption, loginRow, separator, durationRow, durationCaption]
+        let column = NSStackView(views: rows)
         column.orientation = .vertical
         column.alignment = .leading
         column.spacing = 8  // space-2
+        column.setCustomSpacing(4, after: showRow)  // 도움말은 제 줄에 붙인다(space-1)
+        column.setCustomSpacing(4, after: durationRow)
+        column.setCustomSpacing(12, after: showCaption)
         column.edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)  // space-3
-        column.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            row.widthAnchor.constraint(equalTo: column.widthAnchor, constant: -32),
-            column.widthAnchor.constraint(equalToConstant: 360),
-        ])
-        window.contentView = column
+        for row in rows {
+            row.widthAnchor.constraint(equalTo: column.widthAnchor, constant: -32).isActive = true
+        }
+        return column
     }
 
-    func show() {
-        apply(UserDefaults.standard.double(forKey: HUD.durationKey))
-        window.center()
-        NSApp.activateForWindow()
-        window.makeKeyAndOrderFront(nil)
+    // 라벨은 왼쪽, 컨트롤은 오른쪽 끝. 첫 컨트롤은 VoiceOver가 라벨 이름으로 읽는다.
+    private static func row(_ title: String, _ controls: [NSView]) -> NSView {
+        controls.first?.setAccessibilityLabel(title)
+        let label = NSTextField(labelWithString: title)
+        label.font = .systemFont(ofSize: 13)  // body
+        label.textColor = Tokens.ink
+        let spacer = NSView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        let row = NSStackView(views: [label, spacer] + controls)
+        row.spacing = 8  // space-2
+        return row
+    }
+
+    private static func caption(_ text: String) -> NSTextField {
+        let caption = NSTextField(wrappingLabelWithString: text)
+        caption.font = .systemFont(ofSize: 11)  // caption
+        caption.textColor = Tokens.muted
+        return caption
+    }
+
+    @objc private func showChanged() {
+        UserDefaults.standard.set(showSwitch.state == .on, forKey: AppDelegate.showOnSwitchKey)
+        onShowChanged()
+    }
+
+    // 등록에 실패하면 실제 상태로 되돌린다.
+    @objc private func loginChanged() {
+        LoginItem.set(loginSwitch.state == .on)
+        loginSwitch.state = LoginItem.isEnabled ? .on : .off
     }
 
     @objc private func fieldChanged() {
@@ -98,5 +246,22 @@ final class SettingsWindow: NSObject {
         field.stringValue = Self.formatter.string(from: snapped as NSNumber) ?? ""
         stepper.doubleValue = snapped
         UserDefaults.standard.set(snapped, forKey: HUD.durationKey)
+    }
+}
+
+// MainMenu가 없어 ⌘W가 저절로 동작하지 않으므로 직접 받는다. closesOnEscape면 Esc로도 닫는다.
+final class ClosableWindow: NSWindow {
+    var closesOnEscape = false
+
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        if event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command, event.charactersIgnoringModifiers == "w" {
+            close()
+            return true
+        }
+        return super.performKeyEquivalent(with: event)
+    }
+
+    override func cancelOperation(_ sender: Any?) {
+        if closesOnEscape { close() } else { super.cancelOperation(sender) }
     }
 }
