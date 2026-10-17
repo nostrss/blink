@@ -64,10 +64,9 @@ final class HUD {
             tint.layer?.backgroundColor = bg.cgColor
         }
 
-        // 최대 480pt. 단, '변경 후'가 그보다 길면 '변경 전'이 "…"만 남을 만큼까지는 넓힌다.
         var size = panel.contentView!.fittingSize
         let ellipsis = NSAttributedString(string: "…", attributes: [.font: fromLabel.font!]).size().width.rounded(.up) + 4
-        size.width = max(min(size.width, Self.maxWidth), size.width - fromLabel.fittingSize.width + ellipsis)
+        size.width = Self.panelWidth(fitting: size.width, from: fromLabel.fittingSize.width, ellipsis: ellipsis)
         let mouse = NSEvent.mouseLocation
         let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
         if let frame = screen?.frame {
@@ -89,6 +88,11 @@ final class HUD {
             guard let self else { return }
             if reduceMotion { self.panel.orderOut(nil) } else { self.fadeOut() }
         }
+    }
+
+    // 최대 480pt. 단, '변경 후'가 그보다 길면 '변경 전'이 "…"만 남을 만큼까지는 넓힌다.
+    static func panelWidth(fitting: CGFloat, from: CGFloat, ellipsis: CGFloat) -> CGFloat {
+        max(min(fitting, maxWidth), fitting - from + ellipsis)
     }
 
     private func fadeOut() {

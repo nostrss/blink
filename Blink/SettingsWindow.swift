@@ -8,7 +8,7 @@ final class SettingsWindow: NSObject {
     private let window = NSWindow(contentRect: .zero, styleMask: [.titled, .closable], backing: .buffered, defer: true)
     private let field = NSTextField()
     private let stepper = NSStepper()
-    private let formatter: NumberFormatter = {
+    private static let formatter: NumberFormatter = {
         let f = NumberFormatter()
         f.numberStyle = .decimal
         f.minimumFractionDigits = 1
@@ -74,19 +74,28 @@ final class SettingsWindow: NSObject {
     }
 
     @objc private func fieldChanged() {
-        // 숫자가 아니면("nan" 포함) 지금 값을 그대로 둔다.
-        let typed = formatter.number(from: field.stringValue)?.doubleValue ?? Double(field.stringValue) ?? stepper.doubleValue
-        apply(typed.isFinite ? typed : stepper.doubleValue)
+        apply(Self.duration(from: field.stringValue, current: stepper.doubleValue))
     }
 
     @objc private func stepperChanged() {
         apply(stepper.doubleValue)
     }
 
-    // 0.5 단위로 반올림하고 범위 안으로 넣은 뒤 화면과 UserDefaults에 반영한다.
+    // 입력란 글자를 표시 시간으로 바꾼다. 숫자가 아니면("nan" 포함) 지금 값을 그대로 둔다.
+    static func duration(from text: String, current: Double) -> Double {
+        let typed = formatter.number(from: text)?.doubleValue ?? Double(text) ?? current
+        return snapped(typed.isFinite ? typed : current)
+    }
+
+    // 0.5 단위로 반올림하고 0.5–5.0 범위 안으로 넣는다.
+    static func snapped(_ value: Double) -> Double {
+        min(max((value / step).rounded() * step, range.lowerBound), range.upperBound)
+    }
+
+    // 화면과 UserDefaults에 반영한다.
     private func apply(_ value: Double) {
-        let snapped = min(max((value / Self.step).rounded() * Self.step, Self.range.lowerBound), Self.range.upperBound)
-        field.stringValue = formatter.string(from: snapped as NSNumber) ?? ""
+        let snapped = Self.snapped(value)
+        field.stringValue = Self.formatter.string(from: snapped as NSNumber) ?? ""
         stepper.doubleValue = snapped
         UserDefaults.standard.set(snapped, forKey: HUD.durationKey)
     }

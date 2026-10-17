@@ -19,7 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let showItem = NSMenuItem(title: "언어 전환 표시", action: #selector(toggleShowOnSwitch), keyEquivalent: "")
     private let loginItem = NSMenuItem(title: "로그인 시 실행", action: #selector(toggleLoginItem), keyEquivalent: "")
 
-    private var lastSourceName: String?
+    private var tracker = InputSourceTracker()
     private lazy var hud = HUD()
     private lazy var settingsWindow = SettingsWindow()
     private lazy var aboutWindow = AboutWindow()
@@ -51,7 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         refreshShowState()
 
-        lastSourceName = Self.currentInputSourceName()
+        _ = tracker.update(Self.currentInputSourceName())
         DistributedNotificationCenter.default().addObserver(
             self,
             selector: #selector(inputSourceChanged),
@@ -71,12 +71,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         loginItem.state = LoginItem.isEnabled ? .on : .off
     }
 
-    // 한 번 전환에 알림이 여러 번 올 수 있어 직전 이름과 같으면 무시한다.
     @objc private func inputSourceChanged() {
-        guard let name = Self.currentInputSourceName(), name != lastSourceName else { return }
-        NSLog("입력소스 변경: %@ → %@", lastSourceName ?? "?", name)
-        if showOnSwitch { hud.show(from: lastSourceName ?? "?", to: name) }
-        lastSourceName = name
+        guard let change = tracker.update(Self.currentInputSourceName()) else { return }
+        NSLog("입력소스 변경: %@ → %@", change.from, change.to)
+        if showOnSwitch { hud.show(from: change.from, to: change.to) }
     }
 
     private static func currentInputSourceName() -> String? {
@@ -125,5 +123,17 @@ extension NSApplication {
     // LSUIElement 앱이라 창을 열 때 직접 앞으로 가져온다. macOS 14부터 activate(ignoringOtherApps:)는 무시된다.
     func activateForWindow() {
         if #available(macOS 14, *) { activate() } else { activate(ignoringOtherApps: true) }
+    }
+}
+
+// 직전 입력소스 이름을 기억해 실제로 바뀐 경우에만 "변경 전 → 변경 후"를 돌려준다.
+// 한 번 전환에 알림이 여러 번 올 수 있어 같은 이름은 무시한다.
+struct InputSourceTracker {
+    private(set) var last: String?
+
+    mutating func update(_ name: String?) -> (from: String, to: String)? {
+        guard let name, name != last else { return nil }
+        defer { last = name }
+        return last.map { (from: $0, to: name) } ?? (from: "?", to: name)
     }
 }
