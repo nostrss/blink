@@ -17,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let showItem = NSMenuItem(title: "언어 전환 표시", action: #selector(toggleShowOnSwitch), keyEquivalent: "")
 
     private var lastSourceName: String?
+    private lazy var hud = HUD()
 
     private var showOnSwitch: Bool {
         get { UserDefaults.standard.bool(forKey: Self.showOnSwitchKey) }
@@ -24,7 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        UserDefaults.standard.register(defaults: [Self.showOnSwitchKey: true])
+        UserDefaults.standard.register(defaults: [Self.showOnSwitchKey: true, HUD.durationKey: 1.0])
 
         let image = NSImage(named: "MenuBarIcon")
         image?.isTemplate = true
@@ -58,6 +59,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func inputSourceChanged() {
         guard let name = Self.currentInputSourceName(), name != lastSourceName else { return }
         NSLog("입력소스 변경: %@ → %@", lastSourceName ?? "?", name)
+        if showOnSwitch { hud.show(from: lastSourceName ?? "?", to: name) }
         lastSourceName = name
     }
 
