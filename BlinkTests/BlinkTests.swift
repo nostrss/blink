@@ -54,12 +54,11 @@ final class BlinkTests: XCTestCase {
         }
     }
 
-    func testDurationFromTextFallsBackToCurrentValue() {
-        XCTAssertEqual(SettingsWindow.duration(from: "2.3", current: 1.0), 2.5)
-        XCTAssertEqual(SettingsWindow.duration(from: "9", current: 1.0), 5.0)
-        XCTAssertEqual(SettingsWindow.duration(from: "abc", current: 1.5), 1.5)
-        XCTAssertEqual(SettingsWindow.duration(from: "", current: 2.0), 2.0)
-        XCTAssertEqual(SettingsWindow.duration(from: "nan", current: 2.0), 2.0)
+    // 표시 시간 스테퍼는 0.5–5.0, 0.5 단위이고 끝에서 멈춘다(NSStepper 기본값은 0.5에서 내리면 5.0 쪽으로 넘어간다).
+    func testDurationStepperStopsAtEnds() {
+        let stepper = SettingsWindow.makeDurationStepper()
+        XCTAssertFalse(stepper.valueWraps)
+        XCTAssertEqual([stepper.minValue, stepper.maxValue, stepper.increment], [0.5, 5.0, 0.5])
     }
 
     func testPanelWidth() {

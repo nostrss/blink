@@ -30,7 +30,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private let showSwitch = NSSwitch()
     private let loginSwitch = NSSwitch()
     private let field = NSTextField()
-    private let stepper = NSStepper()
+    private let stepper = SettingsWindow.makeDurationStepper()
     private let onShowChanged: () -> Void
     private static let formatter: NumberFormatter = {
         let f = NumberFormatter()
@@ -40,7 +40,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         return f
     }()
 
-    // onShowChanged: '언어 전환 표시'를 바꾼 직후(메뉴바 아이콘 갱신용)
+    // onShowChanged: '언어 전환 HUD 표시'를 바꾼 직후(메뉴바 아이콘 갱신용)
     // preview: 위치·모양을 고르는 동안 실제 화면에 HUD를 띄운다. sampleNames: 미니 HUD와 미리보기에 쓸 이름
     init(onShowChanged: @escaping () -> Void, preview: @escaping (HUDPosition) -> Void,
          sampleNames: @escaping () -> (from: String, to: String?)) {
@@ -173,39 +173,31 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         }
         showSwitch.action = #selector(showChanged)
         loginSwitch.action = #selector(loginChanged)
-        let showRow = Self.row(String(localized: "Show Input Switch"), [showSwitch])
-        let showCaption = Self.caption(String(localized: "When off, no HUD appears and the menu bar icon is dimmed."))
+        let showRow = Self.row(String(localized: "Show HUD on Input Switch"), [showSwitch])
         let loginRow = Self.row(String(localized: "Launch at Login"), [loginSwitch])
 
-        // NumberFormatter를 붙이면 잘못된 입력에 경고를 띄우므로, 표시에만 쓰고 해석·보정은 직접 한다.
+        // 값은 스테퍼로만 바꾼다. 입력란은 지금 값을 보여 주기만 한다.
         field.font = body
         field.alignment = .right
-        field.cell?.sendsActionOnEndEditing = true  // Return뿐 아니라 포커스 이동에도 적용
-        field.target = self
-        field.action = #selector(fieldChanged)
+        field.isEditable = false
+        field.isSelectable = false
         field.widthAnchor.constraint(equalToConstant: 56).isActive = true
-        stepper.minValue = Self.range.lowerBound
-        stepper.maxValue = Self.range.upperBound
-        stepper.increment = Self.step
         stepper.target = self
         stepper.action = #selector(stepperChanged)
         let unit = NSTextField(labelWithString: String(localized: "sec"))
         unit.font = body
         unit.textColor = Tokens.ink
         let durationRow = Self.row(String(localized: "Display Time"), [field, stepper, unit])
-        let durationCaption = Self.caption(String(localized: "0.5–5.0 seconds, in 0.5-second steps."))
+        stepper.setAccessibilityLabel(String(localized: "Display Time"))  // 입력란은 보여 주기만 하므로 VoiceOver가 조절할 곳은 스테퍼다
 
         let separator = NSBox()
         separator.boxType = .separator
 
-        let rows = [showRow, showCaption, loginRow, separator, durationRow, durationCaption]
+        let rows = [showRow, loginRow, separator, durationRow]
         let column = NSStackView(views: rows)
         column.orientation = .vertical
         column.alignment = .leading
         column.spacing = 8  // space-2
-        column.setCustomSpacing(4, after: showRow)  // 도움말은 제 줄에 붙인다(space-1)
-        column.setCustomSpacing(4, after: durationRow)
-        column.setCustomSpacing(12, after: showCaption)
         column.edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)  // space-3
         for row in rows {
             row.widthAnchor.constraint(equalTo: column.widthAnchor, constant: -32).isActive = true
@@ -245,18 +237,18 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         loginSwitch.state = LoginItem.isEnabled ? .on : .off
     }
 
-    @objc private func fieldChanged() {
-        apply(Self.duration(from: field.stringValue, current: stepper.doubleValue))
-    }
-
     @objc private func stepperChanged() {
         apply(stepper.doubleValue)
     }
 
-    // 입력란 글자를 표시 시간으로 바꾼다. 숫자가 아니면("nan" 포함) 지금 값을 그대로 둔다.
-    static func duration(from text: String, current: Double) -> Double {
-        let typed = formatter.number(from: text)?.doubleValue ?? Double(text) ?? current
-        return snapped(typed.isFinite ? typed : current)
+    // 0.5–5.0초, 0.5초 단위. 끝에 닿으면 반대쪽 끝으로 넘어가지 않고 멈춘다(NSStepper 기본값은 넘어간다).
+    static func makeDurationStepper() -> NSStepper {
+        let stepper = NSStepper()
+        stepper.minValue = range.lowerBound
+        stepper.maxValue = range.upperBound
+        stepper.increment = step
+        stepper.valueWraps = false
+        return stepper
     }
 
     // 0.5 단위로 반올림하고 0.5–5.0 범위 안으로 넣는다.

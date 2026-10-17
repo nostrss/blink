@@ -1,70 +1,6 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "0.5–5.0 seconds, in 0.5-second steps.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "0,5–5,0 s in Schritten von 0,5 s."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "0.5–5.0 seconds, in 0.5-second steps."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De 0,5 a 5,0 s, en intervalos de 0,5 s."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "0,5 à 5,0 s, par pas de 0,5 s."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "0.5〜5.0秒、0.5秒単位。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "0.5–5.0초, 0.5초 단위."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De 0,5 a 5,0 s, em intervalos de 0,5 s."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "0,5–5,0 с, шаг 0,5 с."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "0.5–5.0 秒，以 0.5 秒为单位。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "0.5–5.0 秒，以 0.5 秒為單位。"
-          }
-        }
-      }
-    },
     "About Blink": {
       "localizations": {
         "de": {
@@ -2497,66 +2433,66 @@
         }
       }
     },
-    "Show Input Switch": {
+    "Show HUD on Input Switch": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eingabewechsel anzeigen"
+            "value": "HUD beim Eingabewechsel anzeigen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show Input Switch"
+            "value": "Show HUD on Input Switch"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar cambio de entrada"
+            "value": "Mostrar HUD al cambiar la entrada"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Afficher le changement de saisie"
+            "value": "Afficher le HUD au changement de saisie"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "入力切り替えを表示"
+            "value": "入力切り替え時にHUDを表示"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "언어 전환 표시"
+            "value": "언어 전환 HUD 표시"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar troca de entrada"
+            "value": "Mostrar HUD ao trocar a entrada"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Показывать смену раскладки"
+            "value": "Показывать HUD при смене ввода"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "显示输入法切换"
+            "value": "切换输入法时显示 HUD"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示輸入法切換"
+            "value": "切換輸入法時顯示 HUD"
           }
         }
       }
@@ -3325,70 +3261,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "版本 %@"
-          }
-        }
-      }
-    },
-    "When off, no HUD appears and the menu bar icon is dimmed.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wenn aus, erscheint kein HUD und das Menüleistensymbol wird abgeblendet."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "When off, no HUD appears and the menu bar icon is dimmed."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Si está desactivado, no aparece el HUD y el icono de la barra de menús se atenúa."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Désactivé, le HUD n’apparaît plus et l’icône de la barre des menus est estompée."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "オフにするとHUDは表示されず、メニューバーのアイコンが薄くなります。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "끄면 HUD가 뜨지 않고 메뉴바 아이콘이 흐려집니다."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desativado, o HUD não aparece e o ícone da barra de menus fica esmaecido."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Когда выключено, HUD не появляется, а значок в строке меню тускнеет."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "关闭后不再显示 HUD，菜单栏图标会变暗。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "關閉後不再顯示 HUD，選單列圖像會變暗。"
           }
         }
       }
