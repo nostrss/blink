@@ -126,8 +126,10 @@ final class BlinkTests: XCTestCase {
         var look = HUDAppearance()
         look.select(.dracula)
         look.select(.custom)
+        // 글자·배경뿐 아니라 변경 전·화살표 색도 가져온다(Dracula의 보라·분홍이 기본 파랑으로 바뀌지 않게).
         let dracula = try XCTUnwrap(HUDTheme.dracula.presetColors(.light))
-        XCTAssertEqual(look.custom(.light), CustomColors(text: dracula.to, background: dracula.background))
+        XCTAssertEqual(look.custom(.light), CustomColors(text: dracula.to, from: dracula.from, arrow: dracula.arrow, background: dracula.background))
+        XCTAssertEqual(look.colors(.light), dracula)
         XCTAssertEqual(look.custom(.dark)?.text, dracula.to)
 
         var edited = try XCTUnwrap(look.custom(.dark))
@@ -139,21 +141,44 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(look.custom(.light)?.text, dracula.to)  // 라이트는 그대로
     }
 
-    func testCustomColorsDeriveFromAndArrow() throws {
+    func testCustomColorsAreUsedAsIs() throws {
         var look = HUDAppearance()
         look.select(.custom)
-        look.setCustom(CustomColors(text: RGBA(hex: 0x112233), background: RGBA(hex: 0xffeedd, alpha: 0.7)), for: .light)
-        let c = look.colors(.light)
-        XCTAssertEqual(c.to, RGBA(hex: 0x112233))
-        XCTAssertEqual(c.from, RGBA(hex: 0x112233, alpha: 0.6))
-        XCTAssertEqual(c.arrow, RGBA(hex: 0x0a66d6))  // 강조색
-        XCTAssertEqual(c.background.alpha, 0.7)
+        let custom = CustomColors(text: RGBA(hex: 0x112233), from: RGBA(hex: 0x445566), arrow: RGBA(hex: 0xaa0000), background: RGBA(hex: 0xffeedd, alpha: 0.7))
+        look.setCustom(custom, for: .light)
+        XCTAssertEqual(look.colors(.light), HUDColors(background: custom.background, from: custom.from, arrow: custom.arrow, to: custom.text))
         XCTAssertEqual(look.colors(.light, reduceTransparency: true).background.alpha, 1)
     }
 
+    // 예전에 저장한 사용자 지정(글자·배경만)도 읽는다. 변경 전은 글자색을 흐리게, 화살표는 강조색.
+    func testOldCustomColorsStillDecode() throws {
+        let old = #"{"theme":"custom","size":"medium","corners":"standard","bold":false,"showsFrom":true,"#
+            + #""customLight":{"text":{"red":0,"green":0,"blue":0,"alpha":1},"background":{"red":1,"green":1,"blue":1,"alpha":0.5}}}"#
+        let look = HUDAppearance(data: Data(old.utf8))
+        XCTAssertEqual(look.theme, .custom)
+        let light = try XCTUnwrap(look.custom(.light))
+        XCTAssertEqual(light.from, RGBA(hex: 0x000000, alpha: 0.6))
+        XCTAssertEqual(light.arrow, RGBA(hex: 0x0a66d6))
+        XCTAssertEqual(light.background.alpha, 0.5)
+    }
+
     func testLowContrastWarning() {
-        XCTAssertTrue(CustomColors(text: RGBA(hex: 0x777777), background: RGBA(hex: 0x888888)).isLowContrast)
-        XCTAssertFalse(CustomColors(text: RGBA(hex: 0x000000), background: RGBA(hex: 0xffffff)).isLowContrast)
+        let white = RGBA(hex: 0xffffff), black = RGBA(hex: 0x000000), gray = RGBA(hex: 0x888888)
+        XCTAssertTrue(CustomColors(text: RGBA(hex: 0x777777), from: black, arrow: black, background: gray).isLowContrast)
+        XCTAssertTrue(CustomColors(text: black, from: RGBA(hex: 0xeeeeee), arrow: black, background: white).isLowContrast)  // 변경 전 글자도 본다
+        XCTAssertFalse(CustomColors(text: black, from: black, arrow: black, background: white).isLowContrast)
+    }
+
+    // 이름이 바뀌어 미니 HUD 크기가 달라지면 놓인 자리도 다시 잡아야 한다(설정 창이 열린 채 입력소스를 바꾼 경우).
+    func testChipAsksParentToRelayoutWhenItsSizeChanges() {
+        let parent = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 100))
+        let chip = HUDChip(style: HUDChip.preview)
+        parent.addSubview(chip)
+        chip.set(from: "ABC", to: "ABC")
+        parent.layoutSubtreeIfNeeded()
+        parent.needsLayout = false
+        chip.set(from: "ABC", to: "2-Set Korean")
+        XCTAssertTrue(parent.needsLayout)
     }
 
     func testAppearanceSavesAndFallsBackToDefault() {

@@ -62,13 +62,28 @@ enum HUDTheme: String, Codable, CaseIterable {
     }
 }
 
-// 사용자 지정 테마에서 사용자가 고르는 값. 배경의 알파가 배경 불투명도다.
+// 사용자 지정 테마에서 사용자가 고르는 값. text는 '변경 후' 글자색, 배경의 알파가 배경 불투명도다.
 struct CustomColors: Codable, Equatable {
     var text: RGBA
+    var from: RGBA
+    var arrow: RGBA
     var background: RGBA
 
-    // 글자와 배경의 대비가 3:1보다 낮으면 설정 창에 경고를 띄운다(막지는 않는다).
-    var isLowContrast: Bool { text.contrast(with: background) < 3 }
+    init(text: RGBA, from: RGBA, arrow: RGBA, background: RGBA) {
+        (self.text, self.from, self.arrow, self.background) = (text, from, arrow, background)
+    }
+
+    // 예전에는 글자색과 배경색만 저장했다. 없으면 변경 전은 글자색을 흐리게, 화살표는 강조색으로 채운다.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        text = try c.decode(RGBA.self, forKey: .text)
+        background = try c.decode(RGBA.self, forKey: .background)
+        from = try c.decodeIfPresent(RGBA.self, forKey: .from) ?? text.withAlpha(0.6)
+        arrow = try c.decodeIfPresent(RGBA.self, forKey: .arrow) ?? RGBA(hex: 0x0a66d6)
+    }
+
+    // 변경 후·변경 전 글자와 배경의 대비가 3:1보다 낮으면 설정 창에 경고를 띄운다(막지는 않는다).
+    var isLowContrast: Bool { min(text.contrast(with: background), from.contrast(with: background)) < 3 }
 }
 
 // 설정 창 '모양'에서 정하는 HUD 모양. 기본값이 지금까지의 HUD 그대로다.
@@ -106,13 +121,13 @@ struct HUDAppearance: Codable, Equatable {
 
     var data: Data { (try? JSONEncoder().encode(self)) ?? Data() }
 
-    // 테마를 고른다. 사용자 지정을 처음 고르면 그때 보던 테마의 색으로 라이트·다크를 채운다.
+    // 테마를 고른다. 사용자 지정을 처음 고르면 그때 보던 테마의 네 가지 색으로 라이트·다크를 채운다.
     mutating func select(_ newTheme: HUDTheme) {
         if newTheme == .custom, customLight == nil || customDark == nil {
             let base = theme == .custom ? HUDTheme.standard : theme
             func seed(_ mode: HUDMode) -> CustomColors {
                 let colors = base.presetColors(mode)!
-                return CustomColors(text: colors.to, background: colors.background)
+                return CustomColors(text: colors.to, from: colors.from, arrow: colors.arrow, background: colors.background)
             }
             customLight = customLight ?? seed(.light)
             customDark = customDark ?? seed(.dark)
@@ -130,8 +145,7 @@ struct HUDAppearance: Codable, Equatable {
     func colors(_ mode: HUDMode, reduceTransparency: Bool = false) -> HUDColors {
         var colors: HUDColors
         if theme == .custom, let custom = custom(mode) {
-            let accent = HUDTheme.standard.presetColors(mode)!.arrow
-            colors = HUDColors(background: custom.background, from: custom.text.withAlpha(0.6), arrow: accent, to: custom.text)
+            colors = HUDColors(background: custom.background, from: custom.from, arrow: custom.arrow, to: custom.text)
         } else {
             colors = (theme.presetColors(mode) ?? HUDTheme.standard.presetColors(mode))!
         }

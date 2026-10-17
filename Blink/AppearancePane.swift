@@ -11,15 +11,19 @@ final class AppearancePane: NSScrollView {
     private let themePopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let customRows = NSStackView()
     private let textWell = NSColorWell()
+    private let fromWell = NSColorWell()
+    private let arrowWell = NSColorWell()
     private let backgroundWell = NSColorWell()
     private let opacitySlider = NSSlider(value: 1, minValue: 0, maxValue: 1, target: nil, action: nil)
     private let opacityLabel = NSTextField(labelWithString: "")
     private let lowContrastNote = SettingsWindow.caption(String(localized: "Text may be hard to read."))
+    private let reduceTransparencyNote = SettingsWindow.caption(String(localized: "Reduce Transparency is on in Accessibility settings, so the background is shown opaque."))
     private let sizeControl = AppearancePane.segments([String(localized: "Small"), String(localized: "Medium"), String(localized: "Large")])
     private let cornersControl = AppearancePane.segments([String(localized: "Square"), String(localized: "Default"), String(localized: "Pill")])
     private let weightControl = AppearancePane.segments([String(localized: "Regular"), String(localized: "Bold")])
     private let fromSwitch = NSSwitch()
     private let resetButton = NSButton(title: String(localized: "Reset to Default"), target: nil, action: nil)
+    private let column = NSStackView()
     private let preview: () -> Void
     private let sampleNames: () -> (from: String, to: String?)
 
@@ -55,7 +59,7 @@ final class AppearancePane: NSScrollView {
         themePopup.action = #selector(themeChanged)
         themePopup.widthAnchor.constraint(greaterThanOrEqualToConstant: 150).isActive = true
 
-        for well in [textWell, backgroundWell] {
+        for well in [textWell, fromWell, arrowWell, backgroundWell] {
             well.target = self
             well.action = #selector(customChanged)
             well.isContinuous = true  // 컬러 패널에서 끄는 동안에도 미리보기와 실제 HUD를 갱신한다
@@ -71,9 +75,13 @@ final class AppearancePane: NSScrollView {
         opacityLabel.widthAnchor.constraint(equalToConstant: 40).isActive = true
         let customViews = [
             SettingsWindow.caption(String(localized: "Click the Light or Dark preview to choose which colors to edit.")),
-            SettingsWindow.row(String(localized: "Text Color"), [textWell]),
+            // HUD 왼쪽부터: 변경 전 → 화살표 → 변경 후.
+            SettingsWindow.row(String(localized: "Previous Source Color"), [fromWell]),
+            SettingsWindow.row(String(localized: "Arrow Color"), [arrowWell]),
+            SettingsWindow.row(String(localized: "New Source Color"), [textWell]),
             SettingsWindow.row(String(localized: "Background Color"), [backgroundWell]),
             SettingsWindow.row(String(localized: "Background Opacity"), [opacitySlider, opacityLabel]),
+            reduceTransparencyNote,
             lowContrastNote,
         ]
         customViews.forEach(customRows.addArrangedSubview)
@@ -96,7 +104,6 @@ final class AppearancePane: NSScrollView {
         let resetRow = NSStackView(views: [NSView(), resetButton])
 
         let fromRow = SettingsWindow.row(String(localized: "Show Previous Input Source"), [fromSwitch])
-        let fromCaption = SettingsWindow.caption(String(localized: "When off, only the arrow and the new input source are shown."))
         let rows: [NSView] = [
             previews,
             SettingsWindow.row(String(localized: "Theme"), [themePopup]),
@@ -107,14 +114,12 @@ final class AppearancePane: NSScrollView {
             SettingsWindow.row(String(localized: "Font Weight"), [weightControl]),
             Self.separator(),
             fromRow,
-            fromCaption,
             resetRow,
         ]
-        let column = NSStackView(views: rows)
+        rows.forEach(column.addArrangedSubview)
         column.orientation = .vertical
         column.alignment = .leading
         column.spacing = 8  // space-2
-        column.setCustomSpacing(4, after: fromRow)  // 도움말은 제 줄에 붙인다(space-1)
         column.edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)  // space-3
         column.translatesAutoresizingMaskIntoConstraints = false
         for row in rows {
@@ -134,9 +139,33 @@ final class AppearancePane: NSScrollView {
             column.trailingAnchor.constraint(equalTo: document.trailingAnchor),
             column.bottomAnchor.constraint(equalTo: document.bottomAnchor),
         ])
+
+        // '투명도 줄이기'를 바꾸면 미리보기와 안내를 바로 맞춘다.
+        NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.refresh()
+        }
     }
 
     required init?(coder: NSCoder) { fatalError() }
+
+    // 사용자 지정 색 줄까지 펼쳤을 때 내용 높이. 설정 창을 처음 열 때 기본 높이로 쓴다(언어마다 문구 길이가 달라 계산한다).
+    func fullHeight(width: CGFloat) -> CGFloat {
+        let saved = (customRows.isHidden, lowContrastNote.isHidden, reduceTransparencyNote.isHidden)
+        customRows.isHidden = false
+        lowContrastNote.isHidden = true
+        reduceTransparencyNote.isHidden = !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+        let fixed = column.widthAnchor.constraint(equalToConstant: width)
+        fixed.isActive = true
+        // 여러 줄 도움말은 폭을 알려 줘야 줄바꿈한 높이로 잰다.
+        let captions = Self.wrappingLabels(in: column)
+        captions.forEach { $0.preferredMaxLayoutWidth = width - 32 }
+        defer {
+            fixed.isActive = false
+            captions.forEach { $0.preferredMaxLayoutWidth = 0 }
+            (customRows.isHidden, lowContrastNote.isHidden, reduceTransparencyNote.isHidden) = saved
+        }
+        return column.fittingSize.height
+    }
 
     // 항목을 열 때마다 저장된 모양과 지금 이름으로 맞춘다.
     func reload() {
@@ -162,6 +191,8 @@ final class AppearancePane: NSScrollView {
     @objc private func customChanged() {
         guard var colors = look.custom(editing) else { return }
         if let text = textWell.color.rgba { colors.text = text.withAlpha(1) }
+        if let from = fromWell.color.rgba { colors.from = from.withAlpha(1) }
+        if let arrow = arrowWell.color.rgba { colors.arrow = arrow.withAlpha(1) }
         if let background = backgroundWell.color.rgba { colors.background = background.withAlpha(opacitySlider.doubleValue) }
         look.setCustom(colors, for: editing)
         save()
@@ -204,11 +235,15 @@ final class AppearancePane: NSScrollView {
         customRows.isHidden = look.theme != .custom
         if let colors = look.custom(editing) {
             textWell.color = NSColor(colors.text)
+            fromWell.color = NSColor(colors.from)
+            arrowWell.color = NSColor(colors.arrow)
             backgroundWell.color = NSColor(colors.background.withAlpha(1))
             opacitySlider.doubleValue = colors.background.alpha
             opacityLabel.stringValue = colors.background.alpha.formatted(.percent.precision(.fractionLength(0)))
             lowContrastNote.isHidden = !colors.isLowContrast
         }
+        // 켜져 있으면 HUD 배경을 불투명하게 그리므로, 불투명도를 바꿔도 보이지 않는 이유를 알린다. 값은 저장해 둔다.
+        reduceTransparencyNote.isHidden = !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
         sizeControl.selectedSegment = HUDAppearance.Size.allCases.firstIndex(of: look.size)!
         cornersControl.selectedSegment = HUDAppearance.Corners.allCases.firstIndex(of: look.corners)!
         weightControl.selectedSegment = look.bold ? 1 : 0
@@ -222,6 +257,13 @@ final class AppearancePane: NSScrollView {
         let control = NSSegmentedControl(labels: labels, trackingMode: .selectOne, target: nil, action: nil)
         control.controlSize = .small
         return control
+    }
+
+    private static func wrappingLabels(in view: NSView) -> [NSTextField] {
+        view.subviews.flatMap { sub -> [NSTextField] in
+            if let label = sub as? NSTextField, label.cell?.wraps == true { return [label] }
+            return wrappingLabels(in: sub)
+        }
     }
 
     private static func separator() -> NSBox {

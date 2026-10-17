@@ -89,7 +89,12 @@ final class HUDChip: NSView {
 
         let height = look.scaled(style.height)
         let limit = min(style.maxWidth.map(look.scaled) ?? widthLimit, widthLimit)
-        size = CGSize(width: min(max(stack.fittingSize.width, look.scaled(style.minWidth)), limit), height: height)
+        let newSize = CGSize(width: min(max(stack.fittingSize.width, look.scaled(style.minWidth)), limit), height: height)
+        // 크기가 바뀌면 놓인 자리도 다시 잡게 한다(설정 창이 열린 채 입력소스가 바뀐 경우 등).
+        if newSize != size {
+            size = newSize
+            superview?.needsLayout = true
+        }
         layer?.backgroundColor = NSColor(colors.background).cgColor
         layer?.cornerRadius = look.cornerRadius(height: height, standard: style.radius)
     }

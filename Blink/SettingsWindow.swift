@@ -83,7 +83,14 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         window.setContentSize(NSSize(width: 620, height: 440))
         // 이보다 작으면 도움말이 잘린다. 늘린 만큼은 내용 영역이 가져가고(사이드바는 180 고정), 마지막 크기·자리를 기억한다.
         window.contentMinSize = NSSize(width: 620, height: 440)
-        if !window.setFrameUsingName("Settings") { window.center() }
+        if !window.setFrameUsingName("Settings") {
+            // 처음 열 때는 '모양'의 사용자 지정 색 줄까지 스크롤 없이 들어가는 높이로 연다. 화면보다 크면 화면에 맞춘다.
+            let titleBar = window.frame.height - window.contentLayoutRect.height
+            let ideal = max(appearancePane.fullHeight(width: 620 - 180) + titleBar, window.frame.height)
+            let limit = (window.screen ?? NSScreen.main)?.visibleFrame.height ?? ideal
+            window.setFrame(NSRect(origin: window.frame.origin, size: NSSize(width: window.frame.width, height: min(ideal, limit))), display: false)
+            window.center()
+        }
         window.setFrameAutosaveName("Settings")
 
         // 로그인 항목은 시스템 설정에서도 바뀌므로 창이 앞으로 올 때마다 다시 읽는다.
@@ -221,6 +228,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
 
     static func caption(_ text: String) -> NSTextField {
         let caption = NSTextField(wrappingLabelWithString: text)
+        caption.isSelectable = false  // 설명 글자는 시스템 설정처럼 끌어서 선택되지 않게 한다
         caption.font = .systemFont(ofSize: 11)  // caption
         caption.textColor = Tokens.muted
         return caption

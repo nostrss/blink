@@ -5,7 +5,7 @@ final class PositionPane: NSStackView {
     private let monitor = MiniMonitor()
     private let nameLabel = NSTextField(labelWithString: "")
     private let resetButton = NSButton(title: String(localized: "Reset to Default"), target: nil, action: nil)
-    private let oneSourceNote = NSTextField(wrappingLabelWithString: String(localized: "There’s only one input source, so the HUD never appears. You can add more in System Settings > Keyboard > Input Sources."))
+    private let oneSourceNote = SettingsWindow.caption(String(localized: "There’s only one input source, so the HUD never appears. You can add more in System Settings > Keyboard > Input Sources."))
     private let preview: (HUDPosition) -> Void
     private let sampleNames: () -> (from: String, to: String?)
 
@@ -22,12 +22,7 @@ final class PositionPane: NSStackView {
         let spacer = NSView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         let foot = NSStackView(views: [nameLabel, spacer, resetButton])
-        let caption = NSTextField(wrappingLabelWithString: String(localized: "Click a dot or drag the HUD to move it. While you move it, a preview appears at the same spot on your screen."))
-        caption.font = .systemFont(ofSize: 11)  // caption
-        caption.textColor = Tokens.muted
-
-        oneSourceNote.font = .systemFont(ofSize: 11)  // caption
-        oneSourceNote.textColor = Tokens.muted
+        let caption = SettingsWindow.caption(String(localized: "Click a dot or drag the HUD to move it. While you move it, a preview appears at the same spot on your screen."))
 
         orientation = .vertical
         alignment = .leading
