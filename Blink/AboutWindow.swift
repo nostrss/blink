@@ -33,7 +33,7 @@ final class AboutWindow: NSObject {
         let title = Self.label(firstLaunch ? "Blink에 오신 것을 환영합니다" : "Blink", size: 15, weight: .semibold, color: Tokens.ink)  // title
         let summary = Self.label("입력소스가 바뀌면 화면 중앙에 '변경 전 → 변경 후'를 잠깐 보여 줍니다.", color: Tokens.ink)
         let state = Self.stateCard(isOn: isOn)
-        let howTo = Self.label("메뉴바의 키보드 아이콘에서 끄거나 켤 수 있습니다.", color: Tokens.muted)
+        let howTo = Self.label("메뉴바의 •→ 아이콘에서 끄거나 켤 수 있습니다.", color: Tokens.muted)
 
         var rows: [NSView] = [title, summary, state, howTo]
         if firstLaunch {
