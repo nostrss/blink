@@ -5,18 +5,10 @@ final class HUD {
     static let durationKey = "hudDuration"
     private static let fadeDuration = 0.3
 
-    // 디자인 시스템 tokens.json
-    private static let hudBg = NSColor(name: nil) { $0.isDark
-        ? NSColor(srgbRed: 40 / 255, green: 40 / 255, blue: 42 / 255, alpha: 0.86)
-        : NSColor(srgbRed: 246 / 255, green: 246 / 255, blue: 248 / 255, alpha: 0.86) }
-    private static let muted = NSColor(name: nil) { $0.isDark ? NSColor(hex: 0xa1a1a6) : NSColor(hex: 0x6e6e73) }
-    private static let hudInk = NSColor(name: nil) { $0.isDark ? .white : NSColor(hex: 0x1d1d1f) }
-    private static let accent = NSColor(name: nil) { $0.isDark ? NSColor(hex: 0x4c9dff) : NSColor(hex: 0x0a66d6) }
-
     private let panel = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
     private let tint = NSView()
-    private let fromLabel = HUD.label(size: 20, weight: .medium, color: HUD.muted)   // hud-from
-    private let toLabel = HUD.label(size: 28, weight: .semibold, color: HUD.hudInk)  // hud-to
+    private let fromLabel = HUD.label(size: 20, weight: .medium, color: Tokens.muted)   // hud-from
+    private let toLabel = HUD.label(size: 28, weight: .semibold, color: Tokens.hudInk)  // hud-to
     private var hideTimer: Timer?
 
     init() {
@@ -39,7 +31,7 @@ final class HUD {
         tint.autoresizingMask = [.width, .height]
         effect.addSubview(tint)
 
-        let arrow = HUD.label(size: 20, weight: .medium, color: HUD.accent)
+        let arrow = HUD.label(size: 20, weight: .medium, color: Tokens.accent)
         arrow.stringValue = "→"
         let stack = NSStackView(views: [fromLabel, arrow, toLabel])
         stack.spacing = 8  // space-2
@@ -61,7 +53,7 @@ final class HUD {
         toLabel.stringValue = to
         // layer 색은 외관 변경을 따라가지 않으므로 표시할 때마다 다시 칠한다.
         NSApp.effectiveAppearance.performAsCurrentDrawingAppearance {
-            tint.layer?.backgroundColor = HUD.hudBg.cgColor
+            tint.layer?.backgroundColor = Tokens.hudBg.cgColor
         }
 
         let size = panel.contentView!.fittingSize
@@ -109,15 +101,5 @@ final class HUD {
         label.font = .systemFont(ofSize: size, weight: weight)
         label.textColor = color
         return label
-    }
-}
-
-private extension NSAppearance {
-    var isDark: Bool { bestMatch(from: [.aqua, .darkAqua]) == .darkAqua }
-}
-
-private extension NSColor {
-    convenience init(hex: Int) {
-        self.init(srgbRed: CGFloat(hex >> 16 & 0xff) / 255, green: CGFloat(hex >> 8 & 0xff) / 255, blue: CGFloat(hex & 0xff) / 255, alpha: 1)
     }
 }

@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var lastSourceName: String?
     private lazy var hud = HUD()
+    private lazy var settingsWindow = SettingsWindow()
 
     private var showOnSwitch: Bool {
         get { UserDefaults.standard.bool(forKey: Self.showOnSwitchKey) }
@@ -35,9 +36,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         showItem.target = self
         let menu = NSMenu()
         menu.addItem(showItem)
-        // action이 없는 항목은 NSMenu가 비활성으로 표시한다. 로그인 항목은 5단계, 설정은 4단계, 정보는 5단계에서 연결.
+        // action이 없는 항목은 NSMenu가 비활성으로 표시한다. 로그인 항목과 정보는 5단계에서 연결.
         menu.addItem(NSMenuItem(title: "로그인 시 실행", action: nil, keyEquivalent: ""))
-        menu.addItem(NSMenuItem(title: "설정…", action: nil, keyEquivalent: ","))
+        let settingsItem = NSMenuItem(title: "설정…", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
         menu.addItem(NSMenuItem(title: "정보…", action: nil, keyEquivalent: ""))
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Blink 종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
@@ -67,6 +70,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let source = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue(),
               let ptr = TISGetInputSourceProperty(source, kTISPropertyLocalizedName) else { return nil }
         return Unmanaged<CFString>.fromOpaque(ptr).takeUnretainedValue() as String
+    }
+
+    @objc private func openSettings() {
+        settingsWindow.show()
     }
 
     @objc private func toggleShowOnSwitch() {
