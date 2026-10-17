@@ -1,4 +1,5 @@
 import AppKit
+import Carbon
 
 @main
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -14,6 +15,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let showItem = NSMenuItem(title: "언어 전환 표시", action: #selector(toggleShowOnSwitch), keyEquivalent: "")
+
+    private var lastSourceName: String?
 
     private var showOnSwitch: Bool {
         get { UserDefaults.standard.bool(forKey: Self.showOnSwitchKey) }
@@ -40,6 +43,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = menu
 
         refreshShowState()
+
+        lastSourceName = Self.currentInputSourceName()
+        DistributedNotificationCenter.default().addObserver(
+            self,
+            selector: #selector(inputSourceChanged),
+            name: NSNotification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String),
+            object: nil,
+            suspensionBehavior: .deliverImmediately
+        )
+    }
+
+    // 한 번 전환에 알림이 여러 번 올 수 있어 직전 이름과 같으면 무시한다.
+    @objc private func inputSourceChanged() {
+        guard let name = Self.currentInputSourceName(), name != lastSourceName else { return }
+        NSLog("입력소스 변경: %@ → %@", lastSourceName ?? "?", name)
+        lastSourceName = name
+    }
+
+    private static func currentInputSourceName() -> String? {
+        guard let source = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue(),
+              let ptr = TISGetInputSourceProperty(source, kTISPropertyLocalizedName) else { return nil }
+        return Unmanaged<CFString>.fromOpaque(ptr).takeUnretainedValue() as String
     }
 
     @objc private func toggleShowOnSwitch() {
