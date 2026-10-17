@@ -4,6 +4,7 @@ import AppKit
 final class HUD {
     static let durationKey = "hudDuration"
     private static let fadeDuration = 0.3
+    private static let maxWidth: CGFloat = 480
 
     private let panel = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
     private let tint = NSView()
@@ -33,6 +34,10 @@ final class HUD {
 
         let arrow = HUD.label(size: 20, weight: .medium, color: Tokens.accent)
         arrow.stringValue = "→"
+        // 폭이 모자라면 '변경 전'만 말줄임하고 '변경 후'는 자르지 않는다.
+        fromLabel.lineBreakMode = .byTruncatingTail
+        fromLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        toLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         let stack = NSStackView(views: [fromLabel, arrow, toLabel])
         stack.spacing = 8  // space-2
         stack.alignment = .centerY
@@ -51,12 +56,18 @@ final class HUD {
     func show(from: String, to: String) {
         fromLabel.stringValue = from
         toLabel.stringValue = to
-        // layer 색은 외관 변경을 따라가지 않으므로 표시할 때마다 다시 칠한다.
+        // layer 색은 외관·손쉬운 사용 설정 변경을 따라가지 않으므로 표시할 때마다 다시 칠한다.
+        // '투명도 줄이기'가 켜져 있으면 불투명 surface로 칠한다.
+        let workspace = NSWorkspace.shared
         NSApp.effectiveAppearance.performAsCurrentDrawingAppearance {
-            tint.layer?.backgroundColor = Tokens.hudBg.cgColor
+            let bg = workspace.accessibilityDisplayShouldReduceTransparency ? Tokens.surface : Tokens.hudBg
+            tint.layer?.backgroundColor = bg.cgColor
         }
 
-        let size = panel.contentView!.fittingSize
+        // 최대 480pt. 단, '변경 후'가 그보다 길면 '변경 전'이 "…"만 남을 만큼까지는 넓힌다.
+        var size = panel.contentView!.fittingSize
+        let ellipsis = NSAttributedString(string: "…", attributes: [.font: fromLabel.font!]).size().width.rounded(.up) + 4
+        size.width = max(min(size.width, Self.maxWidth), size.width - fromLabel.fittingSize.width + ellipsis)
         let mouse = NSEvent.mouseLocation
         let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
         if let frame = screen?.frame {
@@ -64,15 +75,19 @@ final class HUD {
                                   width: size.width, height: size.height), display: true)
         }
 
-        // 진행 중인 페이드아웃을 끊고 즉시 다시 보인다.
         panel.invalidateShadow()  // 그림자를 둥근 모양에 맞춘다.
 
+        // 진행 중인 페이드아웃을 끊고 즉시 다시 보인다.
         NSAnimationContext.runAnimationGroup { $0.duration = 0; panel.animator().alphaValue = 1 }
         panel.orderFrontRegardless()
 
         hideTimer?.invalidate()
-        hideTimer = Timer.scheduledTimer(withTimeInterval: UserDefaults.standard.double(forKey: Self.durationKey), repeats: false) { [weak self] _ in
-            self?.fadeOut()
+        // '동작 줄이기'가 켜져 있으면 페이드 없이 같은 시점(표시 시간 + 0.3초)에 사라진다.
+        let reduceMotion = workspace.accessibilityDisplayShouldReduceMotion
+        let duration = UserDefaults.standard.double(forKey: Self.durationKey)
+        hideTimer = Timer.scheduledTimer(withTimeInterval: reduceMotion ? duration + Self.fadeDuration : duration, repeats: false) { [weak self] _ in
+            guard let self else { return }
+            if reduceMotion { self.panel.orderOut(nil) } else { self.fadeOut() }
         }
     }
 
@@ -100,6 +115,7 @@ final class HUD {
         let label = NSTextField(labelWithString: "")
         label.font = .systemFont(ofSize: size, weight: weight)
         label.textColor = color
+        label.setAccessibilityElement(false)  // 입력소스는 VoiceOver가 이미 읽어 준다.
         return label
     }
 }
