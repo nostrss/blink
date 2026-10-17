@@ -10,13 +10,15 @@ macOS 전용 타깃(최소 13.0, `LSUIElement`), 진입점은 `Blink/AppDelegate
 
 ## 빌드
 
-`xcode-select`가 Command Line Tools를 가리키고 있어 `xcodebuild`를 그냥 실행하면 실패한다. `DEVELOPER_DIR`를 지정한다:
+`xcode-select`가 Command Line Tools를 가리키고 있어 `xcodebuild`를 그냥 실행하면 실패한다. `DEVELOPER_DIR`를 지정한다.
+
+빌드는 항상 `test` 액션으로 한다. 앱을 빌드하고 단위 테스트(`BlinkTests`)까지 돌리며, 테스트가 하나라도 실패하면 빌드가 실패한 것으로 보고 다음 단계(실행, 화면 확인, 커밋)로 넘어가지 않는다:
 
 ```bash
-DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Blink.xcodeproj -scheme Blink -configuration Debug -derivedDataPath build build
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Blink.xcodeproj -scheme Blink -configuration Debug -derivedDataPath build test
 ```
 
-결과물: `build/Build/Products/Debug/Blink.app` (`build/`는 gitignore됨). 테스트 타깃은 아직 없다.
+결과물: `build/Build/Products/Debug/Blink.app` (`build/`는 gitignore됨). 출력 끝의 `TEST SUCCEEDED`만 믿지 말고 `Test case ... passed` 줄로 테스트가 실제로 돌았는지 확인한다.
 
 빌드 설정(배포 타깃, 번들 ID, 서명, entitlements)은 `Blink.xcodeproj/project.pbxproj`에 있다. 직접 편집은 최소한으로 하고, 바꾼 뒤에는 위 빌드로 확인한다.
 
@@ -24,6 +26,20 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Bli
 
 - Mac App Store로만 배포하므로 App Sandbox는 항상 켠다. 샌드박스에서 막히는 API는 쓰지 않는다. 이유는 [docs/adr/0001-app-sandbox-from-start.md](docs/adr/0001-app-sandbox-from-start.md) 참고.
 - 커밋은 항상 사용자의 확인을 받은 뒤에 한다. 작업이 끝나도 바로 커밋하지 말고, 무엇을 커밋할지 보여 주고 승인을 기다린다. 한 번 승인받았다고 다음 커밋까지 승인된 것으로 보지 않는다.
+
+## 테스트
+
+- 기능을 추가하거나 로직을 바꿀 때는 항상 테스트 코드를 같이 작성한다. 버그를 고칠 때는 그 버그를 재현하는 테스트를 먼저 쓴다.
+- 테스트하기 쉬운 구조로 설계한다. 판단·계산·상태 변화(무엇을 보여 줄지, 값을 어떻게 고칠지, 크기를 얼마로 할지)는 AppKit과 시스템 API(TIS, `SMAppService`, `UserDefaults`, `NSPanel`)에 의존하지 않는 순수 함수나 값 타입으로 분리하고, 입력을 값으로 받아 결과를 값으로 돌려주게 한다. AppKit 쪽은 그 결과를 화면과 시스템에 반영하는 얇은 층으로 둔다. 지금 예시: `InputSourceTracker`, `SettingsWindow.duration(from:current:)`·`snapped(_:)`, `HUD.panelWidth(fitting:from:ellipsis:)`.
+- 화면, 시스템 설정, 하드웨어처럼 단위 테스트로 확인할 수 없는 동작은 [docs/CHECKLIST.md](docs/CHECKLIST.md)에 항목을 추가한다.
+
+## 검증
+
+[docs/CHECKLIST.md](docs/CHECKLIST.md)에 영역별(입력소스 감지, HUD, 설정 창, 메뉴·로그인 항목, 정보·첫 실행 창) 확인 항목이 있다.
+
+- 코드를 바꿀 때마다 단위 테스트를 돌린다.
+- 영역 코드를 바꿨으면 체크리스트에서 그 영역 항목만 확인한다. Claude 표시 항목은 직접 확인하고, 사용자 표시 항목은 확인을 요청한다. 매 작업마다 전체를 돌리지 않는다.
+- App Store 제출 전(첫 출시와 업데이트마다)에는 전체를 확인한다.
 
 ## 디자인 시스템
 
