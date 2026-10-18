@@ -190,7 +190,7 @@ private let presetNames = [
 ]
 
 // 프리셋 점. 지름 8pt를 그리고, 누르는 영역은 24pt. 마우스를 올리거나 누르면 accent.
-private final class Dot: NSButton {
+final class Dot: NSButton {
     let index: Int
     private var hovering = false { didSet { needsDisplay = true } }
 

@@ -333,6 +333,55 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(free.origin(size: hud, in: visible, margin: 24), CGPoint(x: 800, y: 600))
     }
 
+    // 배지 위치: 포인터 영역(화살표의 흰 외곽선까지, 끝점에서 (-2, -2)부터 13×19pt) 바깥에 4pt(space-1) 띄운다.
+    // AppKit 좌표라 y가 위로 증가한다. 외곽선을 넣어야 위·왼쪽도 오른쪽·아래와 비슷하게 떨어져 보인다.
+    func testBadgePlacementAroundPointer() {
+        let screen = CGRect(x: 0, y: 0, width: 1440, height: 900)
+        let badge = CGSize(width: 24, height: 24)
+        let origin = { (placement: BadgePlacement, pointer: CGPoint) in placement.origin(size: badge, pointer: pointer, in: screen) }
+        let p = CGPoint(x: 500, y: 500)
+        XCTAssertEqual(origin(.bottomRight, p), CGPoint(x: 515, y: 455))  // 기본: 끝점에서 오른쪽 15, 아래 21
+        XCTAssertEqual(origin(.bottom, p), CGPoint(x: 493, y: 455))  // 영역 가운데에 맞춤(492.5 반올림)
+        XCTAssertEqual(origin(.top, p), CGPoint(x: 493, y: 506))  // 외곽선(2) + 간격(4) 위
+        XCTAssertEqual(origin(.topLeft, p), CGPoint(x: 470, y: 506))
+        XCTAssertEqual(origin(.left, p), CGPoint(x: 470, y: 481))  // 외곽선(2) + 간격(4) 왼쪽, 세로는 영역 가운데(480.5 반올림)
+        XCTAssertEqual(origin(.right, p), CGPoint(x: 515, y: 481))
+    }
+
+    // 넘친 축만 반대쪽으로 뒤집고, 그래도 넘치면 화면 안으로 밀어 넣는다.
+    func testBadgePlacementFlipsAtScreenEdges() {
+        let screen = CGRect(x: 0, y: 0, width: 1440, height: 875)
+        let badge = CGSize(width: 24, height: 24)
+        XCTAssertEqual(BadgePlacement.bottomRight.origin(size: badge, pointer: CGPoint(x: 1430, y: 500), in: screen), CGPoint(x: 1400, y: 455))  // 오른쪽 끝 → 왼쪽
+        XCTAssertEqual(BadgePlacement.bottomRight.origin(size: badge, pointer: CGPoint(x: 500, y: 10), in: screen), CGPoint(x: 515, y: 16))  // 아래 끝 → 위
+        XCTAssertEqual(BadgePlacement.topRight.origin(size: badge, pointer: CGPoint(x: 1438, y: 870), in: screen), CGPoint(x: 1408, y: 825))  // 구석은 둘 다
+        XCTAssertEqual(BadgePlacement.top.origin(size: badge, pointer: CGPoint(x: 2, y: 500), in: screen), CGPoint(x: 0, y: 506))  // 가운데 축은 밀어 넣기만
+    }
+
+    func testBadgePlacementSavedValue() {
+        XCTAssertEqual(BadgePlacement(saved: nil), .bottomRight)  // 기본값
+        XCTAssertEqual(BadgePlacement(saved: "sideways"), .bottomRight)  // 읽을 수 없는 값
+        XCTAssertEqual(BadgePlacement(saved: BadgePlacement.top.rawValue), .top)
+        XCTAssertEqual(BadgePlacement.allCases.count, 8)  // 가운데는 없다
+    }
+
+    // 배지 크기: HUD 크기와 따로 고르고, 글자 13 · 16 · 21pt에 높이는 글자 × 2.2, 좌우 패딩은 글자 × 0.5.
+    func testBadgeSizeMetrics() {
+        let metrics = HUDAppearance.Size.allCases.map(CursorBadgeView.metrics)
+        XCTAssertEqual(metrics.map(\.font), [13, 16, 21])
+        XCTAssertEqual(metrics.map(\.height), [29, 35, 46])
+        XCTAssertEqual(metrics.map(\.padding), [7, 8, 11])
+        XCTAssertEqual(CursorBadge.size(saved: nil), .medium)  // 기본은 보통
+        XCTAssertEqual(CursorBadge.size(saved: "huge"), .medium)
+        XCTAssertEqual(CursorBadge.size(saved: "small"), .small)
+    }
+
+    // 배지 폭: 글자 + 좌우 패딩이고 높이보다 좁아지지 않는다(한 글자면 원, EN이면 가로로 긴 알약).
+    func testBadgeWidthNeverNarrowerThanHeight() {
+        XCTAssertEqual(CursorBadgeView.width(text: 7.5, height: 24, padding: 8), 24)
+        XCTAssertEqual(CursorBadgeView.width(text: 15.2, height: 24, padding: 8), 32)
+    }
+
     // 지원 언어 10개가 앱에 들어 있고, 각 언어가 영어와 같은 문자열을 빠짐없이 번역했는지 본다.
     func testEveryLanguageTranslatesEveryString() throws {
         let languages = ["en", "ko", "ja", "zh-Hans", "zh-Hant", "ru", "de", "fr", "es", "pt-BR"]

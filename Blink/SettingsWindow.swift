@@ -7,13 +7,14 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private static let step = 0.5
 
     private enum Pane: Int, CaseIterable {
-        case general, position, appearance
+        case general, position, appearance, pointer
 
         var title: String {
             switch self {
             case .general: String(localized: "General")
             case .position: String(localized: "Position")
             case .appearance: String(localized: "Appearance")
+            case .pointer: String(localized: "Pointer")
             }
         }
     }
@@ -23,9 +24,10 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private let split = NSSplitViewController()
     private let sidebar = NSTableView()
     private let detail = NSView()
-    private lazy var panes: [Pane: NSView] = [.general: makeGeneralPane(), .position: positionPane, .appearance: appearancePane]
+    private lazy var panes: [Pane: NSView] = [.general: makeGeneralPane(), .position: positionPane, .appearance: appearancePane, .pointer: pointerPane]
     private let positionPane: PositionPane
     private let appearancePane: AppearancePane
+    private let pointerPane: PointerPane
 
     private let showSwitch = NSSwitch()
     private let capsLockSwitch = NSSwitch()
@@ -43,13 +45,16 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     }()
 
     // onShowChanged: '언어 전환 HUD 표시'를 바꾼 직후(메뉴바 아이콘 갱신용). onCapsLockChanged: 'Caps Lock HUD 표시'를 바꾼 직후
+    // onPointerChanged: '포인터' 설정을 바꾼 직후(실제 포인터 배지를 다시 읽게 한다).
     // preview: 위치·모양을 고르는 동안 실제 화면에 HUD를 띄운다. sampleNames: 미니 HUD와 미리보기에 쓸 이름
-    init(onShowChanged: @escaping () -> Void, onCapsLockChanged: @escaping () -> Void, preview: @escaping (HUDPosition) -> Void,
+    init(onShowChanged: @escaping () -> Void, onCapsLockChanged: @escaping () -> Void, onPointerChanged: @escaping () -> Void,
+         preview: @escaping (HUDPosition) -> Void,
          sampleNames: @escaping () -> (from: InputSourceLabel, to: InputSourceLabel?)) {
         self.onShowChanged = onShowChanged
         self.onCapsLockChanged = onCapsLockChanged
         positionPane = PositionPane(preview: preview, sampleNames: sampleNames)
         appearancePane = AppearancePane(preview: { preview(HUD.savedPosition) }, sampleNames: sampleNames)
+        pointerPane = PointerPane(onChange: onPointerChanged, sampleNames: sampleNames)
         super.init()
         window.isReleasedWhenClosed = false
         window.backgroundColor = Tokens.surface
@@ -117,6 +122,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     func reloadNames() {
         positionPane.reloadNames()
         appearancePane.reloadNames()
+        pointerPane.reloadNames()
     }
 
     private func select(_ pane: Pane) {
@@ -125,6 +131,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         // 항목을 열 때마다 저장된 값으로 맞춘다('모양'에서 바꾼 모양이 '위치'의 미니 HUD에 보이도록).
         if pane == .position { positionPane.reload() }
         if pane == .appearance { appearancePane.reload() }
+        if pane == .pointer { pointerPane.reload() }
         let view = panes[pane]!
         view.translatesAutoresizingMaskIntoConstraints = false
         detail.addSubview(view)

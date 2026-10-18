@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // 'Caps Lock HUD 표시'가 켜져 있는 동안만 돈다. 샌드박스에서 권한 없이 읽을 수 있는 수정키 상태를 0.1초마다 본다.
     private var capsLockTimer: Timer?
     private lazy var hud = HUD()
+    private lazy var cursorBadge = CursorBadge()
     // 입력소스가 바뀔 때 열려 있는 창의 이름만 갱신하려고, 처음 열 때 만든다.
     private var settingsWindow: SettingsWindow?
     private lazy var aboutWindow = AboutWindow()
@@ -31,7 +32,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [Self.showOnSwitchKey: true, HUD.durationKey: 1.0,
-                                                  HUD.positionXKey: 0.5, HUD.positionYKey: 0.5, HUD.showCapsLockKey: false])
+                                                  HUD.positionXKey: 0.5, HUD.positionYKey: 0.5, HUD.showCapsLockKey: false,
+                                                  CursorBadge.enabledKey: false, CursorBadge.hidesWhenIdleKey: false])
 
         let image = NSImage(named: "MenuBarIcon")
         image?.isTemplate = true
@@ -54,6 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         refreshCapsLockWatch()
 
         _ = tracker.update(Self.currentInputSource()?.name)
+        reloadCursorBadge()
         DistributedNotificationCenter.default().addObserver(
             self,
             selector: #selector(inputSourceChanged),
@@ -73,6 +76,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let change = tracker.update(Self.currentInputSource()?.name) else { return }
         NSLog("입력소스 변경: %@ → %@", change.from, change.to)
         if showOnSwitch { hud.show(from: Self.label(named: change.from), to: Self.label(named: change.to)) }
+        cursorBadge.update(Self.label(named: change.to))
         settingsWindow?.reloadNames()
     }
 
@@ -118,10 +122,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             settingsWindow = SettingsWindow(
                 onShowChanged: { [weak self] in self?.refreshShowState() },
                 onCapsLockChanged: { [weak self] in self?.capsLockSettingChanged() },
+                onPointerChanged: { [weak self] in self?.reloadCursorBadge() },
                 preview: { [weak self] position in
                     guard let self else { return }
                     let names = self.sampleNames()
                     self.hud.show(from: names.from, to: names.to, at: position)
+                    self.cursorBadge.reloadLook()  // '모양'을 바꾸면 포인터 배지도 따라간다
                 },
                 sampleNames: { [weak self] in self?.sampleNames() ?? (from: InputSourceLabel(name: "", abbreviation: ""), to: nil) })
         }
@@ -130,6 +136,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openAbout() {
         aboutWindow.show()
+    }
+
+    private func reloadCursorBadge() {
+        cursorBadge.reload(showing: Self.currentInputSource() ?? Self.label(named: tracker.last ?? ""))
     }
 
     private func refreshShowState() {
