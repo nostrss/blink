@@ -93,11 +93,10 @@ final class HUD {
         effect.alphaValue = colors.blur
         stack.spacing = look.scaled(8)  // space-2
         let v = look.scaled(16)  // 위아래 space-3
-        let h = look.isBadge ? v : look.scaled(24)  // 좌우 space-4, 약자 배지는 사방 space-3
+        let h = look.isBadge ? Self.badgeInset(content: toLabel.fittingSize, padding: v) : look.scaled(24)  // 좌우 space-4, 약자 배지는 아래
         stack.edgeInsets = NSEdgeInsets(top: v, left: h, bottom: v, right: h)
 
         var size = panel.contentView!.fittingSize
-        if look.isBadge { size.width = max(size.width, size.height) }
         let ellipsis = NSAttributedString(string: "…", attributes: [.font: fromFont]).size().width.rounded(.up) + 4
         size.width = look.showsFrom
             ? Self.panelWidth(fitting: size.width, from: fromLabel.fittingSize.width, ellipsis: ellipsis, maxWidth: look.scaled(480))
@@ -127,6 +126,12 @@ final class HUD {
             guard let self else { return }
             if reduceMotion { self.panel.orderOut(nil) } else { self.fadeOut() }
         }
+    }
+
+    // 약자 배지의 좌우 여백. 기본은 위아래와 같은 padding(space-3)이고, 글자가 좁으면 여백을 양쪽에 똑같이 늘려
+    // 폭을 높이에 맞춘다. 그래야 정사각형(알약이면 원) 가운데에 글자가 온다.
+    static func badgeInset(content: CGSize, padding: CGFloat) -> CGFloat {
+        max(padding, ((content.height - content.width) / 2 + padding).rounded())
     }
 
     // 최대 폭(기본 480pt, 크기 배율을 곱함). 단, '변경 후'가 그보다 길면 '변경 전'이 "…"만 남을 만큼까지는 넓힌다.

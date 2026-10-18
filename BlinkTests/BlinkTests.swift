@@ -79,6 +79,14 @@ final class BlinkTests: XCTestCase {
         XCTAssertTrue(look.texts(from: abc, to: nil) == ("EN", nil))  // 바꿀 곳이 없으면 "없음"
     }
 
+    // 약자 배지: 글자가 높이보다 좁으면 좌우 여백을 똑같이 늘려 정사각형 가운데에 둔다. 넓으면 기본 여백(가로로 긴 알약).
+    func testBadgeCentersNarrowText() {
+        // "한" 30×34pt, 여백 16 → 좌우 18씩, 폭 66 = 높이 66
+        XCTAssertEqual(HUD.badgeInset(content: CGSize(width: 30, height: 34), padding: 16), 18)
+        // "EN" 46pt는 정사각형보다 넓으므로 기본 여백
+        XCTAssertEqual(HUD.badgeInset(content: CGSize(width: 46, height: 34), padding: 16), 16)
+    }
+
     // 표시 방식이 생기기 전에 저장한 모양도 그대로 읽고, 표시 방식은 기본(이름)이 된다.
     func testAppearanceWithoutDisplayStillDecodes() {
         let old = #"{"theme":"dracula","size":"large","corners":"pill","bold":true,"showsFrom":false}"#
