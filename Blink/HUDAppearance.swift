@@ -39,6 +39,11 @@ struct HUDColors: Equatable {
     var arrow: RGBA
     var to: RGBA
     var blur: Double = 1
+
+    // Caps Lock HUD의 기호(⇪)와 단어 색. 켜짐은 밝게(화살표 색·변경 후 색), 꺼짐은 흐리게(둘 다 변경 전 색).
+    func capsLock(on: Bool) -> (symbol: RGBA, word: RGBA) {
+        on ? (arrow, to) : (from, from)
+    }
 }
 
 enum HUDTheme: String, Codable, CaseIterable {

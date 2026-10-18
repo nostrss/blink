@@ -99,6 +99,25 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(look.display, .name)
     }
 
+    // Caps Lock: 처음 읽은 상태는 기억만 하고, 바뀐 순간에만 새 상태를 돌려준다.
+    func testCapsLockTrackerReportsOnlyChanges() {
+        var tracker = CapsLockTracker()
+        XCTAssertNil(tracker.update(false))  // 시작 상태는 띄우지 않는다
+        XCTAssertNil(tracker.update(false))
+        XCTAssertEqual(tracker.update(true), true)
+        XCTAssertNil(tracker.update(true))  // 0.1초마다 같은 값을 읽어도 한 번만
+        XCTAssertEqual(tracker.update(false), false)
+        tracker.reset()  // 설정을 껐다 켜면 그때 상태부터 다시 기억한다
+        XCTAssertNil(tracker.update(true))
+    }
+
+    // Caps Lock HUD 색: 켜짐은 기호=화살표 색·단어=변경 후 색, 꺼짐은 둘 다 변경 전 색. 테마 색을 그대로 빌린다.
+    func testCapsLockColorsBorrowThemeColors() throws {
+        let dracula = try XCTUnwrap(HUDTheme.dracula.presetColors(.dark))
+        XCTAssertTrue(dracula.capsLock(on: true) == (dracula.arrow, dracula.to))
+        XCTAssertTrue(dracula.capsLock(on: false) == (dracula.from, dracula.from))
+    }
+
     func testDurationSnapsToHalfSecondsWithinRange() {
         let cases: [(Double, Double)] = [(0.2, 0.5), (-1, 0.5), (0.5, 0.5), (1.2, 1.0), (1.3, 1.5), (2.75, 3.0), (5.0, 5.0), (7, 5.0)]
         for (input, expected) in cases {

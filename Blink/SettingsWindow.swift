@@ -28,10 +28,12 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private let appearancePane: AppearancePane
 
     private let showSwitch = NSSwitch()
+    private let capsLockSwitch = NSSwitch()
     private let loginSwitch = NSSwitch()
     private let field = NSTextField()
     private let stepper = SettingsWindow.makeDurationStepper()
     private let onShowChanged: () -> Void
+    private let onCapsLockChanged: () -> Void
     private static let formatter: NumberFormatter = {
         let f = NumberFormatter()
         f.numberStyle = .decimal
@@ -40,11 +42,12 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         return f
     }()
 
-    // onShowChanged: '언어 전환 HUD 표시'를 바꾼 직후(메뉴바 아이콘 갱신용)
+    // onShowChanged: '언어 전환 HUD 표시'를 바꾼 직후(메뉴바 아이콘 갱신용). onCapsLockChanged: 'Caps Lock HUD 표시'를 바꾼 직후
     // preview: 위치·모양을 고르는 동안 실제 화면에 HUD를 띄운다. sampleNames: 미니 HUD와 미리보기에 쓸 이름
-    init(onShowChanged: @escaping () -> Void, preview: @escaping (HUDPosition) -> Void,
+    init(onShowChanged: @escaping () -> Void, onCapsLockChanged: @escaping () -> Void, preview: @escaping (HUDPosition) -> Void,
          sampleNames: @escaping () -> (from: InputSourceLabel, to: InputSourceLabel?)) {
         self.onShowChanged = onShowChanged
+        self.onCapsLockChanged = onCapsLockChanged
         positionPane = PositionPane(preview: preview, sampleNames: sampleNames)
         appearancePane = AppearancePane(preview: { preview(HUD.savedPosition) }, sampleNames: sampleNames)
         super.init()
@@ -103,6 +106,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         select(.general)
         sidebar.selectRowIndexes([Pane.general.rawValue], byExtendingSelection: false)
         showSwitch.state = UserDefaults.standard.bool(forKey: AppDelegate.showOnSwitchKey) ? .on : .off
+        capsLockSwitch.state = UserDefaults.standard.bool(forKey: HUD.showCapsLockKey) ? .on : .off
         loginSwitch.state = LoginItem.isEnabled ? .on : .off
         apply(UserDefaults.standard.double(forKey: HUD.durationKey))
         NSApp.activateForWindow()
@@ -167,13 +171,15 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
 
     private func makeGeneralPane() -> NSView {
         let body = NSFont.systemFont(ofSize: 13)  // body
-        for toggle in [showSwitch, loginSwitch] {
+        for toggle in [showSwitch, capsLockSwitch, loginSwitch] {
             toggle.controlSize = .small
             toggle.target = self
         }
         showSwitch.action = #selector(showChanged)
+        capsLockSwitch.action = #selector(capsLockChanged)
         loginSwitch.action = #selector(loginChanged)
         let showRow = Self.row(String(localized: "Show HUD on Input Switch"), [showSwitch])
+        let capsLockRow = Self.row(String(localized: "Show HUD on Caps Lock"), [capsLockSwitch])
         let loginRow = Self.row(String(localized: "Launch at Login"), [loginSwitch])
 
         // 값은 스테퍼로만 바꾼다. 입력란은 지금 값을 보여 주기만 한다.
@@ -193,7 +199,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         let separator = NSBox()
         separator.boxType = .separator
 
-        let rows = [showRow, loginRow, separator, durationRow]
+        let rows = [showRow, capsLockRow, loginRow, separator, durationRow]
         let column = NSStackView(views: rows)
         column.orientation = .vertical
         column.alignment = .leading
@@ -229,6 +235,11 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     @objc private func showChanged() {
         UserDefaults.standard.set(showSwitch.state == .on, forKey: AppDelegate.showOnSwitchKey)
         onShowChanged()
+    }
+
+    @objc private func capsLockChanged() {
+        UserDefaults.standard.set(capsLockSwitch.state == .on, forKey: HUD.showCapsLockKey)
+        onCapsLockChanged()
     }
 
     // 등록에 실패하면 실제 상태로 되돌린다.

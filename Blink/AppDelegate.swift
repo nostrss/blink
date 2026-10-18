@@ -19,6 +19,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
     private var tracker = InputSourceTracker()
+    private var capsLock = CapsLockTracker()
+    // 'Caps Lock HUD 표시'가 켜져 있는 동안만 돈다. 샌드박스에서 권한 없이 읽을 수 있는 수정키 상태를 0.1초마다 본다.
+    private var capsLockTimer: Timer?
     private lazy var hud = HUD()
     // 입력소스가 바뀔 때 열려 있는 창의 이름만 갱신하려고, 처음 열 때 만든다.
     private var settingsWindow: SettingsWindow?
@@ -28,7 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [Self.showOnSwitchKey: true, HUD.durationKey: 1.0,
-                                                  HUD.positionXKey: 0.5, HUD.positionYKey: 0.5])
+                                                  HUD.positionXKey: 0.5, HUD.positionYKey: 0.5, HUD.showCapsLockKey: false])
 
         let image = NSImage(named: "MenuBarIcon")
         image?.isTemplate = true
@@ -48,6 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = menu
 
         refreshShowState()
+        refreshCapsLockWatch()
 
         _ = tracker.update(Self.currentInputSource()?.name)
         DistributedNotificationCenter.default().addObserver(
@@ -113,6 +117,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if settingsWindow == nil {
             settingsWindow = SettingsWindow(
                 onShowChanged: { [weak self] in self?.refreshShowState() },
+                onCapsLockChanged: { [weak self] in self?.capsLockSettingChanged() },
                 preview: { [weak self] position in
                     guard let self else { return }
                     let names = self.sampleNames()
@@ -129,6 +134,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func refreshShowState() {
         statusItem.button?.appearsDisabled = !showOnSwitch
+    }
+
+    // 켜는 순간 실제 화면에 "⇪ 켜짐"을 한 번 띄워 어떻게 보이는지 알려 준다.
+    private func capsLockSettingChanged() {
+        refreshCapsLockWatch()
+        if capsLockTimer != nil { hud.showCapsLock(true) }
+    }
+
+    private func refreshCapsLockWatch() {
+        guard UserDefaults.standard.bool(forKey: HUD.showCapsLockKey) else {
+            capsLockTimer?.invalidate()
+            capsLockTimer = nil
+            return
+        }
+        guard capsLockTimer == nil else { return }
+        capsLock.reset()
+        _ = capsLock.update(NSEvent.modifierFlags.contains(.capsLock))  // 켤 때의 상태는 기억만 한다
+        let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self, let on = self.capsLock.update(NSEvent.modifierFlags.contains(.capsLock)) else { return }
+            self.hud.showCapsLock(on)
+        }
+        RunLoop.main.add(timer, forMode: .common)  // 메뉴를 여는 동안에도 놓치지 않는다
+        capsLockTimer = timer
     }
 }
 
@@ -173,6 +201,19 @@ struct InputSourceLabel: Equatable {
         default: return String(language.prefix { $0 != "-" && $0 != "_" }).uppercased()
         }
     }
+}
+
+// Caps Lock 상태를 0.1초마다 읽은 값에서, 실제로 바뀐 순간에만 새 상태를 돌려준다.
+// 처음 읽은 값(앱을 켜거나 설정을 켤 때)은 기억만 한다.
+struct CapsLockTracker {
+    private var last: Bool?
+
+    mutating func update(_ on: Bool) -> Bool? {
+        defer { last = on }
+        return last.map { $0 == on ? nil : on } ?? nil
+    }
+
+    mutating func reset() { last = nil }
 }
 
 // 직전 입력소스 이름을 기억해 실제로 바뀐 경우에만 "변경 전 → 변경 후"를 돌려준다.
