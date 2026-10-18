@@ -47,6 +47,50 @@ final class BlinkTests: XCTestCase {
         XCTAssertNil(next("ABC", "ABC", []))
     }
 
+    // 약자: 일본어는 입력 모드로, 한·중은 언어로, 그 밖은 언어 코드 대문자, 언어가 없으면 이름 첫 글자.
+    func testAbbreviation() {
+        let abbreviation = { InputSourceLabel.abbreviation(id: $0, languages: $1, name: $2) }
+        let kotoeri = "com.apple.inputmethod.Kotoeri.RomajiTyping.Japanese"
+        XCTAssertEqual(abbreviation(kotoeri, ["ja"], "Hiragana"), "あ")
+        XCTAssertEqual(abbreviation(kotoeri + ".Katakana", ["ja"], "Katakana"), "ア")
+        XCTAssertEqual(abbreviation(kotoeri + ".HalfWidthKana", ["ja"], "Half-width Katakana"), "ｱ")
+        XCTAssertEqual(abbreviation(kotoeri + ".FullWidthRoman", ["ja"], "Full-width Romaji"), "Ａ")
+        XCTAssertEqual(abbreviation("com.apple.inputmethod.Korean.2SetKorean", ["ko"], "2-Set Korean"), "한")
+        XCTAssertEqual(abbreviation("com.apple.inputmethod.SCIM.ITABC", ["zh-Hans"], "Pinyin – Simplified"), "简")
+        XCTAssertEqual(abbreviation("com.apple.inputmethod.TCIM.Zhuyin", ["zh-Hant"], "Zhuyin – Traditional"), "繁")
+        XCTAssertEqual(abbreviation("com.apple.keylayout.ABC", ["en", "af", "asa"], "ABC"), "EN")
+        XCTAssertEqual(abbreviation("com.apple.keylayout.Russian", ["ru", "bg", "bs_Cyrl"], "Russian"), "RU")
+        XCTAssertEqual(abbreviation("x", ["chr"], "Cherokee"), "CHR")
+        XCTAssertEqual(abbreviation("x", ["sr-Latn"], "Serbian – Latin"), "SR")
+        XCTAssertEqual(abbreviation("x", [], "dvorak"), "D")
+        XCTAssertEqual(abbreviation("x", [], ""), "?")
+    }
+
+    // 표시 방식에 맞는 글자. 약자가 같으면 무엇이 바뀌었는지 알 수 없어 그 전환만 이름으로 보여 준다.
+    func testDisplayTexts() {
+        let abc = InputSourceLabel(name: "ABC", abbreviation: "EN")
+        let us = InputSourceLabel(name: "U.S.", abbreviation: "EN")
+        let korean = InputSourceLabel(name: "2-Set Korean", abbreviation: "한")
+        var look = HUDAppearance()
+        XCTAssertTrue(look.texts(from: abc, to: korean) == ("ABC", "2-Set Korean"))
+        look.display = .abbreviation
+        XCTAssertTrue(look.texts(from: abc, to: korean) == ("EN", "한"))
+        XCTAssertTrue(look.texts(from: abc, to: us) == ("ABC", "U.S."))
+        XCTAssertTrue(look.texts(from: abc, to: nil) == ("EN", nil))  // 바꿀 곳이 없으면 "없음"
+    }
+
+    // 표시 방식이 생기기 전에 저장한 모양도 그대로 읽고, 표시 방식은 기본(이름)이 된다.
+    func testAppearanceWithoutDisplayStillDecodes() {
+        let old = #"{"theme":"dracula","size":"large","corners":"pill","bold":true,"showsFrom":false}"#
+        let look = HUDAppearance(data: Data(old.utf8))
+        XCTAssertEqual(look.theme, .dracula)
+        XCTAssertEqual(look.size, .large)
+        XCTAssertEqual(look.corners, .pill)
+        XCTAssertTrue(look.bold)
+        XCTAssertFalse(look.showsFrom)
+        XCTAssertEqual(look.display, .name)
+    }
+
     func testDurationSnapsToHalfSecondsWithinRange() {
         let cases: [(Double, Double)] = [(0.2, 0.5), (-1, 0.5), (0.5, 0.5), (1.2, 1.0), (1.3, 1.5), (2.75, 3.0), (5.0, 5.0), (7, 5.0)]
         for (input, expected) in cases {
@@ -205,10 +249,11 @@ final class BlinkTests: XCTestCase {
         let parent = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 100))
         let chip = HUDChip(style: HUDChip.preview)
         parent.addSubview(chip)
-        chip.set(from: "ABC", to: "ABC")
+        let abc = InputSourceLabel(name: "ABC", abbreviation: "EN")
+        chip.set(from: abc, to: abc)
         parent.layoutSubtreeIfNeeded()
         parent.needsLayout = false
-        chip.set(from: "ABC", to: "2-Set Korean")
+        chip.set(from: abc, to: InputSourceLabel(name: "2-Set Korean", abbreviation: "한"))
         XCTAssertTrue(parent.needsLayout)
     }
 
@@ -222,6 +267,7 @@ final class BlinkTests: XCTestCase {
         look.corners = .pill
         look.bold = true
         look.showsFrom = false
+        look.display = .abbreviation
         XCTAssertEqual(HUDAppearance(data: look.data), look)
     }
 

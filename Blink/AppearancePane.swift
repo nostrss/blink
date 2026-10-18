@@ -1,6 +1,6 @@
 import AppKit
 
-// 설정 창의 '모양' 항목. HUD의 테마·크기·모서리·글자 굵기·변경 전 표시를 정한다.
+// 설정 창의 '모양' 항목. HUD의 테마·크기·모서리·글자 굵기·표시 방식·변경 전 표시를 정한다.
 // 내용이 최소 크기 창보다 길어서 이 화면 안에서 스크롤한다.
 final class AppearancePane: NSScrollView {
     private var look = HUD.savedAppearance
@@ -23,14 +23,15 @@ final class AppearancePane: NSScrollView {
     private let sizeControl = AppearancePane.segments([String(localized: "Small"), String(localized: "Medium"), String(localized: "Large")])
     private let cornersControl = AppearancePane.segments([String(localized: "Square"), String(localized: "Default"), String(localized: "Pill")])
     private let weightControl = AppearancePane.segments([String(localized: "Regular"), String(localized: "Bold")])
+    private let displayControl = AppearancePane.segments([String(localized: "Name"), String(localized: "Abbreviation")])
     private let fromSwitch = NSSwitch()
     private let resetButton = NSButton(title: String(localized: "Reset to Default"), target: nil, action: nil)
     private let column = NSStackView()
     private let preview: () -> Void
-    private let sampleNames: () -> (from: String, to: String?)
+    private let sampleNames: () -> (from: InputSourceLabel, to: InputSourceLabel?)
 
     // preview: 바꾸는 동안 실제 화면에 HUD를 띄운다. sampleNames: 미리보기에 쓸 이름
-    init(preview: @escaping () -> Void, sampleNames: @escaping () -> (from: String, to: String?)) {
+    init(preview: @escaping () -> Void, sampleNames: @escaping () -> (from: InputSourceLabel, to: InputSourceLabel?)) {
         self.preview = preview
         self.sampleNames = sampleNames
         super.init(frame: .zero)
@@ -95,7 +96,7 @@ final class AppearancePane: NSScrollView {
             view.widthAnchor.constraint(equalTo: customRows.widthAnchor).isActive = true
         }
 
-        for control in [sizeControl, cornersControl, weightControl] {
+        for control in [sizeControl, cornersControl, weightControl, displayControl] {
             control.target = self
             control.action = #selector(optionChanged)
         }
@@ -116,6 +117,7 @@ final class AppearancePane: NSScrollView {
             SettingsWindow.row(String(localized: "Corners"), [cornersControl]),
             SettingsWindow.row(String(localized: "Font Weight"), [weightControl]),
             Self.separator(),
+            SettingsWindow.row(String(localized: "Display Style"), [displayControl]),
             fromRow,
             resetRow,
         ]
@@ -206,6 +208,7 @@ final class AppearancePane: NSScrollView {
         look.corners = HUDAppearance.Corners.allCases[cornersControl.selectedSegment]
         look.bold = weightControl.selectedSegment == 1
         look.showsFrom = fromSwitch.state == .on
+        look.display = HUDAppearance.Display.allCases[displayControl.selectedSegment]
         save()
     }
 
@@ -256,6 +259,7 @@ final class AppearancePane: NSScrollView {
         cornersControl.selectedSegment = HUDAppearance.Corners.allCases.firstIndex(of: look.corners)!
         weightControl.selectedSegment = look.bold ? 1 : 0
         fromSwitch.state = look.showsFrom ? .on : .off
+        displayControl.selectedSegment = HUDAppearance.Display.allCases.firstIndex(of: look.display)!
         resetButton.isEnabled = look != .standard
     }
 

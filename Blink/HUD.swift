@@ -71,17 +71,19 @@ final class HUD {
     }
 
     // 설정 창의 미리보기는 아직 저장하지 않은 위치를 넘긴다. to가 nil이면 바꿀 입력소스가 없다는 뜻으로 "없음"을 흐리게 쓴다.
-    func show(from: String, to: String?, at position: HUDPosition = HUD.savedPosition) {
+    func show(from source: InputSourceLabel, to target: InputSourceLabel?, at position: HUDPosition = HUD.savedPosition) {
         // 모양과 색은 외관·손쉬운 사용 설정 변경을 따라가지 않으므로 표시할 때마다 다시 정한다.
         let look = Self.savedAppearance
         let workspace = NSWorkspace.shared
         let colors = look.colors(NSApp.effectiveAppearance.hudMode, reduceTransparency: workspace.accessibilityDisplayShouldReduceTransparency)
         let fromFont = NSFont.systemFont(ofSize: look.scaled(20), weight: look.bold ? .semibold : .medium)  // hud-from
         let toFont = NSFont.systemFont(ofSize: look.scaled(28), weight: look.bold ? .bold : .semibold)     // hud-to
+        let (from, to) = look.texts(from: source, to: target)
         fromLabel.stringValue = from
         fromLabel.font = fromFont
         fromLabel.textColor = NSColor(colors.from)
         fromLabel.isHidden = !look.showsFrom
+        arrow.isHidden = !look.showsFrom  // 화살표는 변경 전에서 바뀌었다는 뜻이라 변경 전과 함께 숨긴다
         arrow.font = fromFont
         arrow.textColor = NSColor(colors.arrow)
         toLabel.stringValue = to ?? String(localized: "None")
@@ -90,10 +92,12 @@ final class HUD {
         tint.layer?.backgroundColor = NSColor(colors.background).cgColor
         effect.alphaValue = colors.blur
         stack.spacing = look.scaled(8)  // space-2
-        let (v, h) = (look.scaled(16), look.scaled(24))  // 위아래 space-3, 좌우 space-4
+        let v = look.scaled(16)  // 위아래 space-3
+        let h = look.isBadge ? v : look.scaled(24)  // 좌우 space-4, 약자 배지는 사방 space-3
         stack.edgeInsets = NSEdgeInsets(top: v, left: h, bottom: v, right: h)
 
         var size = panel.contentView!.fittingSize
+        if look.isBadge { size.width = max(size.width, size.height) }
         let ellipsis = NSAttributedString(string: "…", attributes: [.font: fromFont]).size().width.rounded(.up) + 4
         size.width = look.showsFrom
             ? Self.panelWidth(fitting: size.width, from: fromLabel.fittingSize.width, ellipsis: ellipsis, maxWidth: look.scaled(480))

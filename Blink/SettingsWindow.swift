@@ -43,7 +43,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     // onShowChanged: '언어 전환 HUD 표시'를 바꾼 직후(메뉴바 아이콘 갱신용)
     // preview: 위치·모양을 고르는 동안 실제 화면에 HUD를 띄운다. sampleNames: 미니 HUD와 미리보기에 쓸 이름
     init(onShowChanged: @escaping () -> Void, preview: @escaping (HUDPosition) -> Void,
-         sampleNames: @escaping () -> (from: String, to: String?)) {
+         sampleNames: @escaping () -> (from: InputSourceLabel, to: InputSourceLabel?)) {
         self.onShowChanged = onShowChanged
         positionPane = PositionPane(preview: preview, sampleNames: sampleNames)
         appearancePane = AppearancePane(preview: { preview(HUD.savedPosition) }, sampleNames: sampleNames)

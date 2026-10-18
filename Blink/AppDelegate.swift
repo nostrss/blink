@@ -49,7 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         refreshShowState()
 
-        _ = tracker.update(Self.currentInputSourceName())
+        _ = tracker.update(Self.currentInputSource()?.name)
         DistributedNotificationCenter.default().addObserver(
             self,
             selector: #selector(inputSourceChanged),
@@ -66,35 +66,47 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func inputSourceChanged() {
-        guard let change = tracker.update(Self.currentInputSourceName()) else { return }
+        guard let change = tracker.update(Self.currentInputSource()?.name) else { return }
         NSLog("입력소스 변경: %@ → %@", change.from, change.to)
-        if showOnSwitch { hud.show(from: change.from, to: change.to) }
+        if showOnSwitch { hud.show(from: Self.label(named: change.from), to: Self.label(named: change.to)) }
         settingsWindow?.reloadNames()
     }
 
-    private static func currentInputSourceName() -> String? {
-        TISCopyCurrentKeyboardInputSource().flatMap { name(of: $0.takeRetainedValue()) }
+    private static func currentInputSource() -> InputSourceLabel? {
+        TISCopyCurrentKeyboardInputSource().flatMap { label(of: $0.takeRetainedValue()) }
     }
 
-    // 키보드 설정에서 켜 둔, 고를 수 있는 입력소스 이름(입력기 자체가 아니라 그 안의 입력 방식). 읽기만 하므로 샌드박스에서도 쓸 수 있다.
-    private static func enabledInputSourceNames() -> [String] {
+    // 키보드 설정에서 켜 둔, 고를 수 있는 입력소스(입력기 자체가 아니라 그 안의 입력 방식). 읽기만 하므로 샌드박스에서도 쓸 수 있다.
+    private static func enabledInputSources() -> [InputSourceLabel] {
         let filter = [kTISPropertyInputSourceCategory: kTISCategoryKeyboardInputSource,
                       kTISPropertyInputSourceIsSelectCapable: true] as CFDictionary
         guard let list = TISCreateInputSourceList(filter, false)?.takeRetainedValue() as? [TISInputSource] else { return [] }
-        var names: [String] = []
-        for name in list.compactMap(name(of:)) where !names.contains(name) { names.append(name) }
-        return names
+        var labels: [InputSourceLabel] = []
+        for label in list.compactMap(label(of:)) where !labels.contains(where: { $0.name == label.name }) { labels.append(label) }
+        return labels
     }
 
-    private static func name(of source: TISInputSource) -> String? {
-        guard let ptr = TISGetInputSourceProperty(source, kTISPropertyLocalizedName) else { return nil }
-        return Unmanaged<CFString>.fromOpaque(ptr).takeUnretainedValue() as String
+    // 추적기는 이름만 기억하므로, 약자는 켜진 목록에서 같은 이름을 찾아 얻는다. 목록에서 빠졌으면 이름으로 만든다.
+    private static func label(named name: String) -> InputSourceLabel {
+        enabledInputSources().first { $0.name == name }
+            ?? InputSourceLabel(name: name, abbreviation: InputSourceLabel.abbreviation(id: "", languages: [], name: name))
     }
 
-    // 위치를 고를 때 보여 줄 이름: 왼쪽은 현재, 오른쪽은 다음에 바뀔 입력소스(없으면 nil = "없음").
-    private func sampleNames() -> (from: String, to: String?) {
-        let current = Self.currentInputSourceName() ?? tracker.last ?? ""
-        return (current, InputSourceTracker.next(current: current, previous: tracker.previous, enabled: Self.enabledInputSourceNames()))
+    private static func label(of source: TISInputSource) -> InputSourceLabel? {
+        func property<T>(_ key: CFString) -> T? {
+            TISGetInputSourceProperty(source, key).flatMap { Unmanaged<AnyObject>.fromOpaque($0).takeUnretainedValue() as? T }
+        }
+        guard let name: String = property(kTISPropertyLocalizedName) else { return nil }
+        let abbreviation = InputSourceLabel.abbreviation(id: property(kTISPropertyInputSourceID) ?? "",
+                                                         languages: property(kTISPropertyInputSourceLanguages) ?? [], name: name)
+        return InputSourceLabel(name: name, abbreviation: abbreviation)
+    }
+
+    // 위치를 고를 때 보여 줄 입력소스: 왼쪽은 현재, 오른쪽은 다음에 바뀔 입력소스(없으면 nil = "없음").
+    private func sampleNames() -> (from: InputSourceLabel, to: InputSourceLabel?) {
+        let current = Self.currentInputSource() ?? Self.label(named: tracker.last ?? "")
+        let next = InputSourceTracker.next(current: current.name, previous: tracker.previous, enabled: Self.enabledInputSources().map(\.name))
+        return (current, next.map(Self.label(named:)))
     }
 
     @objc private func openSettings() {
@@ -106,7 +118,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     let names = self.sampleNames()
                     self.hud.show(from: names.from, to: names.to, at: position)
                 },
-                sampleNames: { [weak self] in self?.sampleNames() ?? (from: "", to: nil) })
+                sampleNames: { [weak self] in self?.sampleNames() ?? (from: InputSourceLabel(name: "", abbreviation: ""), to: nil) })
         }
         settingsWindow?.show()
     }
@@ -137,6 +149,29 @@ extension NSApplication {
     // LSUIElement 앱이라 창을 열 때 직접 앞으로 가져온다. macOS 14부터 activate(ignoringOtherApps:)는 무시된다.
     func activateForWindow() {
         if #available(macOS 14, *) { activate() } else { activate(ignoringOtherApps: true) }
+    }
+}
+
+// HUD에 쓰는 입력소스의 두 표기. 표시 방식(HUDAppearance.display)에 따라 하나를 고른다.
+struct InputSourceLabel: Equatable {
+    var name: String
+    var abbreviation: String
+
+    // 약자. 일본어는 언어가 모두 ja라 입력 모드(ID 끝부분)로 나누고, 한·중은 언어로 정한다.
+    // 그 밖은 첫 언어 코드를 대문자로(en → EN), 언어 정보가 없으면 이름 첫 글자.
+    static func abbreviation(id: String, languages: [String], name: String) -> String {
+        guard let language = languages.first else { return name.first.map { String($0).uppercased() } ?? "?" }
+        switch language {
+        case "ja":
+            if id.hasSuffix(".HalfWidthKana") { return "ｱ" }
+            if id.hasSuffix(".Katakana") { return "ア" }
+            if id.hasSuffix(".FullWidthRoman") { return "Ａ" }
+            return "あ"
+        case "ko": return "한"
+        case "zh-Hans": return "简"
+        case "zh-Hant": return "繁"
+        default: return String(language.prefix { $0 != "-" && $0 != "_" }).uppercased()
+        }
     }
 }
 
