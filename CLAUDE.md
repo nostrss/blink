@@ -59,11 +59,21 @@ https://claude.ai/artifact/3n9WYkuynDn61C23fgZ8Nw (Blink 디자인 시스템: �
 
 ## 스토어 스크린샷
 
-https://claude.ai/artifact/XGEmszyZoGwdewcuE5UkAc (Blink 스토어 스크린샷: Mac App Store에 올린 스크린샷을 앱 버전·언어별로 모은 페이지). 새 버전의 스크린샷을 만들면 이 아티팩트에 버전을 추가하고 이전 버전은 남긴다. 캡션과 장면은 그 버전 제출 문안의 '스크린샷'에 있다.
+https://claude.ai/artifact/XGEmszyZoGwdewcuE5UkAc (Blink 스토어 스크린샷: Mac App Store에 올린 스크린샷을 앱 버전·언어별로 모은 페이지). 새 버전의 스크린샷을 만들면 이 아티팩트에 버전을 추가하고 이전 버전은 남긴다. 원본 파일과 캡션은 아래 '제출 문안' 폴더에 있다.
 
 ## 제출 문안
 
-App Store Connect에 넣는 문안(이름·설명·업데이트 내용·스크린샷 캡션·심사 노트·개인정보 처리방침)은 버전마다 [docs/appstore/](docs/appstore/)에 `APPSTORE-<버전>.md`로 둔다. 새 버전은 직전 버전 파일을 복사해 고치고, 제출한 버전의 파일은 바꾸지 않는다.
+App Store Connect에 넣는 문안과 스크린샷은 [docs/appstore/](docs/appstore/)에 버전 폴더, 그 아래 언어 폴더(App Store Connect 로케일: `en-US`, `ko`)로 둔다.
+
+```
+docs/appstore/<버전>/<언어>/
+├── metadata.md             이름·부제·키워드·프로모션 문구·이 버전의 업데이트 내용·설명·스크린샷 장면과 캡션·심사 노트
+└── <버전>-<언어>-<n>.png    그 버전에서 새로 만든 스크린샷(2880×1800), n은 그 버전 안에서 1부터
+```
+
+스크린샷은 새로 만들거나 바꾼 것만 그 버전 폴더에 넣는다. 올리는 순서와 파일은 metadata.md의 스크린샷 표(순서·파일·장면·캡션)에 적고, 이전 버전 것을 그대로 쓰면 그 버전 폴더의 경로를 적는다.
+
+심사 노트는 언어별이 아니라 하나뿐이라 `en-US`에 영어로 쓰고, 다른 언어에는 참고용 번역만 둔다. 개인정보 처리방침의 원본은 [nostrss/blink-site](https://github.com/nostrss/blink-site)의 `privacy.md`다. 새 버전은 직전 버전 폴더를 복사해 고치고, 제출한 버전의 폴더는 바꾸지 않는다.
 
 ## 기록 남기기
 
