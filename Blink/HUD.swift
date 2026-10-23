@@ -90,10 +90,15 @@ final class HUD {
         toLabel.font = to == nil ? fromFont : toFont
         toLabel.textColor = NSColor(to == nil ? colors.from : colors.to)
         let v = look.scaled(16)  // 위아래 space-3
-        let h = look.isBadge ? Self.badgeInset(content: toLabel.fittingSize, padding: v) : look.scaled(24)  // 좌우 space-4, 약자 배지는 아래
+        // 스택은 글자 폭을 intrinsic 값으로 잡으므로 약자 배지의 여백도 그 폭으로 계산한다(fittingSize는 몇 pt 더 넓다).
+        let h = look.isBadge
+            ? Self.badgeInset(content: CGSize(width: toLabel.intrinsicContentSize.width, height: toLabel.fittingSize.height), padding: v)
+            : look.scaled(24)  // 좌우 space-4, 약자 배지는 아래
         stack.edgeInsets = NSEdgeInsets(top: v, left: h, bottom: v, right: h)
 
         var size = panel.contentView!.fittingSize
+        // centerY 스택은 높이를 작은 '변경 전' 글자에 맞추기도 해서 직접 정한다.
+        size.height = Self.panelHeight(contentHeights: [fromLabel, arrow, toLabel].filter { !$0.isHidden }.map(\.fittingSize.height), padding: v)
         let ellipsis = NSAttributedString(string: "…", attributes: [.font: fromFont]).size().width.rounded(.up) + 4
         size.width = look.showsFrom
             ? Self.panelWidth(fitting: size.width, from: fromLabel.fittingSize.width, ellipsis: ellipsis, maxWidth: look.scaled(480))
@@ -165,8 +170,14 @@ final class HUD {
 
     // 약자 배지의 좌우 여백. 기본은 위아래와 같은 padding(space-3)이고, 글자가 좁으면 여백을 양쪽에 똑같이 늘려
     // 폭을 높이에 맞춘다. 그래야 정사각형(알약이면 원) 가운데에 글자가 온다.
+    // 반올림하면 폭이 높이와 반 포인트씩 어긋나므로 그대로 둔다.
     static func badgeInset(content: CGSize, padding: CGFloat) -> CGFloat {
-        max(padding, ((content.height - content.width) / 2 + padding).rounded())
+        max(padding, (content.height - content.width) / 2 + padding)
+    }
+
+    // 패널 높이: 보이는 글자 중 가장 높은 것에 위아래 여백을 더한다.
+    static func panelHeight(contentHeights: [CGFloat], padding: CGFloat) -> CGFloat {
+        (contentHeights.max() ?? 0) + padding * 2
     }
 
     // 최대 폭(기본 480pt, 크기 배율을 곱함). 단, '변경 후'가 그보다 길면 '변경 전'이 "…"만 남을 만큼까지는 넓힌다.

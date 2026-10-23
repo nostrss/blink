@@ -85,6 +85,15 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(HUD.badgeInset(content: CGSize(width: 30, height: 34), padding: 16), 18)
         // "EN" 46pt는 정사각형보다 넓으므로 기본 여백
         XCTAssertEqual(HUD.badgeInset(content: CGSize(width: 46, height: 34), padding: 16), 16)
+        // 폭이 반 포인트로 끝나도(스택이 쓰는 intrinsic 폭 24.5) 여백을 반올림하지 않아야 폭이 높이와 같다.
+        let inset = HUD.badgeInset(content: CGSize(width: 24.5, height: 33), padding: 16)
+        XCTAssertEqual(24.5 + inset * 2, 33 + 16 * 2)
+    }
+
+    // HUD 높이는 가장 큰 글자('변경 후')에 위아래 여백을 더한 값이다. '변경 전'이 보여도 작은 글자에 맞춰 낮아지지 않는다.
+    func testHUDHeightFollowsTallestText() {
+        XCTAssertEqual(HUD.panelHeight(contentHeights: [24, 24, 33], padding: 16), 65)  // 변경 전 · 화살표 · 변경 후
+        XCTAssertEqual(HUD.panelHeight(contentHeights: [33], padding: 16), 65)  // 변경 전을 숨겨도 같은 높이
     }
 
     // 표시 방식이 생기기 전에 저장한 모양도 그대로 읽고, 표시 방식은 기본(이름)이 된다.
