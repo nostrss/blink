@@ -59,7 +59,11 @@ https://claude.ai/artifact/3n9WYkuynDn61C23fgZ8Nw (Blink 디자인 시스템: �
 
 ## 스토어 스크린샷
 
-https://claude.ai/artifact/XGEmszyZoGwdewcuE5UkAc (Blink 스토어 스크린샷: Mac App Store에 올린 스크린샷을 앱 버전·언어별로 모은 페이지). 새 버전의 스크린샷을 만들면 이 아티팩트에 버전을 추가하고 이전 버전은 남긴다. 캡션과 장면은 [docs/APPSTORE.md](docs/APPSTORE.md)의 '스크린샷'에 있다.
+https://claude.ai/artifact/XGEmszyZoGwdewcuE5UkAc (Blink 스토어 스크린샷: Mac App Store에 올린 스크린샷을 앱 버전·언어별로 모은 페이지). 새 버전의 스크린샷을 만들면 이 아티팩트에 버전을 추가하고 이전 버전은 남긴다. 캡션과 장면은 그 버전 제출 문안의 '스크린샷'에 있다.
+
+## 제출 문안
+
+App Store Connect에 넣는 문안(이름·설명·업데이트 내용·스크린샷 캡션·심사 노트·개인정보 처리방침)은 버전마다 [docs/appstore/](docs/appstore/)에 `APPSTORE-<버전>.md`로 둔다. 새 버전은 직전 버전 파일을 복사해 고치고, 제출한 버전의 파일은 바꾸지 않는다.
 
 ## 기록 남기기
 
