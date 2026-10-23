@@ -7,9 +7,9 @@ final class PositionPane: NSStackView {
     private let resetButton = NSButton(title: String(localized: "Reset to Default"), target: nil, action: nil)
     private let oneSourceNote = SettingsWindow.caption(String(localized: "There’s only one input source, so the HUD never appears. You can add more in System Settings > Keyboard > Input Sources."))
     private let preview: (HUDPosition) -> Void
-    private let sampleNames: () -> (from: String, to: String?)
+    private let sampleNames: () -> (from: InputSourceLabel, to: InputSourceLabel?)
 
-    init(preview: @escaping (HUDPosition) -> Void, sampleNames: @escaping () -> (from: String, to: String?)) {
+    init(preview: @escaping (HUDPosition) -> Void, sampleNames: @escaping () -> (from: InputSourceLabel, to: InputSourceLabel?)) {
         self.preview = preview
         self.sampleNames = sampleNames
         super.init(frame: .zero)
@@ -115,7 +115,7 @@ private final class MiniMonitor: NSView {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    func setNames(from: String, to: String?) {
+    func setNames(from: InputSourceLabel, to: InputSourceLabel?) {
         chip.set(from: from, to: to)
         needsLayout = true
     }
@@ -190,7 +190,7 @@ private let presetNames = [
 ]
 
 // 프리셋 점. 지름 8pt를 그리고, 누르는 영역은 24pt. 마우스를 올리거나 누르면 accent.
-private final class Dot: NSButton {
+final class Dot: NSButton {
     let index: Int
     private var hovering = false { didSet { needsDisplay = true } }
 

@@ -1,11 +1,12 @@
 import AppKit
 
-// "변경 전 → 변경 후"를 마우스가 있는 화면의 표시 위치에 잠깐 띄우는 오버레이. 패널 하나를 재사용한다.
+// "변경 전 → 변경 후"(또는 Caps Lock 상태)를 마우스가 있는 화면의 표시 위치에 잠깐 띄우는 오버레이. 패널 하나를 재사용한다.
 final class HUD {
     static let durationKey = "hudDuration"
     static let positionXKey = "hudPositionX"
     static let positionYKey = "hudPositionY"
     static let appearanceKey = "hudAppearance"
+    static let showCapsLockKey = "showCapsLock"
     private static let screenMargin: CGFloat = 24  // space-4
     private static let fadeDuration = 0.3
 
@@ -71,33 +72,75 @@ final class HUD {
     }
 
     // 설정 창의 미리보기는 아직 저장하지 않은 위치를 넘긴다. to가 nil이면 바꿀 입력소스가 없다는 뜻으로 "없음"을 흐리게 쓴다.
-    func show(from: String, to: String?, at position: HUDPosition = HUD.savedPosition) {
-        // 모양과 색은 외관·손쉬운 사용 설정 변경을 따라가지 않으므로 표시할 때마다 다시 정한다.
+    func show(from source: InputSourceLabel, to target: InputSourceLabel?, at position: HUDPosition = HUD.savedPosition) {
         let look = Self.savedAppearance
-        let workspace = NSWorkspace.shared
-        let colors = look.colors(NSApp.effectiveAppearance.hudMode, reduceTransparency: workspace.accessibilityDisplayShouldReduceTransparency)
+        let colors = prepare(look)
         let fromFont = NSFont.systemFont(ofSize: look.scaled(20), weight: look.bold ? .semibold : .medium)  // hud-from
-        let toFont = NSFont.systemFont(ofSize: look.scaled(28), weight: look.bold ? .bold : .semibold)     // hud-to
+        let toFont = Self.toFont(look)
+        let (from, to) = look.texts(from: source, to: target)
         fromLabel.stringValue = from
         fromLabel.font = fromFont
         fromLabel.textColor = NSColor(colors.from)
         fromLabel.isHidden = !look.showsFrom
+        arrow.isHidden = !look.showsFrom  // 화살표는 변경 전에서 바뀌었다는 뜻이라 변경 전과 함께 숨긴다
+        arrow.stringValue = "→"
         arrow.font = fromFont
         arrow.textColor = NSColor(colors.arrow)
         toLabel.stringValue = to ?? String(localized: "None")
         toLabel.font = to == nil ? fromFont : toFont
         toLabel.textColor = NSColor(to == nil ? colors.from : colors.to)
-        tint.layer?.backgroundColor = NSColor(colors.background).cgColor
-        effect.alphaValue = colors.blur
-        stack.spacing = look.scaled(8)  // space-2
-        let (v, h) = (look.scaled(16), look.scaled(24))  // 위아래 space-3, 좌우 space-4
+        let v = look.scaled(16)  // 위아래 space-3
+        // 스택은 글자 폭을 intrinsic 값으로 잡으므로 약자 배지의 여백도 그 폭으로 계산한다(fittingSize는 몇 pt 더 넓다).
+        let h = look.isBadge
+            ? Self.badgeInset(content: CGSize(width: toLabel.intrinsicContentSize.width, height: toLabel.fittingSize.height), padding: v)
+            : look.scaled(24)  // 좌우 space-4, 약자 배지는 아래
         stack.edgeInsets = NSEdgeInsets(top: v, left: h, bottom: v, right: h)
 
         var size = panel.contentView!.fittingSize
+        // centerY 스택은 높이를 작은 '변경 전' 글자에 맞추기도 해서 직접 정한다.
+        size.height = Self.panelHeight(contentHeights: [fromLabel, arrow, toLabel].filter { !$0.isHidden }.map(\.fittingSize.height), padding: v)
         let ellipsis = NSAttributedString(string: "…", attributes: [.font: fromFont]).size().width.rounded(.up) + 4
         size.width = look.showsFrom
             ? Self.panelWidth(fitting: size.width, from: fromLabel.fittingSize.width, ellipsis: ellipsis, maxWidth: look.scaled(480))
             : size.width
+        present(look, size: size, at: position)
+    }
+
+    // Caps Lock HUD: 입력 결과가 아니라 키 상태만 "⇪ 켜짐"·"⇪ 꺼짐"으로 보여 준다. 화살표 자리에 ⇪, 변경 후 자리에 단어를 쓴다.
+    // 화살표 없는 한 덩어리라 표시 방식·변경 전 표시와 관계없다.
+    func showCapsLock(_ on: Bool, at position: HUDPosition = HUD.savedPosition) {
+        let look = Self.savedAppearance
+        let (symbol, word) = prepare(look).capsLock(on: on)
+        let font = Self.toFont(look)
+        fromLabel.isHidden = true
+        arrow.isHidden = false
+        arrow.stringValue = "⇪"
+        arrow.font = font
+        arrow.textColor = NSColor(symbol)
+        toLabel.stringValue = on ? String(localized: "Caps Lock On") : String(localized: "Caps Lock Off")
+        toLabel.font = font
+        toLabel.textColor = NSColor(word)
+        let (v, h) = (look.scaled(16), look.scaled(24))  // 위아래 space-3, 좌우 space-4
+        stack.edgeInsets = NSEdgeInsets(top: v, left: h, bottom: v, right: h)
+        present(look, size: panel.contentView!.fittingSize, at: position)
+    }
+
+    private static func toFont(_ look: HUDAppearance) -> NSFont {
+        .systemFont(ofSize: look.scaled(28), weight: look.bold ? .bold : .semibold)  // hud-to
+    }
+
+    // 판의 색과 요소 간격을 맞추고 글자에 쓸 색을 돌려준다.
+    // 모양과 색은 외관·손쉬운 사용 설정 변경을 따라가지 않으므로 표시할 때마다 다시 정한다.
+    private func prepare(_ look: HUDAppearance) -> HUDColors {
+        let colors = look.colors(NSApp.effectiveAppearance.hudMode, reduceTransparency: NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency)
+        tint.layer?.backgroundColor = NSColor(colors.background).cgColor
+        effect.alphaValue = colors.blur
+        stack.spacing = look.scaled(8)  // space-2
+        return colors
+    }
+
+    // 모서리를 다듬고 마우스가 있는 화면의 표시 위치에 띄운 뒤, 표시 시간이 지나면 사라지게 한다.
+    private func present(_ look: HUDAppearance, size: CGSize, at position: HUDPosition) {
         // 창 뒤 흐림은 layer cornerRadius로 잘리지 않아 모서리에 네모가 비친다. maskImage로 자르고, 덧칠 색도 따로 둥글린다.
         let radius = look.cornerRadius(height: size.height, standard: 18)  // radius-hud
         effect.maskImage = Self.roundedMask(radius: radius)
@@ -117,12 +160,24 @@ final class HUD {
 
         hideTimer?.invalidate()
         // '동작 줄이기'가 켜져 있으면 페이드 없이 같은 시점(표시 시간 + 0.3초)에 사라진다.
-        let reduceMotion = workspace.accessibilityDisplayShouldReduceMotion
+        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         let duration = UserDefaults.standard.double(forKey: Self.durationKey)
         hideTimer = Timer.scheduledTimer(withTimeInterval: reduceMotion ? duration + Self.fadeDuration : duration, repeats: false) { [weak self] _ in
             guard let self else { return }
             if reduceMotion { self.panel.orderOut(nil) } else { self.fadeOut() }
         }
+    }
+
+    // 약자 배지의 좌우 여백. 기본은 위아래와 같은 padding(space-3)이고, 글자가 좁으면 여백을 양쪽에 똑같이 늘려
+    // 폭을 높이에 맞춘다. 그래야 정사각형(알약이면 원) 가운데에 글자가 온다.
+    // 반올림하면 폭이 높이와 반 포인트씩 어긋나므로 그대로 둔다.
+    static func badgeInset(content: CGSize, padding: CGFloat) -> CGFloat {
+        max(padding, (content.height - content.width) / 2 + padding)
+    }
+
+    // 패널 높이: 보이는 글자 중 가장 높은 것에 위아래 여백을 더한다.
+    static func panelHeight(contentHeights: [CGFloat], padding: CGFloat) -> CGFloat {
+        (contentHeights.max() ?? 0) + padding * 2
     }
 
     // 최대 폭(기본 480pt, 크기 배율을 곱함). 단, '변경 후'가 그보다 길면 '변경 전'이 "…"만 남을 만큼까지는 넓힌다.
@@ -138,7 +193,7 @@ final class HUD {
         }
     }
 
-    private static func roundedMask(radius: CGFloat) -> NSImage {
+    static func roundedMask(radius: CGFloat) -> NSImage {
         let edge = radius * 2 + 1
         let image = NSImage(size: NSSize(width: edge, height: edge), flipped: false) { rect in
             NSColor.black.setFill()

@@ -47,6 +47,86 @@ final class BlinkTests: XCTestCase {
         XCTAssertNil(next("ABC", "ABC", []))
     }
 
+    // 약자: 일본어는 입력 모드로, 한·중은 언어로, 그 밖은 언어 코드 대문자, 언어가 없으면 이름 첫 글자.
+    func testAbbreviation() {
+        let abbreviation = { InputSourceLabel.abbreviation(id: $0, languages: $1, name: $2) }
+        let kotoeri = "com.apple.inputmethod.Kotoeri.RomajiTyping.Japanese"
+        XCTAssertEqual(abbreviation(kotoeri, ["ja"], "Hiragana"), "あ")
+        XCTAssertEqual(abbreviation(kotoeri + ".Katakana", ["ja"], "Katakana"), "ア")
+        XCTAssertEqual(abbreviation(kotoeri + ".HalfWidthKana", ["ja"], "Half-width Katakana"), "ｱ")
+        XCTAssertEqual(abbreviation(kotoeri + ".FullWidthRoman", ["ja"], "Full-width Romaji"), "Ａ")
+        XCTAssertEqual(abbreviation("com.apple.inputmethod.Korean.2SetKorean", ["ko"], "2-Set Korean"), "한")
+        XCTAssertEqual(abbreviation("com.apple.inputmethod.SCIM.ITABC", ["zh-Hans"], "Pinyin – Simplified"), "简")
+        XCTAssertEqual(abbreviation("com.apple.inputmethod.TCIM.Zhuyin", ["zh-Hant"], "Zhuyin – Traditional"), "繁")
+        XCTAssertEqual(abbreviation("com.apple.keylayout.ABC", ["en", "af", "asa"], "ABC"), "EN")
+        XCTAssertEqual(abbreviation("com.apple.keylayout.Russian", ["ru", "bg", "bs_Cyrl"], "Russian"), "RU")
+        XCTAssertEqual(abbreviation("x", ["chr"], "Cherokee"), "CHR")
+        XCTAssertEqual(abbreviation("x", ["sr-Latn"], "Serbian – Latin"), "SR")
+        XCTAssertEqual(abbreviation("x", [], "dvorak"), "D")
+        XCTAssertEqual(abbreviation("x", [], ""), "?")
+    }
+
+    // 표시 방식에 맞는 글자. 약자가 같으면 무엇이 바뀌었는지 알 수 없어 그 전환만 이름으로 보여 준다.
+    func testDisplayTexts() {
+        let abc = InputSourceLabel(name: "ABC", abbreviation: "EN")
+        let us = InputSourceLabel(name: "U.S.", abbreviation: "EN")
+        let korean = InputSourceLabel(name: "2-Set Korean", abbreviation: "한")
+        var look = HUDAppearance()
+        XCTAssertTrue(look.texts(from: abc, to: korean) == ("ABC", "2-Set Korean"))
+        look.display = .abbreviation
+        XCTAssertTrue(look.texts(from: abc, to: korean) == ("EN", "한"))
+        XCTAssertTrue(look.texts(from: abc, to: us) == ("ABC", "U.S."))
+        XCTAssertTrue(look.texts(from: abc, to: nil) == ("EN", nil))  // 바꿀 곳이 없으면 "없음"
+    }
+
+    // 약자 배지: 글자가 높이보다 좁으면 좌우 여백을 똑같이 늘려 정사각형 가운데에 둔다. 넓으면 기본 여백(가로로 긴 알약).
+    func testBadgeCentersNarrowText() {
+        // "한" 30×34pt, 여백 16 → 좌우 18씩, 폭 66 = 높이 66
+        XCTAssertEqual(HUD.badgeInset(content: CGSize(width: 30, height: 34), padding: 16), 18)
+        // "EN" 46pt는 정사각형보다 넓으므로 기본 여백
+        XCTAssertEqual(HUD.badgeInset(content: CGSize(width: 46, height: 34), padding: 16), 16)
+        // 폭이 반 포인트로 끝나도(스택이 쓰는 intrinsic 폭 24.5) 여백을 반올림하지 않아야 폭이 높이와 같다.
+        let inset = HUD.badgeInset(content: CGSize(width: 24.5, height: 33), padding: 16)
+        XCTAssertEqual(24.5 + inset * 2, 33 + 16 * 2)
+    }
+
+    // HUD 높이는 가장 큰 글자('변경 후')에 위아래 여백을 더한 값이다. '변경 전'이 보여도 작은 글자에 맞춰 낮아지지 않는다.
+    func testHUDHeightFollowsTallestText() {
+        XCTAssertEqual(HUD.panelHeight(contentHeights: [24, 24, 33], padding: 16), 65)  // 변경 전 · 화살표 · 변경 후
+        XCTAssertEqual(HUD.panelHeight(contentHeights: [33], padding: 16), 65)  // 변경 전을 숨겨도 같은 높이
+    }
+
+    // 표시 방식이 생기기 전에 저장한 모양도 그대로 읽고, 표시 방식은 기본(이름)이 된다.
+    func testAppearanceWithoutDisplayStillDecodes() {
+        let old = #"{"theme":"dracula","size":"large","corners":"pill","bold":true,"showsFrom":false}"#
+        let look = HUDAppearance(data: Data(old.utf8))
+        XCTAssertEqual(look.theme, .dracula)
+        XCTAssertEqual(look.size, .large)
+        XCTAssertEqual(look.corners, .pill)
+        XCTAssertTrue(look.bold)
+        XCTAssertFalse(look.showsFrom)
+        XCTAssertEqual(look.display, .name)
+    }
+
+    // Caps Lock: 처음 읽은 상태는 기억만 하고, 바뀐 순간에만 새 상태를 돌려준다.
+    func testCapsLockTrackerReportsOnlyChanges() {
+        var tracker = CapsLockTracker()
+        XCTAssertNil(tracker.update(false))  // 시작 상태는 띄우지 않는다
+        XCTAssertNil(tracker.update(false))
+        XCTAssertEqual(tracker.update(true), true)
+        XCTAssertNil(tracker.update(true))  // 0.1초마다 같은 값을 읽어도 한 번만
+        XCTAssertEqual(tracker.update(false), false)
+        tracker.reset()  // 설정을 껐다 켜면 그때 상태부터 다시 기억한다
+        XCTAssertNil(tracker.update(true))
+    }
+
+    // Caps Lock HUD 색: 켜짐은 기호=화살표 색·단어=변경 후 색, 꺼짐은 둘 다 변경 전 색. 테마 색을 그대로 빌린다.
+    func testCapsLockColorsBorrowThemeColors() throws {
+        let dracula = try XCTUnwrap(HUDTheme.dracula.presetColors(.dark))
+        XCTAssertTrue(dracula.capsLock(on: true) == (dracula.arrow, dracula.to))
+        XCTAssertTrue(dracula.capsLock(on: false) == (dracula.from, dracula.from))
+    }
+
     func testDurationSnapsToHalfSecondsWithinRange() {
         let cases: [(Double, Double)] = [(0.2, 0.5), (-1, 0.5), (0.5, 0.5), (1.2, 1.0), (1.3, 1.5), (2.75, 3.0), (5.0, 5.0), (7, 5.0)]
         for (input, expected) in cases {
@@ -205,10 +285,11 @@ final class BlinkTests: XCTestCase {
         let parent = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 100))
         let chip = HUDChip(style: HUDChip.preview)
         parent.addSubview(chip)
-        chip.set(from: "ABC", to: "ABC")
+        let abc = InputSourceLabel(name: "ABC", abbreviation: "EN")
+        chip.set(from: abc, to: abc)
         parent.layoutSubtreeIfNeeded()
         parent.needsLayout = false
-        chip.set(from: "ABC", to: "2-Set Korean")
+        chip.set(from: abc, to: InputSourceLabel(name: "2-Set Korean", abbreviation: "한"))
         XCTAssertTrue(parent.needsLayout)
     }
 
@@ -222,6 +303,7 @@ final class BlinkTests: XCTestCase {
         look.corners = .pill
         look.bold = true
         look.showsFrom = false
+        look.display = .abbreviation
         XCTAssertEqual(HUDAppearance(data: look.data), look)
     }
 
@@ -258,6 +340,55 @@ final class BlinkTests: XCTestCase {
         let free = drag(800, 600)  // 프리셋에서 멀면 직접 지정
         XCTAssertNil(free.presetIndex)
         XCTAssertEqual(free.origin(size: hud, in: visible, margin: 24), CGPoint(x: 800, y: 600))
+    }
+
+    // 배지 위치: 포인터 영역(화살표의 흰 외곽선까지, 끝점에서 (-2, -2)부터 13×19pt) 바깥에 4pt(space-1) 띄운다.
+    // AppKit 좌표라 y가 위로 증가한다. 외곽선을 넣어야 위·왼쪽도 오른쪽·아래와 비슷하게 떨어져 보인다.
+    func testBadgePlacementAroundPointer() {
+        let screen = CGRect(x: 0, y: 0, width: 1440, height: 900)
+        let badge = CGSize(width: 24, height: 24)
+        let origin = { (placement: BadgePlacement, pointer: CGPoint) in placement.origin(size: badge, pointer: pointer, in: screen) }
+        let p = CGPoint(x: 500, y: 500)
+        XCTAssertEqual(origin(.bottomRight, p), CGPoint(x: 515, y: 455))  // 기본: 끝점에서 오른쪽 15, 아래 21
+        XCTAssertEqual(origin(.bottom, p), CGPoint(x: 493, y: 455))  // 영역 가운데에 맞춤(492.5 반올림)
+        XCTAssertEqual(origin(.top, p), CGPoint(x: 493, y: 506))  // 외곽선(2) + 간격(4) 위
+        XCTAssertEqual(origin(.topLeft, p), CGPoint(x: 470, y: 506))
+        XCTAssertEqual(origin(.left, p), CGPoint(x: 470, y: 481))  // 외곽선(2) + 간격(4) 왼쪽, 세로는 영역 가운데(480.5 반올림)
+        XCTAssertEqual(origin(.right, p), CGPoint(x: 515, y: 481))
+    }
+
+    // 넘친 축만 반대쪽으로 뒤집고, 그래도 넘치면 화면 안으로 밀어 넣는다.
+    func testBadgePlacementFlipsAtScreenEdges() {
+        let screen = CGRect(x: 0, y: 0, width: 1440, height: 875)
+        let badge = CGSize(width: 24, height: 24)
+        XCTAssertEqual(BadgePlacement.bottomRight.origin(size: badge, pointer: CGPoint(x: 1430, y: 500), in: screen), CGPoint(x: 1400, y: 455))  // 오른쪽 끝 → 왼쪽
+        XCTAssertEqual(BadgePlacement.bottomRight.origin(size: badge, pointer: CGPoint(x: 500, y: 10), in: screen), CGPoint(x: 515, y: 16))  // 아래 끝 → 위
+        XCTAssertEqual(BadgePlacement.topRight.origin(size: badge, pointer: CGPoint(x: 1438, y: 870), in: screen), CGPoint(x: 1408, y: 825))  // 구석은 둘 다
+        XCTAssertEqual(BadgePlacement.top.origin(size: badge, pointer: CGPoint(x: 2, y: 500), in: screen), CGPoint(x: 0, y: 506))  // 가운데 축은 밀어 넣기만
+    }
+
+    func testBadgePlacementSavedValue() {
+        XCTAssertEqual(BadgePlacement(saved: nil), .bottomRight)  // 기본값
+        XCTAssertEqual(BadgePlacement(saved: "sideways"), .bottomRight)  // 읽을 수 없는 값
+        XCTAssertEqual(BadgePlacement(saved: BadgePlacement.top.rawValue), .top)
+        XCTAssertEqual(BadgePlacement.allCases.count, 8)  // 가운데는 없다
+    }
+
+    // 배지 크기: HUD 크기와 따로 고르고, 글자 13 · 16 · 21pt에 높이는 글자 × 2.2, 좌우 패딩은 글자 × 0.5.
+    func testBadgeSizeMetrics() {
+        let metrics = HUDAppearance.Size.allCases.map(CursorBadgeView.metrics)
+        XCTAssertEqual(metrics.map(\.font), [13, 16, 21])
+        XCTAssertEqual(metrics.map(\.height), [29, 35, 46])
+        XCTAssertEqual(metrics.map(\.padding), [7, 8, 11])
+        XCTAssertEqual(CursorBadge.size(saved: nil), .medium)  // 기본은 보통
+        XCTAssertEqual(CursorBadge.size(saved: "huge"), .medium)
+        XCTAssertEqual(CursorBadge.size(saved: "small"), .small)
+    }
+
+    // 배지 폭: 글자 + 좌우 패딩이고 높이보다 좁아지지 않는다(한 글자면 원, EN이면 가로로 긴 알약).
+    func testBadgeWidthNeverNarrowerThanHeight() {
+        XCTAssertEqual(CursorBadgeView.width(text: 7.5, height: 24, padding: 8), 24)
+        XCTAssertEqual(CursorBadgeView.width(text: 15.2, height: 24, padding: 8), 32)
     }
 
     // 지원 언어 10개가 앱에 들어 있고, 각 언어가 영어와 같은 문자열을 빠짐없이 번역했는지 본다.

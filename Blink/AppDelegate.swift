@@ -19,7 +19,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
     private var tracker = InputSourceTracker()
+    private var capsLock = CapsLockTracker()
+    // 'Caps Lock HUD 표시'가 켜져 있는 동안만 돈다. 샌드박스에서 권한 없이 읽을 수 있는 수정키 상태를 0.1초마다 본다.
+    private var capsLockTimer: Timer?
     private lazy var hud = HUD()
+    private lazy var cursorBadge = CursorBadge()
     // 입력소스가 바뀔 때 열려 있는 창의 이름만 갱신하려고, 처음 열 때 만든다.
     private var settingsWindow: SettingsWindow?
     private lazy var aboutWindow = AboutWindow()
@@ -28,7 +32,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [Self.showOnSwitchKey: true, HUD.durationKey: 1.0,
-                                                  HUD.positionXKey: 0.5, HUD.positionYKey: 0.5])
+                                                  HUD.positionXKey: 0.5, HUD.positionYKey: 0.5, HUD.showCapsLockKey: false,
+                                                  CursorBadge.enabledKey: false, CursorBadge.hidesWhenIdleKey: false])
 
         let image = NSImage(named: "MenuBarIcon")
         image?.isTemplate = true
@@ -48,8 +53,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = menu
 
         refreshShowState()
+        refreshCapsLockWatch()
 
-        _ = tracker.update(Self.currentInputSourceName())
+        _ = tracker.update(Self.currentInputSource()?.name)
+        reloadCursorBadge()
         DistributedNotificationCenter.default().addObserver(
             self,
             selector: #selector(inputSourceChanged),
@@ -66,47 +73,63 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func inputSourceChanged() {
-        guard let change = tracker.update(Self.currentInputSourceName()) else { return }
+        guard let change = tracker.update(Self.currentInputSource()?.name) else { return }
         NSLog("입력소스 변경: %@ → %@", change.from, change.to)
-        if showOnSwitch { hud.show(from: change.from, to: change.to) }
+        if showOnSwitch { hud.show(from: Self.label(named: change.from), to: Self.label(named: change.to)) }
+        cursorBadge.update(Self.label(named: change.to))
         settingsWindow?.reloadNames()
     }
 
-    private static func currentInputSourceName() -> String? {
-        TISCopyCurrentKeyboardInputSource().flatMap { name(of: $0.takeRetainedValue()) }
+    private static func currentInputSource() -> InputSourceLabel? {
+        TISCopyCurrentKeyboardInputSource().flatMap { label(of: $0.takeRetainedValue()) }
     }
 
-    // 키보드 설정에서 켜 둔, 고를 수 있는 입력소스 이름(입력기 자체가 아니라 그 안의 입력 방식). 읽기만 하므로 샌드박스에서도 쓸 수 있다.
-    private static func enabledInputSourceNames() -> [String] {
+    // 키보드 설정에서 켜 둔, 고를 수 있는 입력소스(입력기 자체가 아니라 그 안의 입력 방식). 읽기만 하므로 샌드박스에서도 쓸 수 있다.
+    private static func enabledInputSources() -> [InputSourceLabel] {
         let filter = [kTISPropertyInputSourceCategory: kTISCategoryKeyboardInputSource,
                       kTISPropertyInputSourceIsSelectCapable: true] as CFDictionary
         guard let list = TISCreateInputSourceList(filter, false)?.takeRetainedValue() as? [TISInputSource] else { return [] }
-        var names: [String] = []
-        for name in list.compactMap(name(of:)) where !names.contains(name) { names.append(name) }
-        return names
+        var labels: [InputSourceLabel] = []
+        for label in list.compactMap(label(of:)) where !labels.contains(where: { $0.name == label.name }) { labels.append(label) }
+        return labels
     }
 
-    private static func name(of source: TISInputSource) -> String? {
-        guard let ptr = TISGetInputSourceProperty(source, kTISPropertyLocalizedName) else { return nil }
-        return Unmanaged<CFString>.fromOpaque(ptr).takeUnretainedValue() as String
+    // 추적기는 이름만 기억하므로, 약자는 켜진 목록에서 같은 이름을 찾아 얻는다. 목록에서 빠졌으면 이름으로 만든다.
+    private static func label(named name: String) -> InputSourceLabel {
+        enabledInputSources().first { $0.name == name }
+            ?? InputSourceLabel(name: name, abbreviation: InputSourceLabel.abbreviation(id: "", languages: [], name: name))
     }
 
-    // 위치를 고를 때 보여 줄 이름: 왼쪽은 현재, 오른쪽은 다음에 바뀔 입력소스(없으면 nil = "없음").
-    private func sampleNames() -> (from: String, to: String?) {
-        let current = Self.currentInputSourceName() ?? tracker.last ?? ""
-        return (current, InputSourceTracker.next(current: current, previous: tracker.previous, enabled: Self.enabledInputSourceNames()))
+    private static func label(of source: TISInputSource) -> InputSourceLabel? {
+        func property<T>(_ key: CFString) -> T? {
+            TISGetInputSourceProperty(source, key).flatMap { Unmanaged<AnyObject>.fromOpaque($0).takeUnretainedValue() as? T }
+        }
+        guard let name: String = property(kTISPropertyLocalizedName) else { return nil }
+        let abbreviation = InputSourceLabel.abbreviation(id: property(kTISPropertyInputSourceID) ?? "",
+                                                         languages: property(kTISPropertyInputSourceLanguages) ?? [], name: name)
+        return InputSourceLabel(name: name, abbreviation: abbreviation)
+    }
+
+    // 위치를 고를 때 보여 줄 입력소스: 왼쪽은 현재, 오른쪽은 다음에 바뀔 입력소스(없으면 nil = "없음").
+    private func sampleNames() -> (from: InputSourceLabel, to: InputSourceLabel?) {
+        let current = Self.currentInputSource() ?? Self.label(named: tracker.last ?? "")
+        let next = InputSourceTracker.next(current: current.name, previous: tracker.previous, enabled: Self.enabledInputSources().map(\.name))
+        return (current, next.map(Self.label(named:)))
     }
 
     @objc private func openSettings() {
         if settingsWindow == nil {
             settingsWindow = SettingsWindow(
                 onShowChanged: { [weak self] in self?.refreshShowState() },
+                onCapsLockChanged: { [weak self] in self?.capsLockSettingChanged() },
+                onPointerChanged: { [weak self] in self?.reloadCursorBadge() },
                 preview: { [weak self] position in
                     guard let self else { return }
                     let names = self.sampleNames()
                     self.hud.show(from: names.from, to: names.to, at: position)
+                    self.cursorBadge.reloadLook()  // '모양'을 바꾸면 포인터 배지도 따라간다
                 },
-                sampleNames: { [weak self] in self?.sampleNames() ?? (from: "", to: nil) })
+                sampleNames: { [weak self] in self?.sampleNames() ?? (from: InputSourceLabel(name: "", abbreviation: ""), to: nil) })
         }
         settingsWindow?.show()
     }
@@ -115,8 +138,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         aboutWindow.show()
     }
 
+    private func reloadCursorBadge() {
+        cursorBadge.reload(showing: Self.currentInputSource() ?? Self.label(named: tracker.last ?? ""))
+    }
+
     private func refreshShowState() {
         statusItem.button?.appearsDisabled = !showOnSwitch
+    }
+
+    // 켜는 순간 실제 화면에 "⇪ 켜짐"을 한 번 띄워 어떻게 보이는지 알려 준다.
+    private func capsLockSettingChanged() {
+        refreshCapsLockWatch()
+        if capsLockTimer != nil { hud.showCapsLock(true) }
+    }
+
+    private func refreshCapsLockWatch() {
+        guard UserDefaults.standard.bool(forKey: HUD.showCapsLockKey) else {
+            capsLockTimer?.invalidate()
+            capsLockTimer = nil
+            return
+        }
+        guard capsLockTimer == nil else { return }
+        capsLock.reset()
+        _ = capsLock.update(NSEvent.modifierFlags.contains(.capsLock))  // 켤 때의 상태는 기억만 한다
+        let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self, let on = self.capsLock.update(NSEvent.modifierFlags.contains(.capsLock)) else { return }
+            self.hud.showCapsLock(on)
+        }
+        RunLoop.main.add(timer, forMode: .common)  // 메뉴를 여는 동안에도 놓치지 않는다
+        capsLockTimer = timer
     }
 }
 
@@ -138,6 +188,42 @@ extension NSApplication {
     func activateForWindow() {
         if #available(macOS 14, *) { activate() } else { activate(ignoringOtherApps: true) }
     }
+}
+
+// HUD에 쓰는 입력소스의 두 표기. 표시 방식(HUDAppearance.display)에 따라 하나를 고른다.
+struct InputSourceLabel: Equatable {
+    var name: String
+    var abbreviation: String
+
+    // 약자. 일본어는 언어가 모두 ja라 입력 모드(ID 끝부분)로 나누고, 한·중은 언어로 정한다.
+    // 그 밖은 첫 언어 코드를 대문자로(en → EN), 언어 정보가 없으면 이름 첫 글자.
+    static func abbreviation(id: String, languages: [String], name: String) -> String {
+        guard let language = languages.first else { return name.first.map { String($0).uppercased() } ?? "?" }
+        switch language {
+        case "ja":
+            if id.hasSuffix(".HalfWidthKana") { return "ｱ" }
+            if id.hasSuffix(".Katakana") { return "ア" }
+            if id.hasSuffix(".FullWidthRoman") { return "Ａ" }
+            return "あ"
+        case "ko": return "한"
+        case "zh-Hans": return "简"
+        case "zh-Hant": return "繁"
+        default: return String(language.prefix { $0 != "-" && $0 != "_" }).uppercased()
+        }
+    }
+}
+
+// Caps Lock 상태를 0.1초마다 읽은 값에서, 실제로 바뀐 순간에만 새 상태를 돌려준다.
+// 처음 읽은 값(앱을 켜거나 설정을 켤 때)은 기억만 한다.
+struct CapsLockTracker {
+    private var last: Bool?
+
+    mutating func update(_ on: Bool) -> Bool? {
+        defer { last = on }
+        return last.map { $0 == on ? nil : on } ?? nil
+    }
+
+    mutating func reset() { last = nil }
 }
 
 // 직전 입력소스 이름을 기억해 실제로 바뀐 경우에만 "변경 전 → 변경 후"를 돌려준다.

@@ -27,7 +27,7 @@ final class HUDChip: NSView {
     private let from = HUDChip.label()
     private let arrow = HUDChip.label()
     private let to = HUDChip.label()
-    private var names: (from: String, to: String?) = ("", nil)
+    private var names: (from: InputSourceLabel, to: InputSourceLabel?) = (InputSourceLabel(name: "", abbreviation: ""), nil)
 
     var look = HUDAppearance() { didSet { refresh() } }
     // 놓일 자리의 폭. 넘치면 실제 HUD처럼 '변경 전'부터 말줄임한다.
@@ -69,7 +69,7 @@ final class HUDChip: NSView {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    func set(from: String, to: String?) {
+    func set(from: InputSourceLabel, to: InputSourceLabel?) {
         names = (from, to)
         refresh()
     }
@@ -85,13 +85,15 @@ final class HUDChip: NSView {
         let colors = look.colors(effectiveAppearance.hudMode, reduceTransparency: reduce)
         let fromFont = NSFont.systemFont(ofSize: look.scaled(style.fromSize), weight: look.bold ? .semibold : .medium)
         let toFont = NSFont.systemFont(ofSize: look.scaled(style.toSize), weight: look.bold ? .bold : .semibold)
-        from.stringValue = names.from
+        let texts = look.texts(from: names.from, to: names.to)
+        from.stringValue = texts.from
         from.font = fromFont
         from.textColor = NSColor(colors.from)
         from.isHidden = !look.showsFrom
+        arrow.isHidden = !look.showsFrom
         arrow.font = fromFont
         arrow.textColor = NSColor(colors.arrow)
-        to.stringValue = names.to ?? String(localized: "None")
+        to.stringValue = texts.to ?? String(localized: "None")
         to.font = names.to == nil ? fromFont : toFont
         to.textColor = NSColor(names.to == nil ? colors.from : colors.to)
         stack.spacing = look.scaled(style.gap)
@@ -100,7 +102,9 @@ final class HUDChip: NSView {
 
         let height = look.scaled(style.height)
         let limit = min(style.maxWidth.map(look.scaled) ?? widthLimit, widthLimit)
-        let newSize = CGSize(width: min(max(stack.fittingSize.width, look.scaled(style.minWidth)), limit), height: height)
+        // 약자는 짧으므로 최소 폭을 높이로 줄여, 배지가 실제 HUD처럼 정사각형(알약이면 원)이 되게 한다.
+        let minWidth = look.display == .abbreviation ? height : look.scaled(style.minWidth)
+        let newSize = CGSize(width: min(max(stack.fittingSize.width, minWidth), limit), height: height)
         // 크기가 바뀌면 놓인 자리도 다시 잡게 한다(설정 창이 열린 채 입력소스가 바뀐 경우 등).
         if newSize != size {
             size = newSize

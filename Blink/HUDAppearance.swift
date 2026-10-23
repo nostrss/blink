@@ -39,6 +39,11 @@ struct HUDColors: Equatable {
     var arrow: RGBA
     var to: RGBA
     var blur: Double = 1
+
+    // Caps Lock HUD의 기호(⇪)와 단어 색. 켜짐은 밝게(화살표 색·변경 후 색), 꺼짐은 흐리게(둘 다 변경 전 색).
+    func capsLock(on: Bool) -> (symbol: RGBA, word: RGBA) {
+        on ? (arrow, to) : (from, from)
+    }
 }
 
 enum HUDTheme: String, Codable, CaseIterable {
@@ -107,11 +112,15 @@ struct HUDAppearance: Codable, Equatable {
 
     enum Corners: String, Codable, CaseIterable { case square, standard, pill }
 
+    // 입력소스를 이름으로 쓸지 약자로 쓸지.
+    enum Display: String, Codable, CaseIterable { case name, abbreviation }
+
     var theme = HUDTheme.standard
     var size = Size.medium
     var corners = Corners.standard
     var bold = false
     var showsFrom = true
+    var display = Display.name
     // 사용자 지정으로 바꿀 때 그때 쓰던 테마 색으로 채우고, 사용자 지정에 있는 동안 고친 값을 저장한다.
     var customLight: CustomColors?
     var customDark: CustomColors?
@@ -124,6 +133,19 @@ struct HUDAppearance: Codable, Equatable {
     }
 
     init() {}
+
+    // 나중에 생긴 값(표시 방식)이 없는 예전 저장값도 읽도록, 없는 키는 기본값으로 채운다.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        theme = try c.decodeIfPresent(HUDTheme.self, forKey: .theme) ?? theme
+        size = try c.decodeIfPresent(Size.self, forKey: .size) ?? size
+        corners = try c.decodeIfPresent(Corners.self, forKey: .corners) ?? corners
+        bold = try c.decodeIfPresent(Bool.self, forKey: .bold) ?? bold
+        showsFrom = try c.decodeIfPresent(Bool.self, forKey: .showsFrom) ?? showsFrom
+        display = try c.decodeIfPresent(Display.self, forKey: .display) ?? display
+        customLight = try c.decodeIfPresent(CustomColors.self, forKey: .customLight)
+        customDark = try c.decodeIfPresent(CustomColors.self, forKey: .customDark)
+    }
 
     var data: Data { (try? JSONEncoder().encode(self)) ?? Data() }
 
@@ -159,6 +181,16 @@ struct HUDAppearance: Codable, Equatable {
         }
         return colors
     }
+
+    // 표시 방식에 맞는 글자. to가 nil이면 바꿀 입력소스가 없다는 뜻("없음").
+    // 약자가 같으면(ABC와 U.S.는 둘 다 EN) 무엇이 바뀌었는지 알 수 없으므로 그 전환만 이름으로 보여 준다.
+    func texts(from: InputSourceLabel, to: InputSourceLabel?) -> (from: String, to: String?) {
+        guard display == .abbreviation, from.abbreviation != to?.abbreviation else { return (from.name, to?.name) }
+        return (from.abbreviation, to?.abbreviation)
+    }
+
+    // 약자 배지: 약자만, 변경 전 없이 하나만 보일 때. 사방 패딩을 같게 하고 폭이 높이보다 좁아지지 않게 해 정사각형으로 그린다.
+    var isBadge: Bool { display == .abbreviation && !showsFrom }
 
     // 글자 크기·패딩·간격·최대 폭에 크기 배율을 곱해 정수 pt로 맞춘다.
     func scaled(_ value: CGFloat) -> CGFloat { (value * size.scale).rounded() }
