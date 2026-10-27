@@ -1,33 +1,23 @@
 # 1.2.0 영어(미국) 메타데이터
 
-App Store Connect에서 언어를 영어(미국)로 두고 붙여 넣는 문안. 스크린샷은 아래 '스크린샷' 표의 순서대로 올린다. 1.1.0과 달라진 곳은 이 버전의 업데이트 내용(새로 씀), 설명의 'WHAT YOU CAN DO' 테마 줄, 스크린샷 표(모두 이전 버전 것), 심사 노트의 'New in 1.2.0'이다.
+App Store Connect에서 언어를 영어(미국)로 두고 붙여 넣는 문안. 섹션은 App Store Connect의 macOS 앱 버전 화면에 나오는 순서대로 적었고, 이름·부제는 '앱 정보' 화면이라 맨 끝에 둔다. 1.1.0과 달라진 곳은 이 버전의 업데이트 내용(새로 씀), 설명의 'WHAT YOU CAN DO' 테마 줄, 스크린샷 표(모두 이전 버전 것), 심사 노트의 'New in 1.2.0'이다.
 
-## 이름 (30자)
+## 1. 앱 미리보기 및 스크린샷
 
-Blink: Input Language Alert
+2880×1800. 실제 화면 캡처를 잘라 파란 배경(앱 아이콘 색) 위에 캡션과 함께 얹었다. 버전별 모음은 [Blink 스토어 스크린샷](https://claude.ai/artifact/XGEmszyZoGwdewcuE5UkAc) 아티팩트. "앱 미리보기"는 동영상 칸이라 쓰지 않고, 이미지는 "앱 스크린샷"에 표의 순서대로 올린다. 이 버전에서 새로 만든 스크린샷은 없다. 1–3은 1.0.0, 4는 1.1.0 것을 그대로 쓴다(1의 HUD는 클래식·macOS 13–15의 기본 모양과 같다). 파일 이름의 번호는 그 버전에서 새로 만든 순서다.
 
-## 부제 (30자)
+| 순서 | 파일 | 장면 | 캡션 |
+|---|---|---|---|
+| 1 | `../../1.0.0/en-US/1.0.0-en-US-1.png` | 바탕화면 위 HUD(크게) | Language switch, now visible / See the moment it changes, right on screen. |
+| 2 | `../../1.0.0/en-US/1.0.0-en-US-2.png` | 설정 '위치' | Put it anywhere / Pick one of nine spots, or drag the HUD where you want it. |
+| 3 | `../../1.0.0/en-US/1.0.0-en-US-3.png` | 설정 '모양' | Make it yours / Change size, corners and font weight, with light and dark previews. |
+| 4 | `../../1.1.0/en-US/1.1.0-en-US-1.png` | 설정 '포인터'와 바탕화면에서 포인터를 따라가는 배지 | Right by your pointer / Keep the current input source next to your mouse pointer. |
 
-Language switch, now visible
-
-## 키워드 (100자)
-
-keyboard,layout,input source,IME,switch,indicator,korean,japanese,chinese,menu bar,typo,toggle
-
-## 프로모션 문구 (170자)
+## 2. 프로모션 텍스트 (170자)
 
 Not sure your keyboard actually switched? Blink shows it on screen the moment it changes. Place it and style it the way you like.
 
-## 이 버전의 업데이트 내용 (4000자)
-
-What's new in 1.2
-• Liquid Glass: on macOS Tahoe 26, the Default theme draws the HUD and the pointer badge with Liquid Glass. Text stays readable over light and dark windows alike.
-• Classic theme: prefer the previous look? Choose Classic in Settings > Appearance.
-• With Reduce Transparency on, Blink keeps using a solid background.
-
-Your settings carry over as they are.
-
-## 설명
+## 3. 설명 (4000자)
 
 Ever typed a whole sentence on your Mac, looked up, and found it came out in the wrong language? You notice too late, delete it, and type it all again.
 
@@ -55,18 +45,29 @@ Blink collects nothing, never connects to the internet, and needs no special per
 
 Available in English, Korean, Japanese, Chinese (Simplified and Traditional), Russian, German, French, Spanish, and Portuguese (Brazil).
 
-## 스크린샷
+## 4. 이 버전에서 업그레이드된 사항 (4000자)
 
-2880×1800. 실제 화면 캡처를 잘라 파란 배경(앱 아이콘 색) 위에 캡션과 함께 얹었다. 버전별 모음은 [Blink 스토어 스크린샷](https://claude.ai/artifact/XGEmszyZoGwdewcuE5UkAc) 아티팩트. "앱 미리보기"는 동영상 칸이라 쓰지 않고, 이미지는 "앱 스크린샷"에 표의 순서대로 올린다. 이 버전에서 새로 만든 스크린샷은 없다. 1–3은 1.0.0, 4는 1.1.0 것을 그대로 쓴다(1의 HUD는 클래식·macOS 13–15의 기본 모양과 같다). 파일 이름의 번호는 그 버전에서 새로 만든 순서다.
+What's new in 1.2
+• Liquid Glass: on macOS Tahoe 26, the Default theme draws the HUD and the pointer badge with Liquid Glass. Text stays readable over light and dark windows alike.
+• Classic theme: prefer the previous look? Choose Classic in Settings > Appearance.
+• With Reduce Transparency on, Blink keeps using a solid background.
 
-| 순서 | 파일 | 장면 | 캡션 |
-|---|---|---|---|
-| 1 | `../../1.0.0/en-US/1.0.0-en-US-1.png` | 바탕화면 위 HUD(크게) | Language switch, now visible / See the moment it changes, right on screen. |
-| 2 | `../../1.0.0/en-US/1.0.0-en-US-2.png` | 설정 '위치' | Put it anywhere / Pick one of nine spots, or drag the HUD where you want it. |
-| 3 | `../../1.0.0/en-US/1.0.0-en-US-3.png` | 설정 '모양' | Make it yours / Change size, corners and font weight, with light and dark previews. |
-| 4 | `../../1.1.0/en-US/1.1.0-en-US-1.png` | 설정 '포인터'와 바탕화면에서 포인터를 따라가는 배지 | Right by your pointer / Keep the current input source next to your mouse pointer. |
+Your settings carry over as they are.
 
-## 심사 노트
+## 5. 키워드 (100자)
+
+keyboard,layout,input source,IME,switch,indicator,korean,japanese,chinese,menu bar,typo,toggle
+
+## 6. 지원 URL · 마케팅 URL · 버전 · 저작권
+
+- 지원 URL: https://nostrss.github.io/blink-site/
+- 마케팅 URL: 비워 둔다
+- 버전: 1.2.0
+- 저작권: 2026 jintaek woo
+
+그 아래 '빌드'에서 1.2.0 (3)을 고른다.
+
+## 7. 앱 심사 정보 > 메모
 
 App Review Information > Notes에 넣는다. 심사 노트는 언어별이 아니라 하나뿐이라 영어로만 쓴다. 한국어 번역은 `ko/metadata.md`에 있다.
 
@@ -95,3 +96,11 @@ If only one input source is installed, the Position pane shows a note explaining
 Launch at login uses SMAppService and is off by default; it is only enabled when the user turns it on.
 
 Blink runs in the App Sandbox, makes no network connections, collects no data, and requests no permissions (no Accessibility or Input Monitoring). It reads the current input source through the Text Input Sources API, plus the Caps Lock state and pointer location described above.
+
+## 8. 앱 정보 화면: 이름 (30자)
+
+Blink: Input Language Alert
+
+## 9. 앱 정보 화면: 부제 (30자)
+
+Language switch, now visible
