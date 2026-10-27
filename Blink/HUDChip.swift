@@ -23,6 +23,8 @@ final class HUDChip: NSView {
     private let style: Style
     private let effect = NSVisualEffectView()  // 실제 HUD처럼 흐림 위에 덧칠 색을 얹는다
     private let tint = NSView()
+    private let plate = NSView()  // 글자 판. 유리로 그릴 때는 실제 HUD처럼 유리 안으로 옮긴다
+    private let glass = HUD.makeGlass()
     private let stack: NSStackView
     private let from = HUDChip.label()
     private let arrow = HUDChip.label()
@@ -49,6 +51,8 @@ final class HUDChip: NSView {
         for view in [effect, tint] {
             view.wantsLayer = true
             view.layer?.masksToBounds = true
+        }
+        for view in [effect, tint, glass, plate].compactMap({ $0 }) {
             view.autoresizingMask = [.width, .height]
             addSubview(view)
         }
@@ -57,12 +61,12 @@ final class HUDChip: NSView {
         from.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         to.lineBreakMode = .byTruncatingTail
         stack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(stack)
+        plate.addSubview(stack)
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
-            stack.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor),
-            stack.centerXAnchor.constraint(equalTo: centerXAnchor),
-            stack.centerYAnchor.constraint(equalTo: centerYAnchor),
+            stack.leadingAnchor.constraint(greaterThanOrEqualTo: plate.leadingAnchor),
+            stack.trailingAnchor.constraint(lessThanOrEqualTo: plate.trailingAnchor),
+            stack.centerXAnchor.constraint(equalTo: plate.centerXAnchor),
+            stack.centerYAnchor.constraint(equalTo: plate.centerYAnchor),
         ])
         setAccessibilityElement(false)  // 이름은 실제 HUD처럼 VoiceOver가 따로 읽지 않는다.
     }
@@ -114,6 +118,8 @@ final class HUDChip: NSView {
         tint.layer?.backgroundColor = NSColor(colors.background).cgColor
         effect.alphaValue = colors.blur
         for view in [effect, tint] { view.layer?.cornerRadius = radius }
+        let glassTint = look.usesGlass(glassAvailable: HUD.glassAvailable, reduceTransparency: reduce) ? colors.background.withAlpha(HUDAppearance.glassTint) : nil
+        HUD.applyGlass(glass, tint: glassTint, radius: radius, plate: plate, backdrop: [effect, tint])
     }
 
     private static func label() -> NSTextField {

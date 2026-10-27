@@ -13,6 +13,9 @@ final class HUD {
     private let panel = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
     private let effect = NSVisualEffectView()
     private let tint = NSView()
+    private let plate = NSView()  // 글자 판. 유리로 그릴 때는 유리 안으로 옮긴다
+    private let glass = HUD.makeGlass()
+    private var glassTint: RGBA?  // 유리로 그릴 때의 tint. nil이면 흐림 + 덧칠
     private let fromLabel = HUD.label()
     private let arrow = HUD.label()
     private let toLabel = HUD.label()
@@ -29,11 +32,12 @@ final class HUD {
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
 
         // 흐림, 덧칠 색, 글자를 나란히 쌓는다. 흐림만 따로 옅게 할 수 있어야 사용자 지정 불투명도가 판까지 조절한다.
+        // 유리로 그릴 때(macOS 26의 기본 테마)는 흐림·덧칠 대신 유리를 깔고 글자 판을 그 안에 넣는다.
         let content = NSView()
         effect.material = .hudWindow
         effect.state = .active
         tint.wantsLayer = true
-        for view in [effect, tint] {
+        for view in [effect, tint, glass, plate].compactMap({ $0 }) {
             view.frame = content.bounds
             view.autoresizingMask = [.width, .height]
             content.addSubview(view)
@@ -46,12 +50,12 @@ final class HUD {
         toLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         stack.alignment = .centerY
         stack.translatesAutoresizingMaskIntoConstraints = false
-        content.addSubview(stack)
+        plate.addSubview(stack)
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: content.leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: content.trailingAnchor),
-            stack.topAnchor.constraint(equalTo: content.topAnchor),
-            stack.bottomAnchor.constraint(equalTo: content.bottomAnchor),
+            stack.leadingAnchor.constraint(equalTo: plate.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: plate.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: plate.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: plate.bottomAnchor),
         ])
         panel.contentView = content
     }
@@ -96,7 +100,7 @@ final class HUD {
             : look.scaled(24)  // 좌우 space-4, 약자 배지는 아래
         stack.edgeInsets = NSEdgeInsets(top: v, left: h, bottom: v, right: h)
 
-        var size = panel.contentView!.fittingSize
+        var size = plate.fittingSize
         // centerY 스택은 높이를 작은 '변경 전' 글자에 맞추기도 해서 직접 정한다.
         size.height = Self.panelHeight(contentHeights: [fromLabel, arrow, toLabel].filter { !$0.isHidden }.map(\.fittingSize.height), padding: v)
         let ellipsis = NSAttributedString(string: "…", attributes: [.font: fromFont]).size().width.rounded(.up) + 4
@@ -122,7 +126,7 @@ final class HUD {
         toLabel.textColor = NSColor(word)
         let (v, h) = (look.scaled(16), look.scaled(24))  // 위아래 space-3, 좌우 space-4
         stack.edgeInsets = NSEdgeInsets(top: v, left: h, bottom: v, right: h)
-        present(look, size: panel.contentView!.fittingSize, at: position)
+        present(look, size: plate.fittingSize, at: position)
     }
 
     private static func toFont(_ look: HUDAppearance) -> NSFont {
@@ -132,7 +136,9 @@ final class HUD {
     // 판의 색과 요소 간격을 맞추고 글자에 쓸 색을 돌려준다.
     // 모양과 색은 외관·손쉬운 사용 설정 변경을 따라가지 않으므로 표시할 때마다 다시 정한다.
     private func prepare(_ look: HUDAppearance) -> HUDColors {
-        let colors = look.colors(NSApp.effectiveAppearance.hudMode, reduceTransparency: NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency)
+        let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+        let colors = look.colors(NSApp.effectiveAppearance.hudMode, reduceTransparency: reduce)
+        glassTint = look.usesGlass(glassAvailable: Self.glassAvailable, reduceTransparency: reduce) ? colors.background.withAlpha(HUDAppearance.glassTint) : nil
         tint.layer?.backgroundColor = NSColor(colors.background).cgColor
         effect.alphaValue = colors.blur
         stack.spacing = look.scaled(8)  // space-2
@@ -145,12 +151,16 @@ final class HUD {
         let radius = look.cornerRadius(height: size.height, standard: 18)  // radius-hud
         effect.maskImage = Self.roundedMask(radius: radius)
         tint.layer?.cornerRadius = radius
+        Self.applyGlass(glass, tint: glassTint, radius: radius, plate: plate, backdrop: [effect, tint])
         let mouse = NSEvent.mouseLocation
         let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
         // 화면은 frame으로 고르고, 자리는 메뉴바·Dock을 뺀 visibleFrame 안에서 정한다.
         if let frame = screen?.visibleFrame {
             panel.setFrame(NSRect(origin: position.origin(size: size, in: frame, margin: Self.screenMargin), size: size), display: true)
         }
+        // 유리 안의 글자 판은 제약으로 붙는데, 유리에 막 넣은 뒤 패널 크기가 바뀌면 옛 크기로 남을 때가 있어 바로 다시 배치한다.
+        plate.superview?.needsLayout = true
+        panel.contentView?.layoutSubtreeIfNeeded()
 
         panel.invalidateShadow()  // 그림자를 둥근 모양에 맞춘다.
 
@@ -203,6 +213,41 @@ final class HUD {
         image.capInsets = NSEdgeInsets(top: radius, left: radius, bottom: radius, right: radius)
         image.resizingMode = .stretch
         return image
+    }
+
+    static var glassAvailable: Bool {
+        if #available(macOS 26, *) { true } else { false }
+    }
+
+    // macOS 26 이상이면 숨긴 유리 뷰를 만든다. 저장 속성의 타입에 availability를 걸 수 없어 NSView?로 돌려준다.
+    static func makeGlass() -> NSView? {
+        guard #available(macOS 26, *) else { return nil }
+        let glass = NSGlassEffectView()
+        glass.style = .regular  // clear는 뒤 화면이 그대로 비쳐 글자 대비를 보장할 수 없다
+        glass.isHidden = true
+        return glass
+    }
+
+    // tint가 있으면 유리를 보이고 글자 판을 그 안에 넣는다. nil이면 유리를 숨기고 글자 판을 흐림·덧칠(backdrop) 위로 돌려놓는다.
+    // 글자 판은 처음에 backdrop과 같은 상위 뷰에 있어야 한다.
+    static func applyGlass(_ view: NSView?, tint: RGBA?, radius: CGFloat, plate: NSView, backdrop: [NSView]) {
+        backdrop.forEach { $0.isHidden = tint != nil }
+        guard #available(macOS 26, *), let glass = view as? NSGlassEffectView, let root = glass.superview else { return }
+        glass.isHidden = tint == nil
+        if let tint {
+            glass.tintColor = NSColor(tint)
+            glass.cornerRadius = radius
+            if glass.contentView !== plate {
+                glass.contentView = plate
+            }
+        } else if plate.superview !== root {
+            glass.contentView = nil
+            // 유리는 contentView의 autoresizing을 끄고 제약으로 붙인다. 꺼진 채 돌아오면 판이 글자 크기로 줄어
+            // 글자가 패널 가운데에서 내려가므로 다시 켠다.
+            plate.translatesAutoresizingMaskIntoConstraints = true
+            plate.frame = root.bounds
+            root.addSubview(plate)
+        }
     }
 
     private static func label() -> NSTextField {

@@ -212,6 +212,64 @@ final class BlinkTests: XCTestCase {
         }
     }
 
+    // 유리는 기본 테마이고, macOS 26 이상이고, 투명도 줄이기가 꺼져 있을 때만 쓴다. 클래식은 언제나 쓰지 않는다.
+    func testUsesGlassOnlyForStandardThemeOnSupportedOSWithoutReduceTransparency() {
+        for theme in HUDTheme.allCases {
+            var look = HUDAppearance()
+            look.select(theme)
+            for available in [true, false] {
+                for reduce in [true, false] {
+                    XCTAssertEqual(look.usesGlass(glassAvailable: available, reduceTransparency: reduce),
+                                   theme == .standard && available && !reduce, "\(theme) \(available) \(reduce)")
+                }
+            }
+        }
+    }
+
+    // 클래식은 1.1.0의 기본 모양이라 기본 테마와 같은 색으로 그린다. 투명도 줄이기에서도 기본처럼 불투명 surface다.
+    func testClassicHasStandardColors() {
+        var look = HUDAppearance()
+        look.select(.classic)
+        for mode in HUDMode.allCases {
+            for reduce in [true, false] {
+                XCTAssertEqual(look.colors(mode, reduceTransparency: reduce), HUDAppearance.standard.colors(mode, reduceTransparency: reduce), "\(mode) \(reduce)")
+            }
+        }
+        XCTAssertEqual(look.colors(.dark, reduceTransparency: true).background, RGBA(hex: 0x1c1c1e))
+    }
+
+    func testClassicThemeIsSavedAndRead() {
+        var look = HUDAppearance()
+        look.select(.classic)
+        XCTAssertEqual(HUDAppearance(data: look.data).theme, .classic)
+        XCTAssertEqual(HUDAppearance(data: Data(#"{"theme":"classic"}"#.utf8)).theme, .classic)
+    }
+
+    // 1.1.0에서 저장한 기본 테마는 그대로 기본(macOS 26에서는 유리)으로 읽는다.
+    func testStandardThemeFrom110IsKept() {
+        let look = HUDAppearance(data: Data(#"{"theme":"standard","size":"large","showsFrom":false}"#.utf8))
+        XCTAssertEqual(look.theme, .standard)
+        XCTAssertEqual(look.size, .large)
+        XCTAssertFalse(look.showsFrom)
+    }
+
+    // 1.2.0 개발판에서 저장한 "glass"는 기본으로 읽고, 나머지 설정은 버리지 않는다.
+    func testGlassThemeFromDevBuildIsReadAsStandard() {
+        let look = HUDAppearance(data: Data(#"{"theme":"glass","size":"large","showsFrom":false}"#.utf8))
+        XCTAssertEqual(look.theme, .standard)
+        XCTAssertEqual(look.size, .large)
+        XCTAssertFalse(look.showsFrom)
+    }
+
+    // 클래식에서 사용자 지정으로 바꾸면 기본 테마 색에서 시작한다.
+    func testCustomFromClassicStartsFromStandardColors() throws {
+        var look = HUDAppearance()
+        look.select(.classic)
+        look.select(.custom)
+        let standard = try XCTUnwrap(HUDTheme.standard.presetColors(.light))
+        XCTAssertEqual(look.custom(.light), CustomColors(standard))
+    }
+
     // 사용자 지정은 바꿀 때마다 그때 쓰던 테마에서 이어서 시작한다(예전에 저장한 사용자 지정 색으로 돌아가지 않는다).
     func testCustomContinuesFromCurrentThemeEveryTime() throws {
         var look = HUDAppearance()

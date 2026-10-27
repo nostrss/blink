@@ -52,7 +52,8 @@ final class AppearancePane: NSScrollView {
         previews.distribution = .fillEqually
         previews.spacing = 8  // space-2
 
-        for theme in HUDTheme.allCases {
+        // 클래식은 macOS 26 미만에서 기본과 똑같아 보이므로 숨긴다. 이미 골라 둔 경우에만 남긴다.
+        for theme in HUDTheme.allCases where theme != .classic || HUD.glassAvailable || look.theme == .classic {
             if theme == .custom { themePopup.menu?.addItem(.separator()) }
             themePopup.addItem(withTitle: theme.title)
             themePopup.lastItem?.image = Self.swatch(theme)
@@ -296,14 +297,21 @@ final class AppearancePane: NSScrollView {
     }
 
     // 테마 메뉴의 견본(22×14pt): 테마 배경색 위에 화살표 색 "→". 그릴 때의 외관(라이트/다크) 색을 쓴다.
+    // macOS 26의 기본(유리)은 클래식과 구분되게 반투명 판에 밝은 테두리를 두른다.
     private static func swatch(_ theme: HUDTheme) -> NSImage {
         NSImage(size: NSSize(width: 22, height: 14), flipped: false) { rect in
             let mode = NSAppearance.currentDrawing().hudMode
             let colors = theme.presetColors(mode)
             let path = NSBezierPath(roundedRect: rect.insetBy(dx: 0.5, dy: 0.5), xRadius: 4, yRadius: 4)
-            (colors.map { NSColor($0.background.withAlpha(1)) } ?? Tokens.line).setFill()
-            path.fill()
-            NSColor.black.withAlphaComponent(0.12).setStroke()
+            if theme == .standard && HUD.glassAvailable {
+                NSColor(white: mode == .light ? 1 : 0.5, alpha: 0.35).setFill()
+                path.fill()
+                NSColor.white.withAlphaComponent(0.8).setStroke()
+            } else {
+                (colors.map { NSColor($0.background.withAlpha(1)) } ?? Tokens.line).setFill()
+                path.fill()
+                NSColor.black.withAlphaComponent(0.12).setStroke()
+            }
             path.stroke()
             let mark = colors == nil ? "…" : "→"
             let text = NSAttributedString(string: mark, attributes: [
@@ -322,6 +330,7 @@ extension HUDTheme {
     var title: String {
         switch self {
         case .standard: String(localized: "Default")
+        case .classic: String(localized: "Classic")
         case .highContrast: String(localized: "High Contrast")
         case .dracula: "Dracula"
         case .gruvbox: "Gruvbox"
