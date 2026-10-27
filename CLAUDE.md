@@ -57,6 +57,8 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Bli
 
 https://claude.ai/artifact/3n9WYkuynDn61C23fgZ8Nw (Blink 디자인 시스템: 색·타이포·간격 토큰, HUD·메뉴바·정보 창 규칙, 앱/메뉴바 아이콘). UI를 만들거나 고치기 전에 Artifact 도구의 `read`로 `project/README.md`를 읽고, 토큰 값은 `project/tokens.json`에서 가져온다. 값을 추측하지 않는다.
 
+버전별 변경은 같은 아티팩트의 `project/versions/<버전>.md` 섹션에 남긴다(1.2.0부터). README와 컴포넌트는 확정된 최신 설계만 담고, 설계 중인 버전은 그 버전 섹션에만 적었다가 확정되면 README와 컴포넌트에 옮긴다.
+
 ## 스토어 스크린샷
 
 https://claude.ai/artifact/XGEmszyZoGwdewcuE5UkAc (Blink 스토어 스크린샷: Mac App Store에 올린 스크린샷을 앱 버전·언어별로 모은 페이지). 새 버전의 스크린샷을 만들면 이 아티팩트에 버전을 추가하고 이전 버전은 남긴다. 원본 파일과 캡션은 아래 '제출 문안' 폴더에 있다.
