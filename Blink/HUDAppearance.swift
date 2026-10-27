@@ -47,9 +47,9 @@ struct HUDColors: Equatable {
 }
 
 enum HUDTheme: String, Codable, CaseIterable {
-    case standard, highContrast, dracula, gruvbox, rosePine, custom
+    case standard, classic, highContrast, dracula, gruvbox, rosePine, custom
 
-    static let presets: [HUDTheme] = [.standard, .highContrast, .dracula, .gruvbox, .rosePine]
+    static let presets: [HUDTheme] = [.standard, .classic, .highContrast, .dracula, .gruvbox, .rosePine]
 
     // 디자인 시스템 tokens.json의 hud-* 색. 사용자 지정은 nil.
     func presetColors(_ mode: HUDMode) -> HUDColors? {
@@ -59,6 +59,7 @@ enum HUDTheme: String, Codable, CaseIterable {
         }
         switch self {
         case .standard: return light ? colors(0xf6f6f8, 0.55, 0x6e6e73, 0x0a66d6, 0x1d1d1f) : colors(0x28282a, 0.55, 0xa1a1a6, 0x4c9dff, 0xffffff)
+        case .classic: return HUDTheme.standard.presetColors(mode)  // 1.1.0까지의 기본 모양. 색은 기본과 같고 유리만 쓰지 않는다
         case .highContrast: return light ? colors(0xffffff, 1, 0x4a4a4f, 0x0a66d6, 0x000000) : colors(0x000000, 1, 0xc7c7cc, 0x4c9dff, 0xffffff)
         case .dracula: return colors(0x282a36, 0.92, 0xbd93f9, 0xff79c6, 0xf8f8f2)  // 다크 전용 테마라 라이트도 같은 색
         case .gruvbox: return light ? colors(0xfbf1c7, 0.92, 0x665c54, 0xaf3a03, 0x3c3836) : colors(0x282828, 0.92, 0xa89984, 0xfe8019, 0xebdbb2)
@@ -137,7 +138,8 @@ struct HUDAppearance: Codable, Equatable {
     // 나중에 생긴 값(표시 방식)이 없는 예전 저장값도 읽도록, 없는 키는 기본값으로 채운다.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        theme = try c.decodeIfPresent(HUDTheme.self, forKey: .theme) ?? theme
+        // 모르는 테마(1.2.0 개발판의 "glass" 등)는 다른 설정을 버리지 않고 기본으로 읽는다.
+        theme = try c.decodeIfPresent(String.self, forKey: .theme).map { HUDTheme(rawValue: $0) ?? .standard } ?? theme
         size = try c.decodeIfPresent(Size.self, forKey: .size) ?? size
         corners = try c.decodeIfPresent(Corners.self, forKey: .corners) ?? corners
         bold = try c.decodeIfPresent(Bool.self, forKey: .bold) ?? bold
@@ -167,7 +169,22 @@ struct HUDAppearance: Codable, Equatable {
         if mode == .light { customLight = colors } else { customDark = colors }
     }
 
-    // 지금 모드에서 칠할 색. '투명도 줄이기'가 켜져 있으면 배경을 불투명하게 하고, 기본 테마는 surface로 바꾼다.
+    // 기본 테마를 유리로 그릴 때 유리에 얹는 tint의 불투명도. 색은 그 모드의 기본 테마 배경색이다.
+    static let glassTint = 0.3
+
+    // 유리(NSGlassEffectView)로 그리는가. glassAvailable은 macOS 26 이상인지다.
+    // 기본 테마만 유리로 그린다. '투명도 줄이기'가 켜져 있으면 시스템에 맡기지 않고 기본 테마의 불투명 판으로 그린다.
+    func usesGlass(glassAvailable: Bool, reduceTransparency: Bool) -> Bool {
+        theme == .standard && glassAvailable && !reduceTransparency
+    }
+
+    // 색을 고를 모드. 유리는 뒤 배경이 어두우면 안쪽 외관을 다크로(밝으면 라이트로) 바꾸므로,
+    // 유리로 그릴 때는 그 안쪽 외관(glassContent)을, 아니면 시스템 모드를 따른다.
+    func colorMode(system: HUDMode, glassContent: HUDMode, glassAvailable: Bool, reduceTransparency: Bool) -> HUDMode {
+        usesGlass(glassAvailable: glassAvailable, reduceTransparency: reduceTransparency) ? glassContent : system
+    }
+
+    // 지금 모드에서 칠할 색. '투명도 줄이기'가 켜져 있으면 배경을 불투명하게 하고, 기본·클래식 테마는 surface로 바꾼다.
     func colors(_ mode: HUDMode, reduceTransparency: Bool = false) -> HUDColors {
         var colors: HUDColors
         if theme == .custom, let custom = custom(mode) {
@@ -177,7 +194,7 @@ struct HUDAppearance: Codable, Equatable {
             colors = (theme.presetColors(mode) ?? HUDTheme.standard.presetColors(mode))!
         }
         if reduceTransparency {
-            colors.background = theme == .standard ? RGBA(hex: mode == .light ? 0xf5f5f7 : 0x1c1c1e) : colors.background.withAlpha(1)
+            colors.background = [.standard, .classic].contains(theme) ? RGBA(hex: mode == .light ? 0xf5f5f7 : 0x1c1c1e) : colors.background.withAlpha(1)
         }
         return colors
     }
