@@ -23,7 +23,7 @@ final class HUDChip: NSView {
     private let style: Style
     private let effect = NSVisualEffectView()  // 실제 HUD처럼 흐림 위에 덧칠 색을 얹는다
     private let tint = NSView()
-    private let plate = NSView()  // 글자 판. 유리로 그릴 때는 실제 HUD처럼 유리 안으로 옮긴다
+    private let plate = GlassPlate()  // 글자 판. 유리로 그릴 때는 실제 HUD처럼 유리 안으로 옮긴다
     private let glass = HUD.makeGlass()
     private let stack: NSStackView
     private let from = HUDChip.label()
@@ -69,6 +69,7 @@ final class HUDChip: NSView {
             stack.centerYAnchor.constraint(equalTo: plate.centerYAnchor),
         ])
         setAccessibilityElement(false)  // 이름은 실제 HUD처럼 VoiceOver가 따로 읽지 않는다.
+        plate.onModeChange = { [weak self] in self?.refresh() }
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -86,7 +87,10 @@ final class HUDChip: NSView {
     // 모양·이름·외관이 바뀔 때마다 글자와 색, 크기를 다시 정한다. 자리는 상위 뷰가 size로 잡는다.
     private func refresh() {
         let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
-        let colors = look.colors(effectiveAppearance.hudMode, reduceTransparency: reduce)
+        // 유리로 그리면 유리가 뒤 배경에 맞춰 바꾼 안쪽 외관의 색을 쓴다.
+        let mode = look.colorMode(system: effectiveAppearance.hudMode, glassContent: plate.effectiveAppearance.hudMode,
+                                  glassAvailable: HUD.glassAvailable, reduceTransparency: reduce)
+        let colors = look.colors(mode, reduceTransparency: reduce)
         let fromFont = NSFont.systemFont(ofSize: look.scaled(style.fromSize), weight: look.bold ? .semibold : .medium)
         let toFont = NSFont.systemFont(ofSize: look.scaled(style.toSize), weight: look.bold ? .bold : .semibold)
         let texts = look.texts(from: names.from, to: names.to)

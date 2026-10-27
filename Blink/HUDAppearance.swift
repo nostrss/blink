@@ -178,6 +178,12 @@ struct HUDAppearance: Codable, Equatable {
         theme == .standard && glassAvailable && !reduceTransparency
     }
 
+    // 색을 고를 모드. 유리는 뒤 배경이 어두우면 안쪽 외관을 다크로(밝으면 라이트로) 바꾸므로,
+    // 유리로 그릴 때는 그 안쪽 외관(glassContent)을, 아니면 시스템 모드를 따른다.
+    func colorMode(system: HUDMode, glassContent: HUDMode, glassAvailable: Bool, reduceTransparency: Bool) -> HUDMode {
+        usesGlass(glassAvailable: glassAvailable, reduceTransparency: reduceTransparency) ? glassContent : system
+    }
+
     // 지금 모드에서 칠할 색. '투명도 줄이기'가 켜져 있으면 배경을 불투명하게 하고, 기본·클래식 테마는 surface로 바꾼다.
     func colors(_ mode: HUDMode, reduceTransparency: Bool = false) -> HUDColors {
         var colors: HUDColors

@@ -226,6 +226,24 @@ final class BlinkTests: XCTestCase {
         }
     }
 
+    // 유리는 뒤 배경이 어두우면 안쪽 외관을 다크로 바꾼다. 유리로 그릴 때는 그 안쪽 외관의 색을 써야 글자가 읽힌다.
+    // 유리를 쓰지 않으면 시스템 모드를 따른다.
+    func testColorModeFollowsGlassContentOnlyWhenUsingGlass() {
+        for theme in HUDTheme.allCases {
+            var look = HUDAppearance()
+            look.select(theme)
+            for available in [true, false] {
+                for reduce in [true, false] {
+                    let glass = look.usesGlass(glassAvailable: available, reduceTransparency: reduce)
+                    XCTAssertEqual(look.colorMode(system: .light, glassContent: .dark, glassAvailable: available, reduceTransparency: reduce),
+                                   glass ? .dark : .light, "\(theme) \(available) \(reduce)")
+                    XCTAssertEqual(look.colorMode(system: .dark, glassContent: .light, glassAvailable: available, reduceTransparency: reduce),
+                                   glass ? .light : .dark, "\(theme) \(available) \(reduce)")
+                }
+            }
+        }
+    }
+
     // 클래식은 1.1.0의 기본 모양이라 기본 테마와 같은 색으로 그린다. 투명도 줄이기에서도 기본처럼 불투명 surface다.
     func testClassicHasStandardColors() {
         var look = HUDAppearance()

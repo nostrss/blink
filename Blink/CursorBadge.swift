@@ -140,6 +140,8 @@ final class CursorBadge {
 final class CursorBadgeView: NSView {
     private let effect = NSVisualEffectView()
     private let tint = NSView()
+    private let plate = GlassPlate()  // 글자 판. 유리로 그릴 때는 HUD처럼 유리 안으로 옮긴다
+    private let glass = HUD.makeGlass()
     private let label = NSTextField(labelWithString: "")
 
     var look = HUDAppearance() { didSet { refresh() } }
@@ -156,14 +158,21 @@ final class CursorBadgeView: NSView {
         effect.blendingMode = blendingMode
         effect.state = .active
         tint.wantsLayer = true
-        for view in [effect, tint] {
+        for view in [effect, tint, glass, plate].compactMap({ $0 }) {
             view.frame = bounds
             view.autoresizingMask = [.width, .height]
             addSubview(view)
         }
-        addSubview(label)
+        // 판이 유리 안에서 제약으로 크기가 정해져도 가운데에 오도록 제약으로 붙인다.
+        label.translatesAutoresizingMaskIntoConstraints = false
+        plate.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: plate.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: plate.centerYAnchor),
+        ])
         setAccessibilityElement(false)  // 입력소스는 VoiceOver가 이미 읽어 준다.
         label.setAccessibilityElement(false)
+        plate.onModeChange = { [weak self] in self?.refresh() }
         refresh()
     }
 
@@ -189,7 +198,10 @@ final class CursorBadgeView: NSView {
     // 모양·글자·외관이 바뀔 때마다 색과 크기를 다시 정한다. 자리는 쓰는 쪽이 size로 잡는다.
     func refresh() {
         let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
-        let colors = look.colors(effectiveAppearance.hudMode, reduceTransparency: reduce)
+        // 유리로 그리면 유리가 뒤 배경에 맞춰 바꾼 안쪽 외관의 색을 쓴다(어두운 화면 위에서는 다크 색).
+        let mode = look.colorMode(system: effectiveAppearance.hudMode, glassContent: plate.effectiveAppearance.hudMode,
+                                  glassAvailable: HUD.glassAvailable, reduceTransparency: reduce)
+        let colors = look.colors(mode, reduceTransparency: reduce)
         let metrics = Self.metrics(badgeSize)
         let height = metrics.height * magnification
         label.font = .systemFont(ofSize: metrics.font * magnification, weight: look.bold ? .bold : .semibold)  // 변경 후 굵기
@@ -200,17 +212,15 @@ final class CursorBadgeView: NSView {
         effect.alphaValue = colors.blur
         // 흐림은 layer cornerRadius로 잘리지 않아 모서리에 네모가 비친다. HUD처럼 maskImage로 자른다.
         effect.maskImage = HUD.roundedMask(radius: height / 2)
+        let glassTint = look.usesGlass(glassAvailable: HUD.glassAvailable, reduceTransparency: reduce) ? colors.background.withAlpha(HUDAppearance.glassTint) : nil
+        HUD.applyGlass(glass, tint: glassTint, radius: height / 2, plate: plate, backdrop: [effect, tint])
         let newSize = CGSize(width: Self.width(text: label.fittingSize.width, height: height, padding: metrics.padding * magnification), height: height)
-        needsLayout = true
         if newSize != size {
             size = newSize
             onResize?()
         }
-    }
-
-    override func layout() {
-        super.layout()
-        let fit = label.fittingSize
-        label.frame = NSRect(x: ((bounds.width - fit.width) / 2).rounded(), y: ((bounds.height - fit.height) / 2).rounded(), width: fit.width, height: fit.height)
+        // 유리 안의 판은 제약으로 붙어, 막 옮기거나 크기가 바뀐 직후 옛 크기로 남을 때가 있어 바로 다시 배치한다(HUD와 같음).
+        plate.superview?.needsLayout = true
+        layoutSubtreeIfNeeded()
     }
 }
