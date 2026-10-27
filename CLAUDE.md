@@ -42,16 +42,16 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Bli
 
 - 기능을 추가하거나 로직을 바꿀 때는 항상 테스트 코드를 같이 작성한다. 버그를 고칠 때는 그 버그를 재현하는 테스트를 먼저 쓴다.
 - 테스트하기 쉬운 구조로 설계한다. 판단·계산·상태 변화(무엇을 보여 줄지, 값을 어떻게 고칠지, 크기를 얼마로 할지)는 AppKit과 시스템 API(TIS, `SMAppService`, `UserDefaults`, `NSPanel`)에 의존하지 않는 순수 함수나 값 타입으로 분리하고, 입력을 값으로 받아 결과를 값으로 돌려주게 한다. AppKit 쪽은 그 결과를 화면과 시스템에 반영하는 얇은 층으로 둔다. 지금 예시: `InputSourceTracker`(`next(current:previous:enabled:)` 포함), `SettingsWindow.snapped(_:)`, `HUD.panelWidth(fitting:from:ellipsis:maxWidth:)`, `HUDAppearance`(`select(_:)`·`colors(_:reduceTransparency:)`·`scaled(_:)`·`texts(from:to:)`), `InputSourceLabel.abbreviation(id:languages:name:)`, `CapsLockTracker`, `HUDColors.capsLock(on:)`, `HUDPosition`(`origin(size:in:margin:)`·`dragged(to:size:in:margin:snap:)`), `BadgePlacement`(`origin(size:pointer:in:)`), `CursorBadgeView.width(text:height:padding:)`.
-- 화면, 시스템 설정, 하드웨어처럼 단위 테스트로 확인할 수 없는 동작은 [docs/CHECKLIST.md](docs/CHECKLIST.md)에 항목을 추가한다.
+- 화면처럼 단위 테스트로 확인할 수 없는 동작은 [docs/CHECKLIST.md](docs/CHECKLIST.md)에 항목을 추가한다(아래 '검증'의 기준을 따른다).
 
 ## 검증
 
-[docs/CHECKLIST.md](docs/CHECKLIST.md)에 영역별(입력소스 감지, HUD, 포인터 배지, 설정 창, 메뉴·로그인 항목, 정보 창·첫 실행, 현지화) 확인 항목이 있다.
+[docs/CHECKLIST.md](docs/CHECKLIST.md)에 영역별(HUD, 포인터 배지, 설정 창, 메뉴·정보 창·첫 실행, 현지화, 출시) 확인 항목이 있다. 모든 항목은 Claude가 스크립트로 직접 확인하고, 사용자에게 확인을 넘기지 않는다.
 
 - 코드를 바꿀 때마다 단위 테스트를 돌린다.
-- 영역 코드를 바꿨으면 체크리스트에서 그 영역 항목만 확인한다. Claude 표시 항목은 직접 확인하고, 사용자 표시 항목은 확인을 요청한다. 매 작업마다 전체를 돌리지 않는다.
+- 영역 코드를 바꿨으면 체크리스트에서 그 영역 항목만 확인한다. 매 작업마다 전체를 돌리지 않는다.
 - App Store 제출 전(첫 출시와 업데이트마다)에는 전체를 확인한다.
-- 기능을 추가·삭제·변경하면 같은 작업 안에서 `docs/CHECKLIST.md`도 고친다. 새 기능은 확인 항목과 확인 주체(Claude/사용자/테스트)를 추가하고, 없어진 기능의 항목은 지우고, 동작이 바뀐 항목은 문구를 맞춘다.
+- 체크리스트는 짧게 유지한다. 단위 테스트가 지키는 규칙, 화면 배치 같은 스펙, 스크립트로 확인할 수 없는 항목(시스템 설정·재로그인·다른 macOS 버전)은 넣지 않는다. 기능을 추가·삭제·변경하면 같은 작업 안에서 그 영역 항목을 고치되, 기존 항목에 합칠 수 있으면 합친다.
 
 ## 디자인 시스템
 
