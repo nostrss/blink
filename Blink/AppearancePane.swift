@@ -297,13 +297,14 @@ final class AppearancePane: NSScrollView {
     }
 
     // 테마 메뉴의 견본(22×14pt): 테마 배경색 위에 화살표 색 "→". 그릴 때의 외관(라이트/다크) 색을 쓴다.
-    // macOS 26의 기본(유리)은 클래식과 구분되게 반투명 판에 밝은 테두리를 두른다.
+    // 실제 HUD가 유리로 그려지는 기본 테마는 클래식과 구분되게 반투명 판에 밝은 테두리를 두른다.
     private static func swatch(_ theme: HUDTheme) -> NSImage {
         NSImage(size: NSSize(width: 22, height: 14), flipped: false) { rect in
             let mode = NSAppearance.currentDrawing().hudMode
             let colors = theme.presetColors(mode)
             let path = NSBezierPath(roundedRect: rect.insetBy(dx: 0.5, dy: 0.5), xRadius: 4, yRadius: 4)
-            if theme == .standard && HUD.glassAvailable {
+            let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+            if theme == .standard && HUDAppearance.standard.usesGlass(glassAvailable: HUD.glassAvailable, reduceTransparency: reduce) {
                 NSColor(white: mode == .light ? 1 : 0.5, alpha: 0.35).setFill()
                 path.fill()
                 NSColor.white.withAlphaComponent(0.8).setStroke()
