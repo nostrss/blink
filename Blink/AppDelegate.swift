@@ -3,7 +3,7 @@ import Carbon
 import ServiceManagement
 
 @main
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MainMenu nib이 없으므로 delegate를 직접 연결한다.
     static func main() {
         let app = NSApplication.shared
@@ -27,24 +27,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // 입력소스가 바뀔 때 열려 있는 창의 이름만 갱신하려고, 처음 열 때 만든다.
     private var settingsWindow: SettingsWindow?
     private lazy var aboutWindow = AboutWindow()
+    private let statistics = StatsRecorder()
+    private lazy var statsWindow = StatsWindow(recorder: statistics)
+    // 메뉴 맨 위 통계 카드와 그 아래 구분선. '통계 모으기'를 끄면 숨긴다.
+    private let statsCard = StatsCardView()
+    private let statsCardItem = NSMenuItem()
+    private let statsCardSeparator = NSMenuItem.separator()
 
     private var showOnSwitch: Bool { UserDefaults.standard.bool(forKey: Self.showOnSwitchKey) }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [Self.showOnSwitchKey: true, HUD.durationKey: 1.0,
                                                   HUD.positionXKey: 0.5, HUD.positionYKey: 0.5, HUD.showCapsLockKey: false,
-                                                  CursorBadge.enabledKey: false, CursorBadge.hidesWhenIdleKey: false])
+                                                  CursorBadge.enabledKey: false, CursorBadge.hidesWhenIdleKey: false,
+                                                  StatsRecorder.enabledKey: true])
 
         let image = NSImage(named: "MenuBarIcon")
         image?.isTemplate = true
         image?.accessibilityDescription = "Blink"
         statusItem.button?.image = image
 
-        // 켜고 끄는 설정은 메뉴가 아니라 설정 창 '일반'에 둔다.
+        // 켜고 끄는 설정은 메뉴가 아니라 설정 창에 둔다. 맨 위는 통계 카드(누를 수 없음)다.
         let menu = NSMenu()
+        menu.delegate = self
+        statsCardItem.view = statsCard
+        menu.addItem(statsCardItem)
+        menu.addItem(statsCardSeparator)
+        let statsItem = NSMenuItem(title: String(localized: "Statistics…"), action: #selector(openStatistics), keyEquivalent: "")
         let settingsItem = NSMenuItem(title: String(localized: "Settings…"), action: #selector(openSettings), keyEquivalent: ",")
         let aboutItem = NSMenuItem(title: String(localized: "About Blink"), action: #selector(openAbout), keyEquivalent: "")
-        for item in [settingsItem, aboutItem] {
+        for item in [statsItem, settingsItem, aboutItem] {
             item.target = self
             menu.addItem(item)
         }
@@ -54,6 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         refreshShowState()
         refreshCapsLockWatch()
+        statistics.reload()
 
         _ = tracker.update(Self.currentInputSource()?.name)
         reloadCursorBadge()
@@ -65,6 +78,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             suspensionBehavior: .deliverImmediately
         )
 
+        // 업데이트한 뒤 처음 실행이면 새로운 기능이 있는 정보 창을 한 번 연다. 여는 순간 본 것으로 저장한다.
+        let defaults = UserDefaults.standard
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        if ReleaseNotes.opensAfterUpdate(current: version, lastSeen: defaults.string(forKey: ReleaseNotes.lastSeenVersionKey),
+                                         didShowWelcome: defaults.bool(forKey: Self.didShowWelcomeKey), notes: ReleaseNotes.all) {
+            aboutWindow.show()
+        }
+        defaults.set(version, forKey: ReleaseNotes.lastSeenVersionKey)
+
         // 처음 실행하면 안내 창 대신 설정 창 '일반'을 연다.
         if !UserDefaults.standard.bool(forKey: Self.didShowWelcomeKey) {
             UserDefaults.standard.set(true, forKey: Self.didShowWelcomeKey)
@@ -72,9 +94,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        statistics.save()
+    }
+
+    // 메뉴를 열 때마다 통계 카드를 새로 읽는다.
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        statsCardItem.isHidden = !statistics.isEnabled
+        statsCardSeparator.isHidden = !statistics.isEnabled
+        if statistics.isEnabled { statsCard.reload(statistics.snapshot) }
+    }
+
     @objc private func inputSourceChanged() {
         guard let change = tracker.update(Self.currentInputSource()?.name) else { return }
         NSLog("입력소스 변경: %@ → %@", change.from, change.to)
+        statistics.countSwitch()  // HUD를 꺼도 센다
         if showOnSwitch { hud.show(from: Self.label(named: change.from), to: Self.label(named: change.to)) }
         cursorBadge.update(Self.label(named: change.to))
         settingsWindow?.reloadNames()
@@ -123,6 +157,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 onShowChanged: { [weak self] in self?.refreshShowState() },
                 onCapsLockChanged: { [weak self] in self?.capsLockSettingChanged() },
                 onPointerChanged: { [weak self] in self?.reloadCursorBadge() },
+                onStatisticsChanged: { [weak self] in self?.statistics.reload() },
+                onClearStatistics: { [weak self] in self?.statistics.clear() },
                 preview: { [weak self] position in
                     guard let self else { return }
                     let names = self.sampleNames()
@@ -132,6 +168,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 sampleNames: { [weak self] in self?.sampleNames() ?? (from: InputSourceLabel(name: "", abbreviation: ""), to: nil) })
         }
         settingsWindow?.show()
+    }
+
+    @objc private func openStatistics() {
+        statsWindow.show()
     }
 
     @objc private func openAbout() {

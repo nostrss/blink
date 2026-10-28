@@ -1,6 +1,7 @@
 import AppKit
 
-// 메뉴 "Blink 정보"로 여는 창. 앱 아이콘, 이름, 버전만 가운데에 보여 준다.
+// 메뉴 "Blink 정보"로 여는 창. 앱 아이콘, 이름, 버전을 가운데에 두고, 그 아래 지금 버전 이하에서 가장 최근의 새로운 기능을 보여 준다.
+// 업데이트한 뒤 첫 실행에도 이 창을 연다.
 final class AboutWindow: NSObject {
     private let window = ClosableWindow(contentRect: .zero, styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: true)
 
@@ -33,10 +34,25 @@ final class AboutWindow: NSObject {
         column.edgeInsets = NSEdgeInsets(top: 28 + 16, left: 24, bottom: 24, right: 24)
         column.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            column.widthAnchor.constraint(equalToConstant: 280),
+            column.widthAnchor.constraint(equalToConstant: 360),
             icon.widthAnchor.constraint(equalToConstant: 64),
             icon.heightAnchor.constraint(equalToConstant: 64),
         ])
+
+        // 노트가 하나도 없으면 제목과 목록을 빼고 아이콘·이름·버전만 남는다.
+        if let notes = ReleaseNotes.latest(upTo: version, notes: ReleaseNotes.all) {
+            let heading = NSTextField(labelWithString: String(localized: "New in \(notes.version)"))
+            heading.font = .systemFont(ofSize: 15, weight: .semibold)  // title
+            heading.textColor = Tokens.ink
+            let group = SettingsWindow.group(notes.features.map(Self.row))
+            column.addArrangedSubview(heading)
+            column.addArrangedSubview(group)
+            column.setCustomSpacing(24, after: versionLabel)  // space-4
+            column.setCustomSpacing(8, after: heading)  // space-2
+            for view in [heading, group] {
+                view.widthAnchor.constraint(equalTo: column.widthAnchor, constant: -48).isActive = true
+            }
+        }
         window.contentView = column
     }
 
@@ -44,5 +60,48 @@ final class AboutWindow: NSObject {
         if !window.isVisible { window.center() }
         NSApp.activateForWindow()
         window.makeKeyAndOrderFront(nil)
+    }
+
+    // 왼쪽 accent 심볼, 오른쪽 이름(title)과 설명(body, muted). 위아래 12pt.
+    private static func row(_ feature: ReleaseNotes.Feature) -> NSView {
+        let symbol = NSImageView(image: NSImage(systemSymbolName: feature.symbol, accessibilityDescription: nil) ?? NSImage())
+        symbol.symbolConfiguration = .init(pointSize: 17, weight: .regular)
+        symbol.contentTintColor = Tokens.accent
+        let name = NSTextField(labelWithString: feature.title)
+        name.font = .systemFont(ofSize: 15, weight: .semibold)  // title
+        name.textColor = Tokens.ink
+        // 한글을 글자가 아니라 어절에서 끊는다. 텍스트 필드의 lineBreakStrategy는 먹지 않아 문단 스타일로 준다.
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.lineBreakStrategy = .hangulWordPriority
+        let detail = NSTextField(wrappingLabelWithString: "")
+        detail.isSelectable = false
+        detail.attributedStringValue = NSAttributedString(string: feature.detail, attributes: [
+            .font: NSFont.systemFont(ofSize: 13),  // body
+            .foregroundColor: Tokens.muted,
+            .paragraphStyle: paragraph,
+        ])
+        let text = NSStackView(views: [name, detail])
+        text.orientation = .vertical
+        text.alignment = .leading
+        text.spacing = 2
+        symbol.translatesAutoresizingMaskIntoConstraints = false
+        text.translatesAutoresizingMaskIntoConstraints = false
+        // 심볼은 24×20pt 칸 가운데에 두고 이름 줄의 세로 가운데에 맞춘다. 텍스트와는 space-2.
+        let row = NSView()
+        row.addSubview(symbol)
+        row.addSubview(text)
+        NSLayoutConstraint.activate([
+            text.topAnchor.constraint(equalTo: row.topAnchor, constant: 12),
+            text.bottomAnchor.constraint(equalTo: row.bottomAnchor, constant: -12),
+            text.leadingAnchor.constraint(equalTo: symbol.trailingAnchor, constant: 8),  // space-2
+            text.trailingAnchor.constraint(equalTo: row.trailingAnchor),
+            symbol.leadingAnchor.constraint(equalTo: row.leadingAnchor),
+            symbol.centerYAnchor.constraint(equalTo: name.centerYAnchor),
+            symbol.widthAnchor.constraint(equalToConstant: 24),
+            symbol.heightAnchor.constraint(equalToConstant: 20),
+            // 창 360 − 좌우 space-4 − 상자 group-inset 양쪽 − 심볼 칸 24 − space-2
+            detail.widthAnchor.constraint(equalToConstant: 360 - 48 - 20 - 24 - 8),
+        ])
+        return row
     }
 }
