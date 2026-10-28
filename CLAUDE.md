@@ -59,10 +59,6 @@ https://claude.ai/artifact/3n9WYkuynDn61C23fgZ8Nw (Blink 디자인 시스템: �
 
 이 아티팩트는 늘 최신 설계(설계 중인 다음 버전 포함)다. 출시한 버전은 그 시점의 사본을 디자인 시스템 아티팩트로 따로 만들어 고정한다(예: [Blink 1.2.0](https://claude.ai/artifact/XLkVgM7oehKZFPEPWJgnKo)). 사본은 고치지 않는다. 다음 버전 작업을 시작하기 전에 직전 출시 버전의 사본을 만들고, 최신 README '버전' 표에 버전·사본 링크·바뀐 점 요약을 한 줄 추가한다.
 
-## 스토어 스크린샷
-
-https://claude.ai/artifact/XGEmszyZoGwdewcuE5UkAc (Blink 스토어 스크린샷: Mac App Store에 올린 스크린샷을 앱 버전·언어별로 모은 페이지). 새 버전의 스크린샷을 만들면 이 아티팩트에 버전을 추가하고 이전 버전은 남긴다. 원본 파일과 캡션은 아래 '제출 문안' 폴더에 있다.
-
 ## 제출 문안
 
 App Store Connect에 넣는 문안과 스크린샷은 [docs/appstore/](docs/appstore/)에 버전 폴더, 그 아래 언어 폴더(App Store Connect 로케일: `en-US`, `ko`)로 둔다.
@@ -76,6 +72,10 @@ docs/appstore/<버전>/<언어>/
 스크린샷은 새로 만들거나 바꾼 것만 그 버전 폴더에 넣는다. 올리는 순서와 파일은 metadata.md의 스크린샷 표(순서·파일·장면·캡션)에 적고, 이전 버전 것을 그대로 쓰면 그 버전 폴더의 경로를 적는다.
 
 심사 노트는 언어별이 아니라 하나뿐이라 `en-US`에 영어로 쓰고, 다른 언어에는 참고용 번역만 둔다. 개인정보 처리방침의 원본은 [nostrss/blink-site](https://github.com/nostrss/blink-site)의 `privacy.md`다. 새 버전은 직전 버전 폴더를 복사해 고치고, 제출한 버전의 폴더는 바꾸지 않는다.
+
+## 출시 심사 준비
+
+App Store에 버전을 제출하기 전에는 [docs/RELEASE.md](docs/RELEASE.md)의 순서(보안·성능 검사 → 빌드 번호 → 문안 → 개인정보 처리방침 → 체크리스트 전체 → 스크린샷 → 리젝 사유 검토 → 커밋 → 사용자에게 넘기기 → 제출 뒤 병합·태그)를 따른다. 체크리스트를 스크립트로 확인하거나 스크린샷을 만들 때의 방법과 주의할 점도 그 파일에 있다.
 
 ## 기록 남기기
 
