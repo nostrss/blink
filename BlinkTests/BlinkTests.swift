@@ -501,6 +501,23 @@ final class StatisticsTests: XCTestCase {
 
     private func switches(_ count: Double) -> StatsCounts { StatsCounts(switches: count) }
 
+    // 읽은 뒤 바뀐 게 없으면 다시 쓰지 않고, 바뀌면 쓴다.
+    func testRecorderSavesOnlyWhenLogChanged() throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("Statistics-\(UUID()).json")
+        defer { try? FileManager.default.removeItem(at: file) }
+        var log = StatsLog()
+        log.add(switches(3), at: Date(), calendar: .current)
+        try JSONEncoder().encode(log).write(to: file)
+
+        let recorder = StatsRecorder(file: file)
+        try FileManager.default.removeItem(at: file)
+        recorder.save()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
+
+        recorder.clear()
+        XCTAssertEqual(try JSONDecoder().decode(StatsLog.self, from: Data(contentsOf: file)), StatsLog())
+    }
+
     func testLogAddsToHourAndDay() {
         var log = StatsLog()
         log.add(switches(1), at: date(28, 9, 10), calendar: calendar)

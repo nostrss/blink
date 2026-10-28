@@ -5,7 +5,7 @@ import AppKit
 // 전환·포인터 이벤트를 받아 StatsLog에 더하고 파일에 저장한다. 포인터 이벤트는 손쉬운 사용 권한 없이 받을 수 있다.
 final class StatsRecorder {
     static let enabledKey = "collectStatistics"
-    private static let saveInterval: TimeInterval = 300
+    private static let saveInterval: TimeInterval = 900
 
     private var log = StatsLog()
     // 포인터 이벤트는 1초에 수백 번 오므로 지금 시간 칸의 합계만 메모리에 더하고, 칸이 바뀌거나 읽을 때 기록에 넣는다.
@@ -16,15 +16,19 @@ final class StatsRecorder {
     private var screenScale: (frame: NSRect, millimetersPerPoint: Double)?
     private var monitors: [Any] = []
     private var saveTimer: Timer?
-    private let file = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("Statistics.json")
+    private let file: URL
+    // 마지막으로 파일에 쓴(또는 읽은) 기록. 같으면 다시 쓰지 않는다.
+    private var savedLog = StatsLog()
 
     var isEnabled: Bool { UserDefaults.standard.bool(forKey: Self.enabledKey) }
 
-    init() {
+    init(file: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("Statistics.json")) {
+        self.file = file
         guard let data = try? Data(contentsOf: file) else { return }
         do {
             log = try JSONDecoder().decode(StatsLog.self, from: data)
+            savedLog = log
         } catch {
             // 읽지 못한 기록을 빈 기록으로 덮어쓰지 않도록 시각을 붙인 이름으로 옆에 옮겨 둔다.
             NSLog("통계 기록을 읽지 못함: %@", error.localizedDescription)
@@ -67,10 +71,11 @@ final class StatsRecorder {
     func save() {
         flush()
         log.prune(now: Date())
-        guard canSave else { return }
+        guard canSave, log != savedLog else { return }
         do {
             try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
             try JSONEncoder().encode(log).write(to: file, options: .atomic)
+            savedLog = log
         } catch {
             NSLog("통계 기록을 저장하지 못함: %@", error.localizedDescription)
         }
@@ -104,6 +109,7 @@ final class StatsRecorder {
             monitors.append(local)
         }
         let timer = Timer(timeInterval: Self.saveInterval, repeats: true) { [weak self] _ in self?.save() }
+        timer.tolerance = 60
         RunLoop.main.add(timer, forMode: .common)
         saveTimer = timer
     }
@@ -404,9 +410,13 @@ final class StatsWindow: NSObject {
         if !window.isVisible { window.center() }
         NSApp.activateForWindow()
         window.makeKeyAndOrderFront(nil)
-        // 열려 있는 동안 2초마다 새로 읽는다.
+        // 열려 있는 동안 2초마다 새로 읽는다. 다른 창에 가려 안 보이면 건너뛴다.
         guard timer == nil else { return }
-        let timer = Timer(timeInterval: Self.refreshInterval, repeats: true) { [weak self] _ in self?.reload() }
+        let timer = Timer(timeInterval: Self.refreshInterval, repeats: true) { [weak self] _ in
+            guard let self, self.window.occlusionState.contains(.visible) else { return }
+            self.reload()
+        }
+        timer.tolerance = 0.5
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
     }
