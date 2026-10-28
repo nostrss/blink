@@ -99,6 +99,9 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         toolbar.delegate = self
         window.toolbar = toolbar
         window.toolbarStyle = .unified
+        // 툴바 재질의 띠와 구분선 없이 제목 자리도 내용과 같은 배경으로 둔다(시스템 설정과 같은 모양).
+        window.titlebarAppearsTransparent = true
+        window.titlebarSeparatorStyle = .none
         window.setContentSize(NSSize(width: 620, height: 440))
         // 이보다 작으면 도움말이 잘린다. 늘린 만큼은 내용 영역이 가져가고(사이드바는 180 고정), 마지막 크기·자리를 기억한다.
         window.contentMinSize = NSSize(width: 620, height: 440)
