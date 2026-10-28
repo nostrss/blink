@@ -78,6 +78,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             suspensionBehavior: .deliverImmediately
         )
 
+        // 업데이트한 뒤 처음 실행이면 새로운 기능이 있는 정보 창을 한 번 연다. 여는 순간 본 것으로 저장한다.
+        let defaults = UserDefaults.standard
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        if ReleaseNotes.opensAfterUpdate(current: version, lastSeen: defaults.string(forKey: ReleaseNotes.lastSeenVersionKey),
+                                         didShowWelcome: defaults.bool(forKey: Self.didShowWelcomeKey), notes: ReleaseNotes.all) {
+            aboutWindow.show()
+        }
+        defaults.set(version, forKey: ReleaseNotes.lastSeenVersionKey)
+
         // 처음 실행하면 안내 창 대신 설정 창 '일반'을 연다.
         if !UserDefaults.standard.bool(forKey: Self.didShowWelcomeKey) {
             UserDefaults.standard.set(true, forKey: Self.didShowWelcomeKey)

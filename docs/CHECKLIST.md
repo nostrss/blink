@@ -40,7 +40,7 @@
 ## 메뉴·정보 창·첫 실행
 
 - [ ] 메뉴는 통계 카드, 구분선, "통계…", "설정…", "Blink 정보", 구분선, "Blink 종료"이고, "Blink 종료"로 종료된다.
-- [ ] "Blink 정보"에 앱 아이콘·"Blink"·"버전 X.Y.Z"(`MARKETING_VERSION`)가 보이고 Esc로 닫힌다.
+- [ ] "Blink 정보"에 앱 아이콘·"Blink"·"버전 X.Y.Z"(`MARKETING_VERSION`)와 'X.Y.Z의 새로운 기능' 목록이 보이고 Esc로 닫힌다. 업데이트 후 첫 실행이면 이 창이 저절로 열리고, 같은 버전으로 다시 실행하면 열리지 않는다. (`--args -didShowWelcome YES -lastSeenVersion 1.2.0`으로 띄운 뒤 `-didShowWelcome YES`만 주고 다시 실행)
 - [ ] 첫 실행이면 설정 창이 '일반'으로 열리고, 두 번째 실행부터는 열리지 않는다. (`--args -didShowWelcome NO`로 띄운 뒤 인자 없이 다시 실행)
 
 ## 현지화

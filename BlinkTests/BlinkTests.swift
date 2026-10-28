@@ -1,3 +1,4 @@
+import AppKit
 import XCTest
 @testable import Blink
 
@@ -638,5 +639,45 @@ final class StatisticsTests: XCTestCase {
         var log = StatsLog()
         log.add(StatsCounts(switches: 2, distance: 3.5), at: date(28, 9), calendar: calendar)
         XCTAssertEqual(try JSONDecoder().decode(StatsLog.self, from: JSONEncoder().encode(log)), log)
+    }
+}
+
+final class ReleaseNotesTests: XCTestCase {
+    private let feature = ReleaseNotes.Feature(symbol: "star", title: "T", detail: "D")
+    private var notes: [String: [ReleaseNotes.Feature]] { ["1.3.0": [feature], "1.4.0": [feature], "1.10.0": [feature]] }
+
+    private func show(_ current: String, lastSeen: String?, welcome: Bool = true) -> Bool {
+        ReleaseNotes.opensAfterUpdate(current: current, lastSeen: lastSeen, didShowWelcome: welcome, notes: notes)
+    }
+
+    func testShowsOnceAfterUpgrade() {
+        XCTAssertFalse(show("1.3.0", lastSeen: nil, welcome: false))  // 새 설치
+        XCTAssertTrue(show("1.3.0", lastSeen: nil))  // 1.2.0 이하에서 올라옴(기록 없음)
+        XCTAssertFalse(show("1.3.0", lastSeen: "1.3.0"))  // 다시 실행
+        XCTAssertFalse(show("1.3.1", lastSeen: "1.3.0"))  // 노트 없는 버전
+        XCTAssertTrue(show("1.4.0", lastSeen: "1.3.0"))
+        XCTAssertTrue(show("1.4.0", lastSeen: nil))  // 1.3.0을 건너뜀
+        XCTAssertFalse(show("1.3.0", lastSeen: "1.4.0"))  // 다운그레이드
+    }
+
+    func testComparesVersionsAsNumbers() {
+        XCTAssertTrue(show("1.10.0", lastSeen: "1.9.0"))
+        XCTAssertFalse(show("1.4.0", lastSeen: "1.10.0"))
+    }
+
+    func testAboutShowsLatestNotesUpToThisVersion() {
+        XCTAssertEqual(ReleaseNotes.latest(upTo: "1.3.0", notes: notes)?.version, "1.3.0")
+        XCTAssertEqual(ReleaseNotes.latest(upTo: "1.3.1", notes: notes)?.version, "1.3.0")  // PATCH는 1.3.0의 노트
+        XCTAssertEqual(ReleaseNotes.latest(upTo: "1.9.0", notes: notes)?.version, "1.4.0")
+        XCTAssertEqual(ReleaseNotes.latest(upTo: "1.10.0", notes: notes)?.version, "1.10.0")
+        XCTAssertNil(ReleaseNotes.latest(upTo: "1.2.0", notes: notes))  // 노트가 없으면 목록을 숨김
+    }
+
+    func testShippedNotesAreShortWithRealSymbols() {
+        XCTAssertNotNil(ReleaseNotes.all["1.3.0"])
+        for features in ReleaseNotes.all.values {
+            XCTAssertTrue((1...3).contains(features.count))
+            for feature in features { XCTAssertNotNil(NSImage(systemSymbolName: feature.symbol, accessibilityDescription: nil)) }
+        }
     }
 }
