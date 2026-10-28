@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Blink: macOS 메뉴바 앱. 한/영 입력소스가 바뀌면 화면 중앙에 "변경 전 → 변경 후"를 1초 띄운다. Swift + AppKit, 외부 라이브러리 없음. 사용자와는 한국어로 소통한다.
 
-macOS 전용 타깃(최소 13.0, `LSUIElement`), 진입점은 `Blink/AppDelegate.swift`의 `static func main()`이다 (MainMenu nib 없음). 작업 순서와 진행 상황은 [docs/ROADMAP.md](docs/ROADMAP.md)에 있다.
+macOS 전용 타깃(최소 13.0, `LSUIElement`), 진입점은 `Blink/AppDelegate.swift`의 `static func main()`이다 (MainMenu nib 없음).
 
 ## 빌드
 
