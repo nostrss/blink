@@ -7,7 +7,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private static let step = 0.5
 
     private enum Pane: Int, CaseIterable {
-        case general, position, appearance, pointer
+        case general, position, appearance, pointer, statistics
 
         var title: String {
             switch self {
@@ -15,6 +15,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
             case .position: String(localized: "Position")
             case .appearance: String(localized: "Appearance")
             case .pointer: String(localized: "Pointer")
+            case .statistics: String(localized: "Statistics")
             }
         }
     }
@@ -24,7 +25,8 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private let split = NSSplitViewController()
     private let sidebar = NSTableView()
     private let detail = NSView()
-    private lazy var panes: [Pane: NSView] = [.general: makeGeneralPane(), .position: positionPane, .appearance: appearancePane, .pointer: pointerPane]
+    private lazy var panes: [Pane: NSView] = [.general: makeGeneralPane(), .position: positionPane, .appearance: appearancePane, .pointer: pointerPane,
+                                                    .statistics: makeStatisticsPane()]
     private let positionPane: PositionPane
     private let appearancePane: AppearancePane
     private let pointerPane: PointerPane
@@ -32,10 +34,13 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private let showSwitch = NSSwitch()
     private let capsLockSwitch = NSSwitch()
     private let loginSwitch = NSSwitch()
+    private let statisticsSwitch = NSSwitch()
     private let field = NSTextField()
     private let stepper = SettingsWindow.makeDurationStepper()
     private let onShowChanged: () -> Void
     private let onCapsLockChanged: () -> Void
+    private let onStatisticsChanged: () -> Void
+    private let onClearStatistics: () -> Void
     private static let formatter: NumberFormatter = {
         let f = NumberFormatter()
         f.numberStyle = .decimal
@@ -46,12 +51,16 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
 
     // onShowChanged: '언어 전환 HUD 표시'를 바꾼 직후(메뉴바 아이콘 갱신용). onCapsLockChanged: 'Caps Lock HUD 표시'를 바꾼 직후
     // onPointerChanged: '포인터' 설정을 바꾼 직후(실제 포인터 배지를 다시 읽게 한다).
+    // onStatisticsChanged: '통계 모으기'를 바꾼 직후. onClearStatistics: '모두 지우기…'를 확인한 뒤.
     // preview: 위치·모양을 고르는 동안 실제 화면에 HUD를 띄운다. sampleNames: 미니 HUD와 미리보기에 쓸 이름
     init(onShowChanged: @escaping () -> Void, onCapsLockChanged: @escaping () -> Void, onPointerChanged: @escaping () -> Void,
+         onStatisticsChanged: @escaping () -> Void, onClearStatistics: @escaping () -> Void,
          preview: @escaping (HUDPosition) -> Void,
          sampleNames: @escaping () -> (from: InputSourceLabel, to: InputSourceLabel?)) {
         self.onShowChanged = onShowChanged
         self.onCapsLockChanged = onCapsLockChanged
+        self.onStatisticsChanged = onStatisticsChanged
+        self.onClearStatistics = onClearStatistics
         positionPane = PositionPane(preview: preview, sampleNames: sampleNames)
         appearancePane = AppearancePane(preview: { preview(HUD.savedPosition) }, sampleNames: sampleNames)
         pointerPane = PointerPane(onChange: onPointerChanged, sampleNames: sampleNames)
@@ -60,6 +69,8 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         window.backgroundColor = Tokens.surface
 
         sidebar.style = .sourceList
+        sidebar.rowSizeStyle = .custom
+        sidebar.rowHeight = 28  // row-sidebar
         sidebar.allowsEmptySelection = false  // 빈 곳을 눌러도 고른 항목을 유지한다
         sidebar.headerView = nil
         sidebar.addTableColumn(NSTableColumn(identifier: .init("pane")))
@@ -113,6 +124,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         showSwitch.state = UserDefaults.standard.bool(forKey: AppDelegate.showOnSwitchKey) ? .on : .off
         capsLockSwitch.state = UserDefaults.standard.bool(forKey: HUD.showCapsLockKey) ? .on : .off
         loginSwitch.state = LoginItem.isEnabled ? .on : .off
+        statisticsSwitch.state = UserDefaults.standard.bool(forKey: StatsRecorder.enabledKey) ? .on : .off
         apply(UserDefaults.standard.double(forKey: HUD.durationKey))
         NSApp.activateForWindow()
         window.makeKeyAndOrderFront(nil)
@@ -156,8 +168,8 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         cell.addSubview(label)
         cell.textField = label
         NSLayoutConstraint.activate([
-            label.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 4),  // space-1
-            label.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -4),
+            label.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 8),  // space-2
+            label.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -8),
             label.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
         ])
         return cell
@@ -203,19 +215,40 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         let durationRow = Self.row(String(localized: "Display Time"), [field, stepper, unit])
         stepper.setAccessibilityLabel(String(localized: "Display Time"))  // 입력란은 보여 주기만 하므로 VoiceOver가 조절할 곳은 스테퍼다
 
-        let separator = NSBox()
-        separator.boxType = .separator
+        return Self.column([Self.group([showRow, capsLockRow, loginRow]), Self.group([durationRow])])
+    }
 
-        let rows = [showRow, capsLockRow, loginRow, separator, durationRow]
-        let column = NSStackView(views: rows)
-        column.orientation = .vertical
-        column.alignment = .leading
-        column.spacing = 8  // space-2
-        column.edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)  // space-3
-        for row in rows {
-            row.widthAnchor.constraint(equalTo: column.widthAnchor, constant: -32).isActive = true
-        }
+    // MARK: 통계
+
+    private func makeStatisticsPane() -> NSView {
+        statisticsSwitch.controlSize = .small
+        statisticsSwitch.target = self
+        statisticsSwitch.action = #selector(statisticsChanged)
+        let clear = NSButton(title: String(localized: "Clear All…"), target: self, action: #selector(clearStatistics))
+        clear.controlSize = .small
+        let note = Self.caption(String(localized: "Blink counts only input source switches and pointer usage, never what you type. Statistics never leave this Mac."))
+        let group = Self.group([Self.row(String(localized: "Collect Statistics"), [statisticsSwitch]), Self.row(String(localized: "History"), [clear])])
+        let column = Self.column([group, note])
+        column.setCustomSpacing(6, after: group)  // 도움말은 상자 바로 아래
         return column
+    }
+
+    @objc private func statisticsChanged() {
+        UserDefaults.standard.set(statisticsSwitch.state == .on, forKey: StatsRecorder.enabledKey)
+        onStatisticsChanged()
+    }
+
+    // 되돌릴 수 없으니 설정 창 위 시트로 한 번 더 묻는다.
+    @objc private func clearStatistics() {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Clear all statistics?")
+        alert.informativeText = String(localized: "This can’t be undone.")
+        let clear = alert.addButton(withTitle: String(localized: "Clear"))
+        clear.hasDestructiveAction = true
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        alert.beginSheetModal(for: window) { [weak self] response in
+            if response == .alertFirstButtonReturn { self?.onClearStatistics() }
+        }
     }
 
     // 라벨은 왼쪽, 컨트롤은 오른쪽 끝. 첫 컨트롤은 VoiceOver가 라벨 이름으로 읽는다.
@@ -229,6 +262,59 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         let row = NSStackView(views: [label, spacer] + controls)
         row.spacing = 8  // space-2
         return row
+    }
+
+    // 시스템 설정의 그룹 상자: 배경 group-bg, 모서리 radius-md, 줄마다 최소 row-setting, 줄 사이 line 1pt를 group-inset만큼 들여 긋는다.
+    static func group(_ rows: [NSView]) -> NSView {
+        let stack = NSStackView()
+        stack.orientation = .vertical
+        stack.spacing = 0
+        stack.edgeInsets = NSEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)  // group-inset
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        for (index, row) in rows.enumerated() {
+            if index > 0 { stack.addArrangedSubview(fill(Tokens.line, cornerRadius: 0)) }
+            stack.addArrangedSubview(row)
+            row.heightAnchor.constraint(greaterThanOrEqualToConstant: 36).isActive = true  // row-setting
+        }
+        for view in stack.arrangedSubviews {
+            view.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -20).isActive = true
+            if !rows.contains(view) { view.heightAnchor.constraint(equalToConstant: 1).isActive = true }
+        }
+        let box = fill(Tokens.groupBackground, cornerRadius: 10)  // radius-md
+        let content = box.contentView!
+        content.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: content.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: content.bottomAnchor),
+            stack.leadingAnchor.constraint(equalTo: content.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+        ])
+        return box
+    }
+
+    // 항목 화면의 세로 줄: 안쪽 여백 space-3, 요소 사이 space-3, 모두 내용 폭을 채운다.
+    static func column(_ views: [NSView]) -> NSStackView {
+        let column = NSStackView(views: views)
+        column.orientation = .vertical
+        column.alignment = .leading
+        column.spacing = 16  // space-3
+        column.edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)  // space-3
+        for view in views {
+            view.widthAnchor.constraint(equalTo: column.widthAnchor, constant: -32).isActive = true
+        }
+        return column
+    }
+
+    // 색을 채운 판. NSBox는 외관(라이트/다크)이 바뀌면 동적 색으로 다시 그린다.
+    private static func fill(_ color: NSColor, cornerRadius: CGFloat) -> NSBox {
+        let box = NSBox()
+        box.boxType = .custom
+        box.borderWidth = 0
+        box.cornerRadius = cornerRadius
+        box.fillColor = color
+        box.contentViewMargins = .zero
+        box.translatesAutoresizingMaskIntoConstraints = false
+        return box
     }
 
     static func caption(_ text: String) -> NSTextField {

@@ -27,6 +27,7 @@ final class AppearancePane: NSScrollView {
     private let fromSwitch = NSSwitch()
     private let resetButton = NSButton(title: String(localized: "Reset to Default"), target: nil, action: nil)
     private let column = NSStackView()
+    private lazy var themeGroup = SettingsWindow.group([SettingsWindow.row(String(localized: "Theme"), [themePopup])])
     private let preview: () -> Void
     private let sampleNames: () -> (from: InputSourceLabel, to: InputSourceLabel?)
 
@@ -78,21 +79,25 @@ final class AppearancePane: NSScrollView {
         opacityLabel.alignment = .right
         opacityLabel.widthAnchor.constraint(equalToConstant: 40).isActive = true
         reduceTransparencyLink.onClick = { Self.openReduceTransparencySettings() }
+        let editCaption = SettingsWindow.caption(String(localized: "Click the Light or Dark preview to choose which colors to edit."))
         let customViews = [
-            SettingsWindow.caption(String(localized: "Click the Light or Dark preview to choose which colors to edit.")),
+            editCaption,
             // HUD 왼쪽부터: 변경 전 → 화살표 → 변경 후.
-            SettingsWindow.row(String(localized: "Previous Source Color"), [fromWell]),
-            SettingsWindow.row(String(localized: "Arrow Color"), [arrowWell]),
-            SettingsWindow.row(String(localized: "New Source Color"), [textWell]),
-            SettingsWindow.row(String(localized: "Background Color"), [backgroundWell]),
-            SettingsWindow.row(String(localized: "Background Opacity"), [opacitySlider, opacityLabel, reduceTransparencyLink]),
+            SettingsWindow.group([
+                SettingsWindow.row(String(localized: "Previous Source Color"), [fromWell]),
+                SettingsWindow.row(String(localized: "Arrow Color"), [arrowWell]),
+                SettingsWindow.row(String(localized: "New Source Color"), [textWell]),
+                SettingsWindow.row(String(localized: "Background Color"), [backgroundWell]),
+                SettingsWindow.row(String(localized: "Background Opacity"), [opacitySlider, opacityLabel, reduceTransparencyLink]),
+            ]),
             reduceTransparencyNote,
             lowContrastNote,
         ]
         customViews.forEach(customRows.addArrangedSubview)
         customRows.orientation = .vertical
         customRows.alignment = .leading
-        customRows.spacing = 8  // space-2
+        customRows.spacing = 6  // 도움말은 상자 바로 아래
+        customRows.setCustomSpacing(16, after: editCaption)  // space-3
         for view in customViews {
             view.widthAnchor.constraint(equalTo: customRows.widthAnchor).isActive = true
         }
@@ -111,21 +116,20 @@ final class AppearancePane: NSScrollView {
         let fromRow = SettingsWindow.row(String(localized: "Show Previous Input Source"), [fromSwitch])
         let rows: [NSView] = [
             previews,
-            SettingsWindow.row(String(localized: "Theme"), [themePopup]),
+            themeGroup,
             customRows,
-            Self.separator(),
-            SettingsWindow.row(String(localized: "Size"), [sizeControl]),
-            SettingsWindow.row(String(localized: "Corners"), [cornersControl]),
-            SettingsWindow.row(String(localized: "Font Weight"), [weightControl]),
-            Self.separator(),
-            SettingsWindow.row(String(localized: "Display Style"), [displayControl]),
-            fromRow,
+            SettingsWindow.group([
+                SettingsWindow.row(String(localized: "Size"), [sizeControl]),
+                SettingsWindow.row(String(localized: "Corners"), [cornersControl]),
+                SettingsWindow.row(String(localized: "Font Weight"), [weightControl]),
+            ]),
+            SettingsWindow.group([SettingsWindow.row(String(localized: "Display Style"), [displayControl]), fromRow]),
             resetRow,
         ]
         rows.forEach(column.addArrangedSubview)
         column.orientation = .vertical
         column.alignment = .leading
-        column.spacing = 8  // space-2
+        column.spacing = 16  // space-3
         column.edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)  // space-3
         column.translatesAutoresizingMaskIntoConstraints = false
         for row in rows {
@@ -240,6 +244,7 @@ final class AppearancePane: NSScrollView {
         }
         themePopup.selectItem(at: themePopup.indexOfItem(withRepresentedObject: look.theme.rawValue))
         customRows.isHidden = look.theme != .custom
+        column.setCustomSpacing(customRows.isHidden ? 16 : 6, after: themeGroup)  // 사용자 지정의 안내는 테마 상자 바로 아래
         if let colors = look.custom(editing) {
             textWell.color = NSColor(colors.text)
             fromWell.color = NSColor(colors.from)
@@ -288,12 +293,6 @@ final class AppearancePane: NSScrollView {
             "x-apple.systempreferences:com.apple.preference.universalaccess",
         ].compactMap(URL.init(string:))
         _ = urls.first { NSWorkspace.shared.open($0) }
-    }
-
-    private static func separator() -> NSBox {
-        let box = NSBox()
-        box.boxType = .separator
-        return box
     }
 
     // 테마 메뉴의 견본(22×14pt): 테마 배경색 위에 화살표 색 "→". 그릴 때의 외관(라이트/다크) 색을 쓴다.

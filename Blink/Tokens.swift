@@ -8,6 +8,7 @@ enum Tokens {
     static let line = dynamic(light: NSColor(hex: 0xd2d2d7), dark: NSColor(hex: 0x3a3a3c))
     static let accent = dynamic(light: NSColor(hex: 0x0a66d6), dark: NSColor(hex: 0x4c9dff))
     static let signalOn = dynamic(light: NSColor(hex: 0x1f7a3d), dark: NSColor(hex: 0x4cd07d))
+    static let groupBackground = dynamic(light: NSColor(hex: 0xffffff), dark: NSColor(hex: 0xffffff, alpha: 0.05))
 
     private static func dynamic(light: NSColor, dark: NSColor) -> NSColor {
         NSColor(name: nil) { $0.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light }

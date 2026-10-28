@@ -37,8 +37,6 @@ final class PointerPane: NSStackView {
         let spacer = NSView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         let foot = NSStackView(views: [nameLabel, spacer, resetButton])
-        let separator = NSBox()
-        separator.boxType = .separator
         let hideRow = SettingsWindow.row(String(localized: "Hide When Pointer Stops"), [hideSwitch])
         // HUD '모양'의 '크기'와 같은 컨트롤이지만 값은 따로 저장한다.
         let sizeRow = SettingsWindow.row(String(localized: "Badge Size"), [sizeControl])
@@ -46,15 +44,16 @@ final class PointerPane: NSStackView {
         // 꺼져 있으면 아래 줄들을 흐리게 두지 않고 뺀다(쓸 수 없는 컨트롤은 뺀다).
         details.orientation = .vertical
         details.alignment = .leading
-        details.spacing = 8  // space-2
-        let detailRows = [picker, foot, sizeRow, separator, hideRow]
+        details.spacing = 16  // space-3
+        let detailRows = [picker, foot, SettingsWindow.group([sizeRow]), SettingsWindow.group([hideRow])]
         detailRows.forEach(details.addArrangedSubview)
+        details.setCustomSpacing(8, after: picker)  // space-2: 칸 아래 위치 이름 줄
 
         orientation = .vertical
         alignment = .leading
-        spacing = 8  // space-2
+        spacing = 16  // space-3
         edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)  // space-3
-        let showRow = SettingsWindow.row(String(localized: "Show Input Source Next to Pointer"), [showSwitch])
+        let showRow = SettingsWindow.group([SettingsWindow.row(String(localized: "Show Input Source Next to Pointer"), [showSwitch])])
         [showRow, details].forEach(addArrangedSubview)
         NSLayoutConstraint.activate([
             showRow.widthAnchor.constraint(equalTo: widthAnchor, constant: -32),

@@ -485,3 +485,158 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(strings("ko")?["About Blink"], "Blink 정보")
     }
 }
+
+// 입력 통계. 날짜 계산은 서울 시간대 그레고리력으로 고정한다.
+final class StatisticsTests: XCTestCase {
+    private var calendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        return calendar
+    }()
+
+    private func date(_ day: Int, _ hour: Int, _ minute: Int = 0) -> Date {
+        calendar.date(from: DateComponents(year: 2026, month: 10, day: day, hour: hour, minute: minute))!
+    }
+
+    private func switches(_ count: Double) -> StatsCounts { StatsCounts(switches: count) }
+
+    func testLogAddsToHourAndDay() {
+        var log = StatsLog()
+        log.add(switches(1), at: date(28, 9, 10), calendar: calendar)
+        log.add(switches(2), at: date(28, 9, 50), calendar: calendar)
+        log.add(switches(4), at: date(28, 10, 5), calendar: calendar)
+        XCTAssertEqual(log.hours.count, 2)
+        XCTAssertEqual(log.hours[Int(date(28, 9).timeIntervalSince1970)]?.switches, 3)
+        XCTAssertEqual(log.days["2026-10-28"]?.switches, 7)
+    }
+
+    // 끝나지 않은 지금 칸은 다 세고, 앞 기간이 칸 중간에서 끝나면 겹친 비율만 센다.
+    func testTotalUsesPartOfHourAtEdges() {
+        var log = StatsLog()
+        log.add(switches(60), at: date(27, 14, 10), calendar: calendar)  // 어제 14시 칸
+        log.add(switches(5), at: date(28, 14, 10), calendar: calendar)  // 오늘 14시 칸(진행 중)
+        let now = date(28, 14, 30)
+        XCTAssertEqual(log.total(from: date(28, 0), to: now, now: now).switches, 5)
+        XCTAssertEqual(log.total(from: date(27, 0), to: date(27, 14, 30), now: now).switches, 30, accuracy: 0.001)
+    }
+
+    func testPruneKeepsNinetyDaysOfHoursAndAllDays() {
+        var log = StatsLog()
+        log.add(switches(1), at: date(28, 9).addingTimeInterval(-91 * 86400), calendar: calendar)
+        log.add(switches(1), at: date(28, 9).addingTimeInterval(-89 * 86400), calendar: calendar)
+        log.prune(now: date(28, 9))
+        XCTAssertEqual(log.hours.count, 1)
+        XCTAssertEqual(log.days.count, 2)
+    }
+
+    func testPeriodRangesCompareSameTimeEarlier() {
+        let now = date(28, 16)
+        let today = StatsPeriod.today.ranges(now: now, calendar: calendar)
+        XCTAssertEqual(today.current, DateInterval(start: date(28, 0), end: now))
+        XCTAssertEqual(today.previous, DateInterval(start: date(27, 0), end: date(27, 16)))
+        let week = StatsPeriod.week.ranges(now: now, calendar: calendar)
+        XCTAssertEqual(week.current.start, date(22, 0))
+        XCTAssertEqual(week.previous, DateInterval(start: date(15, 0), end: date(21, 16)))
+        let month = StatsPeriod.month.ranges(now: now, calendar: calendar)
+        XCTAssertEqual(month.current.start, calendar.date(from: DateComponents(year: 2026, month: 9, day: 29))!)
+    }
+
+    func testSlotsAndAxis() {
+        let now = date(28, 16)
+        let locale = Locale(identifier: "en_US")
+        XCTAssertEqual(StatsPeriod.today.slots(now: now, calendar: calendar).count, 24)
+        XCTAssertEqual(StatsPeriod.week.slots(now: now, calendar: calendar).count, 7)
+        XCTAssertEqual(StatsPeriod.month.slots(now: now, calendar: calendar).count, 30)
+        XCTAssertEqual(StatsPeriod.today.axisLabels(now: now, calendar: calendar, locale: locale), ["0", "6", "12", "18", "24"])
+        XCTAssertEqual(StatsPeriod.week.axisLabels(now: now, calendar: calendar, locale: locale), ["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", String(localized: "Today")])
+        XCTAssertEqual(StatsPeriod.month.axisLabels(now: now, calendar: calendar, locale: locale), ["9/29", String(localized: "Today")])
+    }
+
+    func testSummaryBarsAndPeriods() {
+        var log = StatsLog()
+        log.add(switches(3), at: date(28, 9), calendar: calendar)
+        log.add(switches(2), at: date(27, 9), calendar: calendar)
+        let today = StatsSummary(log: log, period: .today, now: date(28, 16), calendar: calendar)
+        XCTAssertEqual(today.current.switches, 3)
+        XCTAssertEqual(today.previous.switches, 2)
+        XCTAssertEqual(today.bars[9], 3)
+        let week = StatsSummary(log: log, period: .week, now: date(28, 16), calendar: calendar)
+        XCTAssertEqual(week.bars.suffix(2), [2, 3])
+    }
+
+    func testChangeRules() {
+        XCTAssertNil(StatsChange.between(5, 0))  // 앞 기간이 0이면 숨김
+        XCTAssertEqual(StatsChange.between(100.5, 100), .same)  // 1% 미만
+        XCTAssertEqual(StatsChange.between(118, 100), .up(18))
+        XCTAssertEqual(StatsChange.between(97, 100), .down(3))
+        XCTAssertEqual(StatsChange.between(0, 100), .down(100))
+        // 문구는 실행 언어를 따르므로 화살표와 숫자가 들어가는지만 본다.
+        XCTAssertTrue(StatsChange.up(18).text(.today).contains("▲18%"))
+        XCTAssertTrue(StatsChange.down(3).text(.month).contains("▼3%"))
+        XCTAssertEqual(StatsChange.same.text(.week), String(localized: "Same as previous 7 days"))
+    }
+
+    func testBarHeights() {
+        XCTAssertEqual(StatsBars.heights([0, 0], height: 48), [0, 0])
+        XCTAssertEqual(StatsBars.heights([], height: 48), [])
+        XCTAssertEqual(StatsBars.heights([0, 1, 100, 50], height: 48), [0, 2, 48, 24])  // 0이 아닌 칸은 최소 2pt
+    }
+
+    func testPointerMeter() {
+        var meter = PointerMeter()
+        XCTAssertEqual(meter.move(to: .zero, at: 0, millimetersPerPoint: 0.2), StatsCounts())  // 첫 이벤트는 기준점
+        let step = meter.move(to: CGPoint(x: 30, y: 40), at: 0.1, millimetersPerPoint: 0.2)
+        XCTAssertEqual(step.distance, 10, accuracy: 0.0001)
+        XCTAssertEqual(step.movingTime, 0.1, accuracy: 0.0001)
+        XCTAssertEqual(step.topSpeed, 0)  // 0.25초가 안 됐다
+        let window = meter.move(to: CGPoint(x: 60, y: 80), at: 0.25, millimetersPerPoint: 0.2)
+        XCTAssertEqual(window.topSpeed, 20 / 0.25, accuracy: 0.0001)
+        let afterIdle = meter.move(to: CGPoint(x: 60, y: 90), at: 2, millimetersPerPoint: 0.2)
+        XCTAssertEqual(afterIdle.distance, 2, accuracy: 0.0001)
+        XCTAssertEqual(afterIdle.movingTime, 0)  // 멈췄던 시간은 넣지 않는다
+    }
+
+    func testPointerConversions() {
+        XCTAssertEqual(PointerMeter.millimetersPerPoint(physicalWidth: 300, pointWidth: 1500), 0.2)
+        XCTAssertEqual(PointerMeter.millimetersPerPoint(physicalWidth: 0, pointWidth: 1500), 25.4 / 110)
+        XCTAssertEqual(PointerMeter.scrollPoints(dx: 3, dy: 4, precise: true), 5)
+        XCTAssertEqual(PointerMeter.scrollPoints(dx: 0, dy: 1, precise: false), 10)
+    }
+
+    func testClicksAndAverages() {
+        XCTAssertEqual(StatsCounts.click(left: true, clickCount: 1).leftClicks, 1)
+        XCTAssertEqual(StatsCounts.click(left: true, clickCount: 2).doubleClicks, 1)
+        XCTAssertEqual(StatsCounts.click(left: false, clickCount: 1).rightClicks, 1)
+        var counts = StatsCounts(distance: 100, movingTime: 4, topSpeed: 30)
+        counts.add(StatsCounts(distance: 100, movingTime: 4, topSpeed: 50, leftClicks: 2), fraction: 0.5)
+        XCTAssertEqual(counts.distance, 150)
+        XCTAssertEqual(counts.topSpeed, 50)  // 최고 속도는 나누지 않는다
+        XCTAssertEqual(counts.leftClicks, 1)
+        XCTAssertEqual(counts.averageSpeed, 25)
+        XCTAssertEqual(StatsCounts().averageSpeed, 0)
+    }
+
+    func testFormatsFollowLocale() {
+        XCTAssertEqual(StatsFormat.count(1239.6, locale: Locale(identifier: "en_US")), "1,240")
+        XCTAssertEqual(StatsFormat.distance(millimeters: 1_330_000, locale: Locale(identifier: "ko_KR")), "1.33km")
+        XCTAssertEqual(StatsFormat.distance(millimeters: 113_000, locale: Locale(identifier: "de_DE")), "113 m")
+        XCTAssertEqual(StatsFormat.distance(millimeters: 1_609_344, locale: Locale(identifier: "en_US")), "1 mi")
+        XCTAssertEqual(StatsFormat.distance(millimeters: 124, locale: Locale(identifier: "en_US")), "4.88 in")
+        XCTAssertEqual(StatsFormat.distance(millimeters: 0, locale: Locale(identifier: "de_DE")), "0 mm")
+        XCTAssertEqual(StatsFormat.distance(millimeters: 9.996, locale: Locale(identifier: "de_DE")), "1 cm")  // 반올림한 뒤 단위를 고른다
+        XCTAssertEqual(StatsFormat.distance(millimeters: 999_600, locale: Locale(identifier: "de_DE")), "1 km")
+        XCTAssertEqual(StatsFormat.speed(millimetersPerSecond: 124, locale: Locale(identifier: "de_DE")), "12,4 cm/s")
+    }
+
+    // 횟수와 단위는 한 문장이고, 숫자를 크게 칠하려면 숫자가 그대로 들어 있어야 한다.
+    func testCountUnitKeepsNumber() {
+        XCTAssertTrue(String(localized: "\(1) times").contains(StatsFormat.count(1, locale: .current)))
+        XCTAssertTrue(String(localized: "\(1240) times").contains(StatsFormat.count(1240, locale: .current)))  // 1,240
+    }
+
+    func testLogRoundTripsThroughJSON() throws {
+        var log = StatsLog()
+        log.add(StatsCounts(switches: 2, distance: 3.5), at: date(28, 9), calendar: calendar)
+        XCTAssertEqual(try JSONDecoder().decode(StatsLog.self, from: JSONEncoder().encode(log)), log)
+    }
+}
