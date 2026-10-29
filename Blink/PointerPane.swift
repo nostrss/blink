@@ -1,10 +1,10 @@
 import AppKit
 
-// 설정 창의 '포인터' 항목. 포인터 배지를 켜고, 배지 위치(포인터 둘레 8방위)와 멈추면 숨기기를 정한다.
+// 설정 창의 '포인터' 항목. 포인터 배지를 켜고, 배지 위치(포인터 둘레 8방위)·크기와 배지 보기를 정한다.
 // 켜면 설정 창 위의 실제 포인터에 배지가 바로 붙으므로 따로 미리보기를 띄우지 않는다.
 final class PointerPane: NSStackView {
     private let showSwitch = NSSwitch()
-    private let hideSwitch = NSSwitch()
+    private let modePopup = NSPopUpButton()
     private let picker = BadgePicker()
     private let sizeControl = NSSegmentedControl(labels: [String(localized: "Small"), String(localized: "Medium"), String(localized: "Large")],
                                                  trackingMode: .selectOne, target: nil, action: nil)
@@ -20,12 +20,12 @@ final class PointerPane: NSStackView {
         self.sampleNames = sampleNames
         super.init(frame: .zero)
 
-        for toggle in [showSwitch, hideSwitch] {
-            toggle.controlSize = .small
-            toggle.target = self
-        }
+        showSwitch.controlSize = .small
+        showSwitch.target = self
         showSwitch.action = #selector(showChanged)
-        hideSwitch.action = #selector(hideChanged)
+        modePopup.addItems(withTitles: BadgeMode.allCases.map(\.title))
+        modePopup.target = self
+        modePopup.action = #selector(modeChanged)
         picker.onPick = { [weak self] placement in self?.picked(placement) }
         sizeControl.controlSize = .small
         sizeControl.target = self
@@ -37,7 +37,7 @@ final class PointerPane: NSStackView {
         let spacer = NSView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         let foot = NSStackView(views: [nameLabel, spacer, resetButton])
-        let hideRow = SettingsWindow.row(String(localized: "Hide When Pointer Stops"), [hideSwitch])
+        let modeRow = SettingsWindow.row(String(localized: "Show Badge"), [modePopup])
         // HUD '모양'의 '크기'와 같은 컨트롤이지만 값은 따로 저장한다.
         let sizeRow = SettingsWindow.row(String(localized: "Badge Size"), [sizeControl])
 
@@ -45,7 +45,7 @@ final class PointerPane: NSStackView {
         details.orientation = .vertical
         details.alignment = .leading
         details.spacing = 16  // space-3
-        let detailRows = [picker, foot, SettingsWindow.group([sizeRow]), SettingsWindow.group([hideRow])]
+        let detailRows = [SettingsWindow.group([modeRow]), picker, foot, SettingsWindow.group([sizeRow])]
         detailRows.forEach(details.addArrangedSubview)
         details.setCustomSpacing(8, after: picker)  // space-2: 칸 아래 위치 이름 줄
 
@@ -68,7 +68,7 @@ final class PointerPane: NSStackView {
     func reload() {
         let defaults = UserDefaults.standard
         showSwitch.state = defaults.bool(forKey: CursorBadge.enabledKey) ? .on : .off
-        hideSwitch.state = defaults.bool(forKey: CursorBadge.hidesWhenIdleKey) ? .on : .off
+        modePopup.selectItem(at: BadgeMode.allCases.firstIndex(of: CursorBadge.savedMode)!)
         details.isHidden = showSwitch.state == .off
         picker.look = HUD.savedAppearance
         picker.badgeSize = CursorBadge.savedSize
@@ -105,13 +105,23 @@ final class PointerPane: NSStackView {
         onChange()
     }
 
-    @objc private func hideChanged() {
-        UserDefaults.standard.set(hideSwitch.state == .on, forKey: CursorBadge.hidesWhenIdleKey)
+    @objc private func modeChanged() {
+        CursorBadge.savedMode = BadgeMode.allCases[modePopup.indexOfSelectedItem]
         onChange()
     }
 
     @objc private func reset() {
         picked(.standard)
+    }
+}
+
+extension BadgeMode {
+    var title: String {
+        switch self {
+        case .always: String(localized: "Always")
+        case .moving: String(localized: "While Moving")
+        case .click: String(localized: "When Clicking")
+        }
     }
 }
 

@@ -434,6 +434,17 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(origin(.right, p), CGPoint(x: 515, y: 481))
     }
 
+    // 메뉴바(위 25pt)와 Dock(아래 70pt) 위에서는 배지를 숨긴다. 자동으로 가리면 visibleFrame이 화면 전체라 숨기지 않는다.
+    func testBadgeHidesOverMenuBarAndDock() {
+        let visible = CGRect(x: 0, y: 70, width: 1440, height: 805)  // 화면 1440×900
+        XCTAssertFalse(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 500, y: 500), visibleFrame: visible))
+        XCTAssertTrue(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 500, y: 890), visibleFrame: visible))  // 메뉴바
+        XCTAssertTrue(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 500, y: 900), visibleFrame: visible))  // 화면 맨 위 끝
+        XCTAssertTrue(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 500, y: 30), visibleFrame: visible))  // Dock
+        XCTAssertFalse(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 500, y: 30), visibleFrame: CGRect(x: 0, y: 0, width: 1440, height: 875)))  // Dock 자동 가리기
+        XCTAssertTrue(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 30, y: 500), visibleFrame: CGRect(x: 70, y: 0, width: 1370, height: 875)))  // 왼쪽 Dock
+    }
+
     // 넘친 축만 반대쪽으로 뒤집고, 그래도 넘치면 화면 안으로 밀어 넣는다.
     func testBadgePlacementFlipsAtScreenEdges() {
         let screen = CGRect(x: 0, y: 0, width: 1440, height: 875)
@@ -449,6 +460,35 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(BadgePlacement(saved: "sideways"), .bottomRight)  // 읽을 수 없는 값
         XCTAssertEqual(BadgePlacement(saved: BadgePlacement.top.rawValue), .top)
         XCTAssertEqual(BadgePlacement.allCases.count, 8)  // 가운데는 없다
+    }
+
+    // 배지 보기: 저장값이 없으면(1.3.0 이하) '포인터가 멈추면 숨기기'에서 옮긴다.
+    func testBadgeModeSavedValue() {
+        XCTAssertEqual(BadgeMode(saved: nil, hidesWhenIdle: false), .always)  // 새 설치·숨기기 꺼짐
+        XCTAssertEqual(BadgeMode(saved: nil, hidesWhenIdle: true), .moving)  // 숨기기 켜짐
+        XCTAssertEqual(BadgeMode(saved: "sideways", hidesWhenIdle: true), .moving)  // 읽을 수 없는 값
+        XCTAssertEqual(BadgeMode(saved: BadgeMode.click.rawValue, hidesWhenIdle: true), .click)  // 저장값이 이긴다
+        XCTAssertEqual(BadgeMode.allCases, [.always, .moving, .click])  // 팝업 순서
+    }
+
+    // 항상·움직일 때는 이동에, 클릭할 때는 클릭에 보인다. 더블·트리플클릭의 두 번째 이후는 무시하고, 전환에는 모두 보인다.
+    func testBadgeModeReactsToEvents() {
+        for mode in [BadgeMode.always, .moving] {
+            XCTAssertTrue(mode.reveals(on: .moved))
+            XCTAssertFalse(mode.reveals(on: .clicked(count: 1)))
+            XCTAssertTrue(mode.followsPointer)
+        }
+        XCTAssertFalse(BadgeMode.click.reveals(on: .moved))  // 움직여도 클릭한 자리에 남는다
+        XCTAssertTrue(BadgeMode.click.reveals(on: .clicked(count: 1)))
+        XCTAssertFalse(BadgeMode.click.reveals(on: .clicked(count: 2)))
+        XCTAssertFalse(BadgeMode.click.reveals(on: .clicked(count: 3)))
+        XCTAssertFalse(BadgeMode.click.followsPointer)
+        XCTAssertTrue(BadgeMode.allCases.allSatisfy { $0.reveals(on: .switched) })
+    }
+
+    // 항상만 계속 보이고, 나머지는 표시 시간 뒤 사라진다.
+    func testBadgeModeHidesAfterDuration() {
+        XCTAssertEqual(BadgeMode.allCases.map(\.hidesAfterDuration), [false, true, true])
     }
 
     // 배지 크기: HUD 크기와 따로 고르고, 글자 13 · 16 · 21pt에 높이는 글자 × 2.2, 좌우 패딩은 글자 × 0.5.
@@ -692,6 +732,7 @@ final class ReleaseNotesTests: XCTestCase {
 
     func testShippedNotesAreShortWithRealSymbols() {
         XCTAssertNotNil(ReleaseNotes.all["1.3.0"])
+        XCTAssertNotNil(ReleaseNotes.all["1.4.0"])
         for features in ReleaseNotes.all.values {
             XCTAssertTrue((1...3).contains(features.count))
             for feature in features { XCTAssertNotNil(NSImage(systemSymbolName: feature.symbol, accessibilityDescription: nil)) }
