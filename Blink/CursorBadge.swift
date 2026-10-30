@@ -1,10 +1,10 @@
 import AppKit
 
-// 포인터 옆에 현재 입력소스의 약자를 늘 붙여 두는 포인터 배지. 켜져 있는 동안 마우스 이동을 감시해 따라간다.
-// 마우스 이벤트 감시는 키 이벤트와 달리 권한이 필요 없어 샌드박스에서도 쓸 수 있다.
+// 포인터 옆에 현재 입력소스의 약자를 붙여 두는 포인터 배지. 배지 보기에 따라 마우스 이동을 감시해 따라가거나,
+// 클릭만 감시해 클릭한 자리에 보인다. 마우스 이벤트 감시는 키 이벤트와 달리 권한이 필요 없어 샌드박스에서도 쓸 수 있다.
 final class CursorBadge {
     static let enabledKey = "showPointerBadge"
-    static let hidesWhenIdleKey = "pointerBadgeHidesWhenIdle"
+    static let modeKey = "pointerBadgeMode"
     static let placementKey = "pointerBadgePlacement"
     static let sizeKey = "pointerBadgeSize"
     private static let fadeDuration = 0.3
@@ -15,7 +15,8 @@ final class CursorBadge {
     private var displayOptionsObserver: NSObjectProtocol?
     private var hideTimer: Timer?
     private var placement = BadgePlacement.standard
-    private var hidesWhenIdle = false
+    private var mode = BadgeMode.always
+    private var runningMode: BadgeMode?
 
     init() {
         panel.isOpaque = false
@@ -44,17 +45,23 @@ final class CursorBadge {
         set { UserDefaults.standard.set(newValue.rawValue, forKey: sizeKey) }
     }
 
-    private var isRunning: Bool { !monitors.isEmpty }
+    static var savedMode: BadgeMode {
+        get { BadgeMode(saved: UserDefaults.standard.string(forKey: modeKey)) }
+        set { UserDefaults.standard.set(newValue.rawValue, forKey: modeKey) }
+    }
+
+    private var isRunning: Bool { runningMode != nil }
 
     // 설정을 다시 읽는다. 꺼져 있으면 감시를 멈추고 숨긴다. 켜는 순간 포인터 옆에 바로 나타난다.
     func reload(showing label: InputSourceLabel) {
         guard UserDefaults.standard.bool(forKey: Self.enabledKey) else { stop(); return }
         placement = Self.savedPlacement
-        hidesWhenIdle = UserDefaults.standard.bool(forKey: Self.hidesWhenIdleKey)
+        mode = Self.savedMode
         badge.look = HUD.savedAppearance
         badge.badgeSize = Self.savedSize
         badge.text = label.abbreviation
-        if !isRunning { start() }
+        // 배지 보기가 바뀌면 감시할 이벤트도 바뀌므로 다시 건다.
+        if runningMode != mode { stop(); start() }
         reveal()
     }
 
@@ -62,7 +69,7 @@ final class CursorBadge {
     func update(_ label: InputSourceLabel) {
         guard isRunning else { return }
         badge.text = label.abbreviation
-        reveal()
+        handle(.switched)
     }
 
     // '모양'이 바뀌면 테마 색·크기·굵기를 따라간다.
@@ -72,12 +79,14 @@ final class CursorBadge {
     }
 
     private func start() {
-        let events: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]
-        // 다른 앱 위의 이동은 전역 감시, Blink 창(설정 창) 위의 이동은 로컬 감시로 받는다.
-        if let global = NSEvent.addGlobalMonitorForEvents(matching: events, handler: { [weak self] _ in self?.reveal() }) {
+        runningMode = mode
+        let events: NSEvent.EventTypeMask = mode.followsPointer
+            ? [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged] : [.leftMouseDown]
+        // 다른 앱 위의 이벤트는 전역 감시, Blink 창(설정 창) 위의 이벤트는 로컬 감시로 받는다.
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: events, handler: { [weak self] in self?.handle($0) }) {
             monitors.append(global)
         }
-        if let local = NSEvent.addLocalMonitorForEvents(matching: events, handler: { [weak self] event in self?.reveal(); return event }) {
+        if let local = NSEvent.addLocalMonitorForEvents(matching: events, handler: { [weak self] in self?.handle($0); return $0 }) {
             monitors.append(local)
         }
         // '투명도 줄이기'를 바꾸면 배경을 다시 칠한다. 라이트/다크는 뷰가 스스로 따라간다.
@@ -86,6 +95,7 @@ final class CursorBadge {
     }
 
     private func stop() {
+        runningMode = nil
         monitors.forEach(NSEvent.removeMonitor)
         monitors = []
         displayOptionsObserver.map(NSWorkspace.shared.notificationCenter.removeObserver)
@@ -94,8 +104,23 @@ final class CursorBadge {
         panel.orderOut(nil)
     }
 
-    // 포인터 옆으로 옮기고 보인다. '포인터가 멈추면 숨기기'가 켜져 있으면 표시 시간 뒤에 사라지게 한다.
+    private func handle(_ event: NSEvent) {
+        handle(event.type == .leftMouseDown ? .clicked(count: event.clickCount) : .moved)
+    }
+
+    private func handle(_ event: BadgeMode.Event) {
+        if mode.reveals(on: event) { reveal() }
+    }
+
+    // 포인터 옆으로 옮기고 보인다. 배지 보기가 항상이 아니면 표시 시간 뒤에 사라지게 한다.
+    // 포인터가 메뉴바·Dock 위에 있으면 보이지 않고 바로 숨는다.
     private func reveal() {
+        let mouse = NSEvent.mouseLocation
+        if let screen = Self.screen(at: mouse), BadgePlacement.isOverSystemBar(pointer: mouse, visibleFrame: screen.visibleFrame) {
+            hideTimer?.invalidate()
+            panel.orderOut(nil)
+            return
+        }
         move()
         if !panel.isVisible || panel.alphaValue < 1 {
             // 진행 중인 페이드아웃을 끊고 즉시 다시 보인다(페이드인 없음).
@@ -103,7 +128,7 @@ final class CursorBadge {
             panel.orderFrontRegardless()
         }
         hideTimer?.invalidate()
-        guard hidesWhenIdle else { return }
+        guard mode.hidesAfterDuration else { return }
         // '동작 줄이기'가 켜져 있으면 HUD처럼 페이드 없이 같은 시점(표시 시간 + 0.3초)에 사라진다.
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         let duration = UserDefaults.standard.double(forKey: HUD.durationKey)
@@ -113,17 +138,20 @@ final class CursorBadge {
         }
     }
 
-    // 포인터가 있는 화면 안에서 배지 위치에 놓는다. HUD와 달리 메뉴바·Dock을 빼지 않아, 그 위에서도 포인터를 따라간다.
+    // 포인터가 있는 화면 전체(frame) 안에서 배지 위치에 놓는다.
     private func move() {
         let mouse = NSEvent.mouseLocation
-        let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
-        guard let frame = screen?.frame else { return }
+        guard let frame = Self.screen(at: mouse)?.frame else { return }
         let size = badge.size
         let rect = NSRect(origin: placement.origin(size: size, pointer: mouse, in: frame), size: size)
         guard rect != panel.frame else { return }
         let resized = rect.size != panel.frame.size
         panel.setFrame(rect, display: true)
         if resized { panel.invalidateShadow() }  // 그림자를 알약 모양에 맞춘다
+    }
+
+    private static func screen(at point: CGPoint) -> NSScreen? {
+        NSScreen.screens.first { NSMouseInRect(point, $0.frame, false) } ?? NSScreen.main
     }
 
     private func fadeOut() {

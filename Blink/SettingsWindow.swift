@@ -6,18 +6,42 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private static let range = 0.5...5.0
     private static let step = 0.5
 
-    private enum Pane: Int, CaseIterable {
-        case general, position, appearance, pointer, statistics
+    enum Pane: CaseIterable {
+        case general, hudShow, position, appearance, pointer, statistics
 
         var title: String {
             switch self {
             case .general: String(localized: "General")
+            case .hudShow: String(localized: "Display")
             case .position: String(localized: "Position")
             case .appearance: String(localized: "Appearance")
-            case .pointer: String(localized: "Pointer")
+            case .pointer: String(localized: "Pointer Badge")
             case .statistics: String(localized: "Statistics")
             }
         }
+
+        // 항목이 둘 이상인 기능의 그룹 머리글. 그 아래 항목은 들여 쓴다. 페이지 제목은 항목 이름만 쓴다(Finder·시스템 설정과 같음).
+        var group: String? {
+            switch self {
+            case .hudShow, .position, .appearance: String(localized: "Input Source HUD")
+            default: nil
+            }
+        }
+    }
+
+    // 사이드바 줄. 머리글은 누를 수 없다.
+    enum SidebarRow: Equatable {
+        case header(String)
+        case pane(Pane)
+    }
+
+    static var sidebarRows: [SidebarRow] {
+        var rows: [SidebarRow] = []
+        for pane in Pane.allCases {
+            if let group = pane.group, !rows.contains(.header(group)) { rows.append(.header(group)) }
+            rows.append(.pane(pane))
+        }
+        return rows
     }
 
     private let window = ClosableWindow(contentRect: NSRect(x: 0, y: 0, width: 620, height: 440),
@@ -25,7 +49,7 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private let split = NSSplitViewController()
     private let sidebar = NSTableView()
     private let detail = NSView()
-    private lazy var panes: [Pane: NSView] = [.general: makeGeneralPane(), .position: positionPane, .appearance: appearancePane, .pointer: pointerPane,
+    private lazy var panes: [Pane: NSView] = [.general: makeGeneralPane(), .hudShow: makeHUDShowPane(), .position: positionPane, .appearance: appearancePane, .pointer: pointerPane,
                                                     .statistics: makeStatisticsPane()]
     private let positionPane: PositionPane
     private let appearancePane: AppearancePane
@@ -35,12 +59,16 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     private let capsLockSwitch = NSSwitch()
     private let loginSwitch = NSSwitch()
     private let statisticsSwitch = NSSwitch()
+    private let typingSwitch = NSSwitch()
+    // '통계'의 상자와 안내. 모으기·타이핑·권한 상태에 따라 줄이 바뀌어 읽을 때마다 새로 채운다.
+    private let statisticsContent = NSStackView()
     private let field = NSTextField()
     private let stepper = SettingsWindow.makeDurationStepper()
     private let onShowChanged: () -> Void
     private let onCapsLockChanged: () -> Void
     private let onStatisticsChanged: () -> Void
     private let onClearStatistics: () -> Void
+    private let onTypingChanged: (Bool) -> Void
     private static let formatter: NumberFormatter = {
         let f = NumberFormatter()
         f.numberStyle = .decimal
@@ -54,13 +82,14 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     // onStatisticsChanged: '통계 모으기'를 바꾼 직후. onClearStatistics: '모두 지우기…'를 확인한 뒤.
     // preview: 위치·모양을 고르는 동안 실제 화면에 HUD를 띄운다. sampleNames: 미니 HUD와 미리보기에 쓸 이름
     init(onShowChanged: @escaping () -> Void, onCapsLockChanged: @escaping () -> Void, onPointerChanged: @escaping () -> Void,
-         onStatisticsChanged: @escaping () -> Void, onClearStatistics: @escaping () -> Void,
+         onStatisticsChanged: @escaping () -> Void, onClearStatistics: @escaping () -> Void, onTypingChanged: @escaping (Bool) -> Void,
          preview: @escaping (HUDPosition) -> Void,
          sampleNames: @escaping () -> (from: InputSourceLabel, to: InputSourceLabel?)) {
         self.onShowChanged = onShowChanged
         self.onCapsLockChanged = onCapsLockChanged
         self.onStatisticsChanged = onStatisticsChanged
         self.onClearStatistics = onClearStatistics
+        self.onTypingChanged = onTypingChanged
         positionPane = PositionPane(preview: preview, sampleNames: sampleNames)
         appearancePane = AppearancePane(preview: { preview(HUD.savedPosition) }, sampleNames: sampleNames)
         pointerPane = PointerPane(onChange: onPointerChanged, sampleNames: sampleNames)
@@ -118,16 +147,21 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         // 로그인 항목은 시스템 설정에서도 바뀌므로 창이 앞으로 올 때마다 다시 읽는다.
         NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: window, queue: .main) { [weak self] _ in
             self?.loginSwitch.state = LoginItem.isEnabled ? .on : .off
+            self?.reloadStatistics()
+        }
+        // 시스템 설정에서 입력 모니터링 권한을 허용하면 권한 줄을 바로 고친다.
+        NotificationCenter.default.addObserver(forName: StatsRecorder.typingStateChanged, object: nil, queue: .main) { [weak self] _ in
+            self?.reloadStatistics()
         }
     }
 
-    func show() {
-        select(.general)
-        sidebar.selectRowIndexes([Pane.general.rawValue], byExtendingSelection: false)
+    func show(_ pane: Pane = .general) {
+        select(pane)
+        if let row = Self.sidebarRows.firstIndex(of: .pane(pane)) { sidebar.selectRowIndexes([row], byExtendingSelection: false) }
         showSwitch.state = UserDefaults.standard.bool(forKey: AppDelegate.showOnSwitchKey) ? .on : .off
         capsLockSwitch.state = UserDefaults.standard.bool(forKey: HUD.showCapsLockKey) ? .on : .off
         loginSwitch.state = LoginItem.isEnabled ? .on : .off
-        statisticsSwitch.state = UserDefaults.standard.bool(forKey: StatsRecorder.enabledKey) ? .on : .off
+        reloadStatistics()
         apply(UserDefaults.standard.double(forKey: HUD.durationKey))
         NSApp.activateForWindow()
         window.makeKeyAndOrderFront(nil)
@@ -161,17 +195,32 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
 
     // MARK: 사이드바
 
-    func numberOfRows(in tableView: NSTableView) -> Int { Pane.allCases.count }
+    func numberOfRows(in tableView: NSTableView) -> Int { Self.sidebarRows.count }
+
+    func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
+        if case .pane = Self.sidebarRows[row] { return true }
+        return false
+    }
 
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let cell = NSTableCellView()
-        let label = NSTextField(labelWithString: Pane(rawValue: row)!.title)
-        label.font = .systemFont(ofSize: 13)  // body
+        let label: NSTextField
+        var indent: CGFloat = 8  // space-2
+        switch Self.sidebarRows[row] {
+        case .header(let title):
+            label = NSTextField(labelWithString: title)
+            label.font = .systemFont(ofSize: 11, weight: .semibold)
+            label.textColor = Tokens.muted
+        case .pane(let pane):
+            label = NSTextField(labelWithString: pane.title)
+            label.font = .systemFont(ofSize: 13)  // body
+            if pane.group != nil { indent = 20 }
+        }
         label.translatesAutoresizingMaskIntoConstraints = false
         cell.addSubview(label)
         cell.textField = label
         NSLayoutConstraint.activate([
-            label.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 8),  // space-2
+            label.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: indent),
             label.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -8),
             label.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
         ])
@@ -179,7 +228,8 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
     }
 
     func tableViewSelectionDidChange(_ notification: Notification) {
-        if let pane = Pane(rawValue: sidebar.selectedRow) { select(pane) }
+        guard Self.sidebarRows.indices.contains(sidebar.selectedRow), case .pane(let pane) = Self.sidebarRows[sidebar.selectedRow] else { return }
+        select(pane)
     }
 
     // 사이드바 위 제목이 내용 영역 위로 오도록 사이드바 경계에 맞춘다.
@@ -200,8 +250,6 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         showSwitch.action = #selector(showChanged)
         capsLockSwitch.action = #selector(capsLockChanged)
         loginSwitch.action = #selector(loginChanged)
-        let showRow = Self.row(String(localized: "Show HUD on Input Switch"), [showSwitch])
-        let capsLockRow = Self.row(String(localized: "Show HUD on Caps Lock"), [capsLockSwitch])
         let loginRow = Self.row(String(localized: "Launch at Login"), [loginSwitch])
 
         // 값은 스테퍼로만 바꾼다. 입력란은 지금 값을 보여 주기만 한다.
@@ -218,27 +266,105 @@ final class SettingsWindow: NSObject, NSTableViewDataSource, NSTableViewDelegate
         let durationRow = Self.row(String(localized: "Display Time"), [field, stepper, unit])
         stepper.setAccessibilityLabel(String(localized: "Display Time"))  // 입력란은 보여 주기만 하므로 VoiceOver가 조절할 곳은 스테퍼다
 
-        return Self.column([Self.group([showRow, capsLockRow, loginRow]), Self.group([durationRow])])
+        let durationGroup = Self.group([durationRow])
+        let column = Self.column([Self.group([loginRow]), durationGroup, Self.caption(String(localized: "Display time is shared by the input source HUD and the pointer badge."))])
+        column.setCustomSpacing(6, after: durationGroup)  // 도움말은 상자 바로 아래
+        return column
+    }
+
+    // MARK: 입력소스 HUD › 표시
+
+    private func makeHUDShowPane() -> NSView {
+        let group = Self.group([Self.row(String(localized: "Show When Input Source Changes"), [showSwitch]),
+                                Self.row(String(localized: "Show When Caps Lock Changes"), [capsLockSwitch])])
+        let column = Self.column([group, Self.caption(String(localized: "When Caps Lock changes, the HUD shows “⇪ On” or “⇪ Off”."))])
+        column.setCustomSpacing(6, after: group)
+        return column
     }
 
     // MARK: 통계
 
     private func makeStatisticsPane() -> NSView {
-        statisticsSwitch.controlSize = .small
-        statisticsSwitch.target = self
+        for toggle in [statisticsSwitch, typingSwitch] {
+            toggle.controlSize = .small
+            toggle.target = self
+        }
         statisticsSwitch.action = #selector(statisticsChanged)
+        typingSwitch.action = #selector(typingChanged)
+        statisticsContent.orientation = .vertical
+        statisticsContent.alignment = .leading
+        statisticsContent.spacing = 16  // space-3
+        statisticsContent.edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)  // space-3
+        reloadStatistics()
+        return statisticsContent
+    }
+
+    // 맨 위 상자: 통계 모으기, (모으는 동안) 타이핑 통계와 입력 모니터링 권한 줄. 권한 줄은 켰거나 권한이 남아 있을 때만 둔다.
+    private func reloadStatistics() {
+        let defaults = UserDefaults.standard
+        let collecting = defaults.bool(forKey: StatsRecorder.enabledKey)
+        let typing = defaults.bool(forKey: StatsRecorder.typingKey)
+        let granted = CGPreflightListenEventAccess()
+        statisticsSwitch.state = collecting ? .on : .off
+        typingSwitch.state = typing ? .on : .off
+        var rows = [Self.row(String(localized: "Collect Statistics"), [statisticsSwitch])]
+        var note = String(localized: "Blink counts only input source switches and pointer usage, never what you type. Statistics never leave this Mac.")
+        if collecting {
+            rows.append(Self.row(String(localized: "Typing Statistics"), [typingSwitch]))
+            if typing || granted { rows.append(permissionRow(typing: typing, granted: granted)) }
+            if typing { note = String(localized: "Blink counts only how many keys you press and the input source and app at that moment, never which keys. Statistics never leave this Mac.") }
+            else if granted { note = String(localized: "Typing statistics are off, so keystrokes aren’t counted. The permission stays in System Settings; turn off Blink there if you don’t need it.") }
+        }
         let clear = NSButton(title: String(localized: "Clear All…"), target: self, action: #selector(clearStatistics))
         clear.controlSize = .small
-        let note = Self.caption(String(localized: "Blink counts only input source switches and pointer usage, never what you type. Statistics never leave this Mac."))
-        let group = Self.group([Self.row(String(localized: "Collect Statistics"), [statisticsSwitch]), Self.row(String(localized: "History"), [clear])])
-        let column = Self.column([group, note])
-        column.setCustomSpacing(6, after: group)  // 도움말은 상자 바로 아래
-        return column
+        let group = Self.group(rows)
+        let views = [group, Self.group([Self.row(String(localized: "History"), [clear])]), Self.caption(note)]
+        statisticsContent.setViews(views, in: .leading)
+        for view in views { view.widthAnchor.constraint(equalTo: statisticsContent.widthAnchor, constant: -32).isActive = true }
+        statisticsContent.setCustomSpacing(6, after: views[1])  // 도움말은 상자 바로 아래
+    }
+
+    private func permissionRow(typing: Bool, granted: Bool) -> NSView {
+        let title = String(localized: "Input Monitoring Permission")
+        if typing, granted {
+            let dot = NSView()
+            dot.wantsLayer = true
+            dot.layer?.backgroundColor = Tokens.signalOn.cgColor
+            dot.layer?.cornerRadius = 4
+            dot.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([dot.widthAnchor.constraint(equalToConstant: 8), dot.heightAnchor.constraint(equalToConstant: 8)])
+            let status = NSTextField(labelWithString: String(localized: "Allowed"))
+            status.font = .systemFont(ofSize: 13)
+            status.textColor = Tokens.ink
+            let pair = NSStackView(views: [dot, status])
+            pair.spacing = 6
+            return Self.row(title, [pair])
+        }
+        let status = NSTextField(labelWithString: granted ? String(localized: "Allowed · Not in Use") : String(localized: "Not Allowed"))
+        status.font = .systemFont(ofSize: 13)
+        status.textColor = Tokens.muted
+        let open = NSButton(title: String(localized: "Open System Settings…"), target: self, action: #selector(openPrivacySettings))
+        open.controlSize = .small
+        return Self.row(title, [status, open])
     }
 
     @objc private func statisticsChanged() {
         UserDefaults.standard.set(statisticsSwitch.state == .on, forKey: StatsRecorder.enabledKey)
         onStatisticsChanged()
+        reloadStatistics()
+    }
+
+    @objc private func typingChanged() {
+        onTypingChanged(typingSwitch.state == .on)
+        reloadStatistics()
+    }
+
+    @objc private func openPrivacySettings() {
+        SettingsWindow.openInputMonitoringSettings()
+    }
+
+    static func openInputMonitoringSettings() {
+        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent")!)
     }
 
     // 되돌릴 수 없으니 설정 창 위 시트로 한 번 더 묻는다.

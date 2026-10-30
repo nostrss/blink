@@ -18,7 +18,9 @@ macOS 전용 타깃(최소 13.0, `LSUIElement`), 진입점은 `Blink/AppDelegate
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Blink.xcodeproj -scheme Blink -configuration Debug -derivedDataPath build test
 ```
 
-결과물: `build/Build/Products/Debug/Blink.app` (`build/`는 gitignore됨). 출력 끝의 `TEST SUCCEEDED`만 믿지 말고 `Test case ... passed` 줄로 테스트가 실제로 돌았는지 확인한다.
+결과물: `build/Build/Products/Debug/Blink Dev.app` (`build/`는 gitignore됨).
+
+Debug 빌드는 **Blink Dev**(`Blink Dev.app`, 번들 ID `com.jintaek.blink.dev`, 메뉴바 아이콘 오른쪽 위에 점)라서, App Store에서 설치한 `/Applications/Blink.app`(`com.jintaek.blink`)과 설정·통계·권한을 따로 쓴다. 띄우기 전에 설치된 Blink를 메뉴의 "Blink 종료"로 끄고(둘 다 뜨면 HUD가 두 번 뜬다), `open -n "$PWD/build/Build/Products/Debug/Blink Dev.app"`처럼 경로로 띄운다. System Events의 프로세스 이름은 `Blink Dev`, 설치된 앱은 `Blink`다. 출력 끝의 `TEST SUCCEEDED`만 믿지 말고 `Test case ... passed` 줄로 테스트가 실제로 돌았는지 확인한다.
 
 빌드 설정(배포 타깃, 번들 ID, 서명, entitlements)은 `Blink.xcodeproj/project.pbxproj`에 있다. 직접 편집은 최소한으로 하고, 바꾼 뒤에는 위 빌드로 확인한다.
 
@@ -41,7 +43,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Bli
 ## 테스트
 
 - 기능을 추가하거나 로직을 바꿀 때는 항상 테스트 코드를 같이 작성한다. 버그를 고칠 때는 그 버그를 재현하는 테스트를 먼저 쓴다.
-- 테스트하기 쉬운 구조로 설계한다. 판단·계산·상태 변화(무엇을 보여 줄지, 값을 어떻게 고칠지, 크기를 얼마로 할지)는 AppKit과 시스템 API(TIS, `SMAppService`, `UserDefaults`, `NSPanel`)에 의존하지 않는 순수 함수나 값 타입으로 분리하고, 입력을 값으로 받아 결과를 값으로 돌려주게 한다. AppKit 쪽은 그 결과를 화면과 시스템에 반영하는 얇은 층으로 둔다. 지금 예시: `InputSourceTracker`(`next(current:previous:enabled:)` 포함), `SettingsWindow.snapped(_:)`, `HUD.panelWidth(fitting:from:ellipsis:maxWidth:)`, `HUDAppearance`(`select(_:)`·`colors(_:reduceTransparency:)`·`scaled(_:)`·`texts(from:to:)`), `InputSourceLabel.abbreviation(id:languages:name:)`, `CapsLockTracker`, `HUDColors.capsLock(on:)`, `HUDPosition`(`origin(size:in:margin:)`·`dragged(to:size:in:margin:snap:)`), `BadgePlacement`(`origin(size:pointer:in:)`), `CursorBadgeView.width(text:height:padding:)`.
+- 테스트하기 쉬운 구조로 설계한다. 판단·계산·상태 변화(무엇을 보여 줄지, 값을 어떻게 고칠지, 크기를 얼마로 할지)는 AppKit과 시스템 API(TIS, `SMAppService`, `UserDefaults`, `NSPanel`)에 의존하지 않는 순수 함수나 값 타입으로 분리하고, 입력을 값으로 받아 결과를 값으로 돌려주게 한다. AppKit 쪽은 그 결과를 화면과 시스템에 반영하는 얇은 층으로 둔다. 지금 예시: `InputSourceTracker`(`next(current:previous:enabled:)` 포함), `SettingsWindow.snapped(_:)`, `HUD.panelWidth(fitting:from:ellipsis:maxWidth:)`, `HUDAppearance`(`select(_:)`·`colors(_:reduceTransparency:)`·`scaled(_:)`·`texts(from:to:)`), `InputSourceLabel.abbreviation(id:languages:name:)`, `CapsLockTracker`, `HUDColors.capsLock(on:)`, `HUDPosition`(`origin(size:in:margin:)`·`dragged(to:size:in:margin:snap:)`), `BadgePlacement`(`origin(size:pointer:in:)`·`isOverSystemBar(pointer:visibleFrame:)`), `CursorBadgeView.width(text:height:padding:)`, `Keystroke.counts(isRepeat:)`, `TypingMeter`, `TypingState.of(enabled:granted:)`, `StatsShare.rows(_:limit:)`, `TypingFormat`(`perMinute`·`showsWPM(language:)`·`switchesTitle(sourceCount:)`), `SettingsWindow.sidebarRows`.
 - 화면처럼 단위 테스트로 확인할 수 없는 동작은 [docs/CHECKLIST.md](docs/CHECKLIST.md)에 항목을 추가한다(아래 '검증'의 기준을 따른다).
 
 ## 검증
@@ -58,6 +60,8 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Bli
 https://claude.ai/artifact/3n9WYkuynDn61C23fgZ8Nw (Blink 디자인 시스템: 색·타이포·간격 토큰, HUD·메뉴바·정보 창 규칙, 앱/메뉴바 아이콘). UI를 만들거나 고치기 전에 Artifact 도구의 `read`로 `project/README.md`를 읽고, 토큰 값은 `project/tokens.json`에서 가져온다. 값을 추측하지 않는다.
 
 이 아티팩트는 늘 최신 설계(설계 중인 다음 버전 포함)다. 출시한 버전은 그 시점의 사본을 디자인 시스템 아티팩트로 따로 만들어 고정한다(예: [Blink 1.2.0](https://claude.ai/artifact/XLkVgM7oehKZFPEPWJgnKo)). 사본은 고치지 않는다. 다음 버전 작업을 시작하기 전에 직전 출시 버전의 사본을 만들고, 최신 README '버전' 표에 버전·사본 링크·바뀐 점 요약을 한 줄 추가한다.
+
+앱의 UI를 바꾸면 같은 작업 안에서 디자인 시스템도 고친다. 파일 구조, 고치고 올리는 순서, 같이 고칠 곳, 쓰는 법, 프리뷰 높이 상한(4,000px), 버전 사본 만드는 법은 [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)에 있다.
 
 ## 제출 문안
 

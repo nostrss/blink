@@ -16,6 +16,12 @@ enum BadgePlacement: String, CaseIterable {
         self = saved.flatMap(Self.init(rawValue:)) ?? .standard
     }
 
+    // 포인터가 메뉴바·Dock 위에 있는지. visibleFrame은 포인터가 있는 화면에서 메뉴바·Dock을 뺀 영역이다.
+    // 자동으로 가리는 메뉴바·Dock은 visibleFrame이 빼지 않아 알아채지 못한다.
+    static func isOverSystemBar(pointer: CGPoint, visibleFrame: CGRect) -> Bool {
+        !visibleFrame.contains(pointer)
+    }
+
     // 가로 -1 왼쪽, 0 가운데, 1 오른쪽.
     var column: Int {
         switch self {

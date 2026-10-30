@@ -8,6 +8,11 @@ enum Tokens {
     static let line = dynamic(light: NSColor(hex: 0xd2d2d7), dark: NSColor(hex: 0x3a3a3c))
     static let accent = dynamic(light: NSColor(hex: 0x0a66d6), dark: NSColor(hex: 0x4c9dff))
     static let signalOn = dynamic(light: NSColor(hex: 0x1f7a3d), dark: NSColor(hex: 0x4cd07d))
+    // 1.4.0부터. 통계의 입력소스 순위별 색(비율 막대·범례·앱별 막대 안).
+    static let source1 = accent
+    static let source2 = dynamic(light: NSColor(hex: 0x0a3d80), dark: NSColor(hex: 0xa8cfff))
+    static let source3 = dynamic(light: NSColor(hex: 0x4a8fe8), dark: NSColor(hex: 0x2a6fd1))
+    static let sourceOther = dynamic(light: NSColor(hex: 0x8e8e93), dark: NSColor(hex: 0x636366))
     static let groupBackground = dynamic(light: NSColor(hex: 0xffffff), dark: NSColor(hex: 0xffffff, alpha: 0.05))
 
     private static func dynamic(light: NSColor, dark: NSColor) -> NSColor {

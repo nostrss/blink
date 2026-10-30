@@ -258,6 +258,394 @@
         }
       }
     },
+    "%lld WPM": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld WPM"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld WPM"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld WPM"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld WPM"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld WPM"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld WPM"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld WPM"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld WPM"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld WPM"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld WPM"
+          }
+        }
+      }
+    },
+    "%lld other apps": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld other app"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld other apps"
+                }
+              }
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "그 밖의 앱 %lld개"
+                }
+              }
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "その他のアプリ %lld 個"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "其他 %lld 个 App"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "其他 %lld 個 App"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld weitere Apps"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld apps más"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld autres apps"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Mais %lld apps"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ещё приложений: %lld"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld others": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld other"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld others"
+                }
+              }
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "그 밖 %lld개"
+                }
+              }
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "その他 %lld 個"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "其他 %lld 个"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "其他 %lld 個"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld weitere"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld más"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld autres"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Mais %lld"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ещё %lld"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld per minute": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld keys/min"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "분당 %lld회"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 打鍵/分"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 击键/分钟"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 擊鍵/分鐘"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Anschläge/Min."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld pulsaciones/min"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld frappes/min"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld teclas/min"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld нажатий/мин"
+          }
+        }
+      }
+    },
     "%lld times": {
       "comment": "A count with its unit. The number is drawn large and the unit small.",
       "localizations": {
@@ -671,6 +1059,198 @@
           "stringUnit": {
             "state": "translated",
             "value": "關於 Blink"
+          }
+        }
+      }
+    },
+    "Allowed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "허용됨"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "許可済み"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已允许"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已允許"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erlaubt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisé"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitido"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешено"
+          }
+        }
+      }
+    },
+    "Allowed · Not in Use": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed · Not in Use"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "허용됨 · 쓰지 않음"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "許可済み・未使用"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已允许 · 未使用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已允許 · 未使用"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erlaubt · Nicht verwendet"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitido · Sin usar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisé · Non utilisé"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitido · Sem uso"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешено · Не используется"
+          }
+        }
+      }
+    },
+    "Always": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Always"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siempre"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toujours"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常に"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "항상"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sempre"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Всегда"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "始终"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "永遠"
           }
         }
       }
@@ -1123,6 +1703,198 @@
         }
       }
     },
+    "Badge Where You Click": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Badge an der Klickstelle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Badge Where You Click"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indicador donde haces clic"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Badge là où vous cliquez"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリックした場所にバッジ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "클릭한 자리에 배지"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selo onde você clica"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Значок там, где щёлкнули"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在点按处显示标记"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在按一下處顯示標記"
+          }
+        }
+      }
+    },
+    "Blink counts only how many keys you press and the input source and app at that moment, never which keys. Statistics never leave this Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blink counts only how many keys you press and the input source and app at that moment, never which keys. Statistics never leave this Mac."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "키 입력 횟수와 그때의 입력소스·앱만 세고, 어떤 키를 눌렀는지는 기록하지 않습니다. 통계는 이 Mac 밖으로 나가지 않습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "押したキーの数とそのときの入力ソース・アプリだけを数え、どのキーを押したかは記録しません。統計はこのMacの外に出ません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只统计按键次数以及当时的输入法和 App，不记录按了哪些键。统计数据不会离开这台 Mac。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只統計按鍵次數以及當時的輸入法和 App，不記錄按了哪些鍵。統計資料不會離開這台 Mac。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blink zählt nur, wie viele Tasten du drückst, sowie Eingabequelle und App in diesem Moment – nie welche Tasten. Statistiken verlassen diesen Mac nie."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blink solo cuenta cuántas teclas pulsas y la fuente de entrada y la app en ese momento, nunca qué teclas. Las estadísticas nunca salen de este Mac."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blink compte uniquement le nombre de touches pressées ainsi que la source de saisie et l’app à ce moment, jamais les touches elles-mêmes. Les statistiques ne quittent jamais ce Mac."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Blink conta apenas quantas teclas você pressiona e a fonte de entrada e o app naquele momento, nunca quais teclas. As estatísticas nunca saem deste Mac."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blink считает только количество нажатий, а также источник ввода и приложение в этот момент, но не сами клавиши. Статистика не покидает этот Mac."
+          }
+        }
+      }
+    },
+    "Blink counts only how many keys you press, never what you type. Requires Input Monitoring permission.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blink counts only how many keys you press, never what you type. Requires Input Monitoring permission."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "누른 키의 개수만 세고, 무엇을 입력했는지는 기록하지 않아요. 입력 모니터링 권한이 필요해요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "押したキーの数だけを数え、入力した内容は記録しません。入力監視の許可が必要です。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只统计按键次数，不记录输入的内容。需要“输入监控”权限。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只統計按鍵次數，不記錄輸入的內容。需要「輸入監控」權限。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blink zählt nur, wie viele Tasten du drückst, nie was du tippst. Erfordert die Berechtigung „Eingabeüberwachung“."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blink solo cuenta cuántas teclas pulsas, nunca lo que escribes. Requiere el permiso de Monitorización de entrada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blink compte uniquement le nombre de touches pressées, jamais ce que vous tapez. Nécessite l’autorisation Surveillance de l’entrée."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Blink conta apenas quantas teclas você pressiona, nunca o que você digita. Requer a permissão Monitoramento de Entrada."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blink считает только количество нажатий, но не то, что вы вводите. Требуется разрешение «Мониторинг ввода»."
+          }
+        }
+      }
+    },
     "Blink counts only input source switches and pointer usage, never what you type. Statistics never leave this Mac.": {
       "localizations": {
         "de": {
@@ -1443,6 +2215,134 @@
         }
       }
     },
+    "By App": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "By App"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "앱별"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリ別"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按 App"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按 App"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach App"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por app"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Par app"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por app"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По приложениям"
+          }
+        }
+      }
+    },
+    "By Input Source": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "By Input Source"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입력소스별"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力ソース別"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按输入法"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按輸入法"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Eingabequelle"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por fuente de entrada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Par source de saisie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por fonte de entrada"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По источникам ввода"
+          }
+        }
+      }
+    },
     "Cancel": {
       "localizations": {
         "de": {
@@ -1695,6 +2595,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "置中"
+          }
+        }
+      }
+    },
+    "The pointer badge now appears briefly where you click instead of following the pointer. You can change this in “Show Badge” in Pointer Badge settings.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The pointer badge now appears briefly where you click instead of following the pointer. You can change this in “Show Badge” in Pointer Badge settings."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이제 포인터 배지가 포인터를 따라다니지 않고 클릭한 자리에 잠깐 보입니다. '포인터 배지' 설정의 '배지 보기'에서 바꿀 수 있습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタバッジがポインタを追わず、クリックした場所に少しの間表示されるようになりました。「ポインタバッジ」設定の「バッジを表示」で変更できます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指针徽章现在不再跟随指针，而是在点按处短暂显示。可在“指针徽章”设置的“显示徽章”中更改。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指標徽章現在不再跟隨指標，而是在按一下處短暫顯示。可在「指標徽章」設定的「顯示徽章」中更改。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Zeigerabzeichen erscheint jetzt kurz dort, wo du klickst, statt dem Zeiger zu folgen. Du kannst das in den Zeigerabzeichen-Einstellungen bei „Abzeichen zeigen“ ändern."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La insignia del puntero ahora aparece brevemente donde haces clic en lugar de seguir al puntero. Puedes cambiarlo en «Mostrar insignia» en los ajustes de Insignia del puntero."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le badge du pointeur apparaît désormais brièvement là où vous cliquez au lieu de suivre le pointeur. Vous pouvez changer cela dans « Afficher le badge » des réglages Badge du pointeur."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O selo do ponteiro agora aparece brevemente onde você clica em vez de seguir o ponteiro. Você pode mudar isso em “Mostrar selo” nos ajustes de Selo do ponteiro."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Значок указателя теперь ненадолго появляется там, где вы нажали, а не следует за указателем. Это можно изменить в пункте «Показывать значок» в настройках «Значок указателя»."
           }
         }
       }
@@ -2275,6 +3239,70 @@
         }
       }
     },
+    "Curious how many keys you pressed today?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Curious how many keys you pressed today?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘 몇 번 키를 눌렀는지 궁금하지 않나요?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日キーを何回押したか気になりませんか？"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "想知道今天按了多少次键吗？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "想知道今天按了多少次鍵嗎？"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neugierig, wie viele Tasten du heute gedrückt hast?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Te preguntas cuántas teclas pulsaste hoy?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combien de touches avez-vous pressées aujourd’hui ?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quer saber quantas teclas você pressionou hoje?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Интересно, сколько клавиш вы нажали сегодня?"
+          }
+        }
+      }
+    },
     "Custom": {
       "localizations": {
         "de": {
@@ -2531,6 +3559,70 @@
         }
       }
     },
+    "Display": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "표시"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anzeige"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Affichage"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exibição"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показ"
+          }
+        }
+      }
+    },
     "Display Position": {
       "localizations": {
         "de": {
@@ -2719,6 +3811,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "顯示時間"
+          }
+        }
+      }
+    },
+    "Display time is shared by the input source HUD and the pointer badge.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display time is shared by the input source HUD and the pointer badge."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "표시 시간은 입력소스 HUD와 포인터 배지가 함께 씁니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示時間は入力ソースHUDとポインタバッジで共通です。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示时间由输入法 HUD 和指针徽章共用。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示時間由輸入法 HUD 和指標徽章共用。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Anzeigedauer gilt für das Eingabequellen-HUD und das Zeigerabzeichen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El tiempo de visualización lo comparten el HUD de fuente de entrada y la insignia del puntero."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La durée d’affichage est partagée par le HUD de source de saisie et le badge du pointeur."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O tempo de exibição é compartilhado pelo HUD de fonte de entrada e pelo selo do ponteiro."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Время показа общее для HUD источника ввода и значка указателя."
           }
         }
       }
@@ -2915,70 +4071,6 @@
         }
       }
     },
-    "Hide When Pointer Stops": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ausblenden, wenn der Zeiger stillsteht"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hide When Pointer Stops"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ocultar cuando el puntero se detenga"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Masquer quand le pointeur s’arrête"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ポインタが止まったら隠す"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "포인터가 멈추면 숨기기"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ocultar quando o ponteiro parar"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Скрывать, когда указатель неподвижен"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "指针停止时隐藏"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "指標停止時隱藏"
-          }
-        }
-      }
-    },
     "High Contrast": {
       "localizations": {
         "de": {
@@ -3107,6 +4199,70 @@
         }
       }
     },
+    "Input Monitoring Permission": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input Monitoring Permission"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입력 모니터링 권한"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力監視の許可"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入监控权限"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸入監控權限"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berechtigung Eingabeüberwachung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permiso de Monitorización de entrada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisation Surveillance de l’entrée"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permissão Monitoramento de Entrada"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешение «Мониторинг ввода»"
+          }
+        }
+      }
+    },
     "Input Source": {
       "localizations": {
         "de": {
@@ -3167,6 +4323,134 @@
           "stringUnit": {
             "state": "translated",
             "value": "輸入法"
+          }
+        }
+      }
+    },
+    "Input Source Badge Next to Pointer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input Source Badge Next to Pointer"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "포인터 옆 입력소스 배지"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタ横の入力ソースバッジ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指针旁的输入法徽章"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指標旁的輸入法徽章"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eingabequellen-Abzeichen neben dem Zeiger"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insignia de fuente de entrada junto al puntero"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Badge de source de saisie près du pointeur"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selo da fonte de entrada ao lado do ponteiro"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Значок источника ввода у указателя"
+          }
+        }
+      }
+    },
+    "Input Source HUD": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input Source HUD"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입력소스 HUD"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力ソースHUD"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入法 HUD"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸入法 HUD"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eingabequellen-HUD"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HUD de fuente de entrada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HUD de source de saisie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HUD de fonte de entrada"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HUD источника ввода"
           }
         }
       }
@@ -3235,66 +4519,66 @@
         }
       }
     },
-    "Input Source Switches Today": {
+    "Input Source Switches (3+)": {
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Eingabequellenwechsel heute"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Input Source Switches Today"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cambios de fuente de entrada hoy"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Changements de source de saisie aujourd’hui"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今日の入力ソース切り替え"
+            "value": "Input Source Switches"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "오늘 한/영 전환"
+            "value": "입력소스 전환"
           }
         },
-        "pt-BR": {
+        "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Trocas de fonte de entrada hoje"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Переключения ввода сегодня"
+            "value": "入力ソースの切り替え"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "今日输入法切换"
+            "value": "输入法切换"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "今日輸入法切換"
+            "value": "輸入法切換"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eingabequellenwechsel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambios de fuente de entrada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changements de source de saisie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trocas de fonte de entrada"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переключения ввода"
           }
         }
       }
@@ -3359,6 +4643,262 @@
           "stringUnit": {
             "state": "translated",
             "value": "輸入統計"
+          }
+        }
+      }
+    },
+    "Keys per Minute": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keys per Minute"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "분당 키 입력"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1分あたりの打鍵"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每分钟击键"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每分鐘擊鍵"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anschläge pro Minute"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsaciones por minuto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frappes par minute"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teclas por minuto"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нажатий в минуту"
+          }
+        }
+      }
+    },
+    "Keystrokes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keystrokes"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "키 입력"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打鍵"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "击键"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "擊鍵"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anschläge"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsaciones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frappes"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teclas pressionadas"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нажатия клавиш"
+          }
+        }
+      }
+    },
+    "Keystrokes per day": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keystrokes per day"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "날별 키 입력"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日別の打鍵"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每日击键"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每日擊鍵"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anschläge pro Tag"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsaciones por día"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frappes par jour"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teclas por dia"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нажатия по дням"
+          }
+        }
+      }
+    },
+    "Keystrokes per hour": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keystrokes per hour"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시간별 키 입력"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "時間別の打鍵"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每小时击键"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每小時擊鍵"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anschläge pro Stunde"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsaciones por hora"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frappes par heure"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teclas por hora"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нажатия по часам"
           }
         }
       }
@@ -4067,6 +5607,198 @@
         }
       }
     },
+    "Not Allowed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Allowed"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "허용 안 됨"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "許可されていません"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未允许"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未允許"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht erlaubt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No permitido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non autorisé"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não permitido"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не разрешено"
+          }
+        }
+      }
+    },
+    "Open System Settings…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open System Settings…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시스템 설정 열기…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "システム設定を開く…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开系统设置…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打開系統設定…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemeinstellungen öffnen …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes del Sistema…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir Réglages Système…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes do Sistema…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть настройки…"
+          }
+        }
+      }
+    },
+    "Input Monitoring permission is off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input Monitoring permission is off"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입력 모니터링 권한이 꺼져 있습니다"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力監視の許可がオフです"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入监控权限已关闭"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸入監控權限已關閉"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Berechtigung Eingabeüberwachung ist aus"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El permiso de Monitorización de entrada está desactivado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’autorisation Surveillance de l’entrée est désactivée"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A permissão Monitoramento de Entrada está desativada"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешение «Мониторинг ввода» выключено"
+          }
+        }
+      }
+    },
     "Pill": {
       "localizations": {
         "de": {
@@ -4191,6 +5923,134 @@
           "stringUnit": {
             "state": "translated",
             "value": "指標"
+          }
+        }
+      }
+    },
+    "Pointer Badge": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pointer Badge"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "포인터 배지"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタバッジ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指针徽章"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指標徽章"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigerabzeichen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insignia del puntero"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Badge du pointeur"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selo do ponteiro"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Значок указателя"
+          }
+        }
+      }
+    },
+    "Pointer Distance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pointer Distance"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "포인터 이동"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタ移動"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指针移动"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指標移動"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigerweg"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distancia del puntero"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distance du pointeur"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distância do ponteiro"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Путь указателя"
           }
         }
       }
@@ -5027,194 +6887,66 @@
         }
       }
     },
-    "Show HUD on Caps Lock": {
+    "Show Badge": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "HUD bei Feststelltaste anzeigen"
+            "value": "Badge anzeigen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show HUD on Caps Lock"
+            "value": "Show Badge"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar HUD con Bloq Mayús"
+            "value": "Mostrar indicador"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Afficher le HUD au verrouillage majuscule"
+            "value": "Afficher le badge"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Caps Lock切り替え時にHUDを表示"
+            "value": "バッジを表示"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Caps Lock HUD 표시"
+            "value": "배지 보기"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar HUD ao usar Caps Lock"
+            "value": "Mostrar selo"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Показывать HUD при Caps Lock"
+            "value": "Показывать значок"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "切换 Caps Lock 时显示 HUD"
+            "value": "显示标记"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "切換 Caps Lock 時顯示 HUD"
-          }
-        }
-      }
-    },
-    "Show HUD on Input Switch": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HUD beim Eingabewechsel anzeigen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show HUD on Input Switch"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar HUD al cambiar la entrada"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afficher le HUD au changement de saisie"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "入力切り替え時にHUDを表示"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "언어 전환 HUD 표시"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar HUD ao trocar a entrada"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показывать HUD при смене ввода"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切换输入法时显示 HUD"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切換輸入法時顯示 HUD"
-          }
-        }
-      }
-    },
-    "Show Input Source Next to Pointer": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Eingabequelle neben dem Zeiger anzeigen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show Input Source Next to Pointer"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar la fuente de entrada junto al puntero"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afficher la méthode de saisie près du pointeur"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ポインタの横に入力ソースを表示"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "포인터 옆 입력소스 표시"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar a fonte de entrada ao lado do ponteiro"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показывать источник ввода у указателя"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在指针旁显示输入法"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在指標旁顯示輸入方式"
+            "value": "顯示標記"
           }
         }
       }
@@ -5279,6 +7011,134 @@
           "stringUnit": {
             "state": "translated",
             "value": "顯示切換前的輸入法"
+          }
+        }
+      }
+    },
+    "Show When Caps Lock Changes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show When Caps Lock Changes"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caps Lock을 바꿀 때 표시"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caps Lock切り替え時に表示"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换大写锁定时显示"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切換大寫鎖定時顯示"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei Feststelltaste-Wechsel anzeigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar al cambiar Bloq Mayús"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher au changement de verrouillage maj."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar ao mudar Caps Lock"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывать при смене Caps Lock"
+          }
+        }
+      }
+    },
+    "Show When Input Source Changes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show When Input Source Changes"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입력소스를 바꿀 때 표시"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力ソース切り替え時に表示"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换输入法时显示"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切換輸入法時顯示"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei Eingabequellenwechsel anzeigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar al cambiar la fuente de entrada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher au changement de source de saisie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar ao trocar a fonte de entrada"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывать при смене источника ввода"
           }
         }
       }
@@ -6371,6 +8231,454 @@
         }
       }
     },
+    "Turn On Typing Statistics": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn On Typing Statistics"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "타이핑 통계 켜기"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タイピング統計をオン"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开打字统计"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟打字統計"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippstatistik einschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar estadísticas de escritura"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activer les statistiques de frappe"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ativar estatísticas de digitação"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включить статистику набора"
+          }
+        }
+      }
+    },
+    "Turn on Blink in System Settings › Privacy & Security › Input Monitoring to start counting.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on Blink in System Settings › Privacy & Security › Input Monitoring to start counting."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시스템 설정 › 개인정보 보호 및 보안 › 입력 모니터링에서 Blink를 켜면 바로 셉니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "システム設定 › プライバシーとセキュリティ › 入力監視 でBlinkをオンにすると、すぐに数え始めます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“系统设置 › 隐私与安全性 › 输入监控”中打开 Blink 即可开始统计。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在「系統設定 › 隱私權與安全性 › 輸入監控」中開啟 Blink 即可開始統計。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schalte Blink unter Systemeinstellungen › Datenschutz & Sicherheit › Eingabeüberwachung ein, um mit dem Zählen zu beginnen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa Blink en Ajustes del Sistema › Privacidad y seguridad › Monitorización de entrada para empezar a contar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activez Blink dans Réglages Système › Confidentialité et sécurité › Surveillance de l’entrée pour commencer à compter."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ative o Blink em Ajustes do Sistema › Privacidade e Segurança › Monitoramento de Entrada para começar a contar."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включите Blink в Системных настройках › Конфиденциальность и безопасность › Мониторинг ввода, чтобы начать подсчёт."
+          }
+        }
+      }
+    },
+    "Turn on Typing Statistics in Statistics settings to see your keystrokes and speed by input source and app. Blink counts keys, never what you type.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on Typing Statistics in Statistics settings to see your keystrokes and speed by input source and app. Blink counts keys, never what you type."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "'통계' 설정에서 '타이핑 통계'를 켜면 키 입력 횟수와 속도를 입력소스별·앱별로 볼 수 있습니다. 누른 키의 개수만 세고 내용은 기록하지 않습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「統計」設定で「タイピング統計」をオンにすると、打鍵数と速度を入力ソース別・アプリ別に見られます。数えるのはキーの数だけで、内容は記録しません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“统计”设置中打开“打字统计”，即可按输入法和 App 查看击键次数和速度。只统计按键次数，不记录内容。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在「統計」設定中開啟「打字統計」，即可按輸入法和 App 查看擊鍵次數和速度。只統計按鍵次數，不記錄內容。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schalte in den Statistik-Einstellungen „Tippstatistik“ ein, um Anschläge und Tempo nach Eingabequelle und App zu sehen. Blink zählt nur Tasten, nie Inhalte."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa «Estadísticas de escritura» en los ajustes de Estadísticas para ver tus pulsaciones y velocidad por fuente de entrada y app. Blink cuenta teclas, nunca lo que escribes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activez « Statistiques de frappe » dans les réglages Statistiques pour voir vos frappes et votre vitesse par source de saisie et par app. Blink compte les touches, jamais ce que vous tapez."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ative “Estatísticas de digitação” nos ajustes de Estatísticas para ver suas teclas e velocidade por fonte de entrada e app. O Blink conta teclas, nunca o que você digita."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включите «Статистику набора» в настройках статистики, чтобы видеть нажатия и скорость по источникам ввода и приложениям. Blink считает клавиши, но не текст."
+          }
+        }
+      }
+    },
+    "Turn on typing statistics to see your keystrokes and speed, by input source and by app.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on typing statistics to see your keystrokes and speed, by input source and by app."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "타이핑 통계를 켜면 키 입력 횟수와 속도를 입력소스별·앱별로 볼 수 있어요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タイピング統計をオンにすると、打鍵数と速度を入力ソース別・アプリ別に見られます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开打字统计，即可按输入法和 App 查看击键次数和速度。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟打字統計，即可按輸入法和 App 查看擊鍵次數和速度。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schalte die Tippstatistik ein, um Anschläge und Tempo nach Eingabequelle und App zu sehen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa las estadísticas de escritura para ver tus pulsaciones y velocidad por fuente de entrada y por app."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activez les statistiques de frappe pour voir vos frappes et votre vitesse, par source de saisie et par app."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ative as estatísticas de digitação para ver suas teclas e velocidade por fonte de entrada e por app."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включите статистику набора, чтобы видеть нажатия и скорость по источникам ввода и приложениям."
+          }
+        }
+      }
+    },
+    "Typing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typing"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "타이핑"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タイピング"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打字"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打字"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escritura"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frappe"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digitação"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Набор"
+          }
+        }
+      }
+    },
+    "Typing Statistics": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typing Statistics"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "타이핑 통계"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タイピング統計"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打字统计"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打字統計"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippstatistik"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estadísticas de escritura"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistiques de frappe"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estatísticas de digitação"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Статистика набора"
+          }
+        }
+      }
+    },
+    "Typing statistics are off, so keystrokes aren’t counted. The permission stays in System Settings; turn off Blink there if you don’t need it.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typing statistics are off, so keystrokes aren’t counted. The permission stays in System Settings; turn off Blink there if you don’t need it."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "타이핑 통계를 꺼서 키 입력을 세지 않습니다. 권한은 시스템 설정에 남아 있으니, 필요 없으면 시스템 설정에서 Blink를 끄세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タイピング統計がオフのため打鍵は数えません。許可はシステム設定に残っているので、不要ならシステム設定でBlinkをオフにしてください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打字统计已关闭，不会统计击键。权限仍保留在系统设置中，如不需要，请在系统设置中关闭 Blink。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打字統計已關閉，不會統計擊鍵。權限仍保留在系統設定中，如不需要，請在系統設定中關閉 Blink。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Tippstatistik ist aus, Anschläge werden nicht gezählt. Die Berechtigung bleibt in den Systemeinstellungen; schalte Blink dort aus, wenn du sie nicht brauchst."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las estadísticas de escritura están desactivadas y no se cuentan pulsaciones. El permiso sigue en Ajustes del Sistema; desactiva Blink allí si no lo necesitas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les statistiques de frappe sont désactivées : aucune frappe n’est comptée. L’autorisation reste dans Réglages Système ; désactivez-y Blink si vous n’en avez pas besoin."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As estatísticas de digitação estão desativadas, então nenhuma tecla é contada. A permissão continua nos Ajustes do Sistema; desative o Blink lá se não precisar."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Статистика набора выключена, нажатия не считаются. Разрешение остаётся в Системных настройках — выключите там Blink, если оно не нужно."
+          }
+        }
+      }
+    },
     "Version %@": {
       "localizations": {
         "de": {
@@ -6431,6 +8739,198 @@
           "stringUnit": {
             "state": "translated",
             "value": "版本 %@"
+          }
+        }
+      }
+    },
+    "When Caps Lock changes, the HUD shows “⇪ On” or “⇪ Off”.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When Caps Lock changes, the HUD shows “⇪ On” or “⇪ Off”."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caps Lock을 바꾸면 '⇪ 켜짐'·'⇪ 꺼짐'을 보여 줍니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caps Lockを切り替えると「⇪ オン」「⇪ オフ」を表示します。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换大写锁定时显示“⇪ 开”或“⇪ 关”。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切換大寫鎖定時顯示「⇪ 開」或「⇪ 關」。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Wechsel der Feststelltaste zeigt das HUD „⇪ Ein“ oder „⇪ Aus“."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al cambiar Bloq Mayús, el HUD muestra «⇪ Activado» o «⇪ Desactivado»."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Au changement du verrouillage majuscule, le HUD affiche « ⇪ Activé » ou « ⇪ Désactivé »."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ao mudar o Caps Lock, o HUD mostra “⇪ Ativado” ou “⇪ Desativado”."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "При смене Caps Lock HUD показывает «⇪ Вкл.» или «⇪ Выкл.»."
+          }
+        }
+      }
+    },
+    "When Clicking": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Klicken"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When Clicking"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al hacer clic"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Au clic"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリックしたとき"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "클릭할 때"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ao clicar"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "При щелчке"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点按时"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按一下時"
+          }
+        }
+      }
+    },
+    "While Moving": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Bewegen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While Moving"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al moverse"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En mouvement"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "動かしているとき"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "움직일 때"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ao mover"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "При движении"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移动时"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移動時"
           }
         }
       }

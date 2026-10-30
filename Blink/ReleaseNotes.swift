@@ -6,18 +6,38 @@ enum ReleaseNotes {
         let symbol: String
         let title: String
         let detail: String
+        var action: Action? = nil
+    }
+
+    // 줄 아래 버튼. 업데이트 직후 정보 창에서 바로 켤 수 있게 한다.
+    enum Action: Equatable {
+        case enableTyping
+
+        // 권한이 이미 있으면 버튼을 숨긴다(켜는 곳은 설정 '통계').
+        func isShown(typingGranted: Bool) -> Bool {
+            switch self {
+            case .enableTyping: !typingGranted
+            }
+        }
     }
 
     // 마지막으로 실행한 버전. 1.3.0부터 저장하므로 그 전에서 올라온 사용자는 값이 없다.
     static let lastSeenVersionKey = "lastSeenVersion"
 
     static var all: [String: [Feature]] {
-        ["1.3.0": [
+        ["1.4.0": [
+            Feature(symbol: "cursorarrow.click", title: String(localized: "Badge Where You Click"),
+                    detail: String(localized: "The pointer badge now appears briefly where you click instead of following the pointer. You can change this in “Show Badge” in Pointer Badge settings.")),
+            Feature(symbol: "keyboard", title: String(localized: "Typing Statistics"),
+                    detail: String(localized: "Turn on Typing Statistics in Statistics settings to see your keystrokes and speed by input source and app. Blink counts keys, never what you type."),
+                    action: .enableTyping),
+         ],
+         "1.3.0": [
             Feature(symbol: "chart.bar.fill", title: String(localized: "Input Statistics"),
                     detail: String(localized: "See today’s input source switches at the top of the menu, and 7 or 30 days in “Statistics…”. Records stay on this Mac.")),
             Feature(symbol: "slider.horizontal.3", title: String(localized: "Tidier Settings"),
                     detail: String(localized: "Settings are grouped into boxes, like System Settings.")),
-        ]]
+         ]]
     }
 
     // 업데이트한 뒤 첫 실행이라 정보 창을 저절로 열지 정한다. 새 설치, 같은 버전, 다운그레이드, 노트가 없는 버전이면 열지 않는다.

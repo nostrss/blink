@@ -4,6 +4,10 @@ import AppKit
 // 업데이트한 뒤 첫 실행에도 이 창을 연다.
 final class AboutWindow: NSObject {
     private let window = ClosableWindow(contentRect: .zero, styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: true)
+    // 노트 줄 아래 버튼과 그 동작. 보일지는 열 때마다 다시 정한다.
+    private var actionButtons: [(action: ReleaseNotes.Action, button: NSButton)] = []
+    var onEnableTyping: () -> Void = {}
+    var typingGranted: () -> Bool = { false }
 
     override init() {
         super.init()
@@ -44,7 +48,7 @@ final class AboutWindow: NSObject {
             let heading = NSTextField(labelWithString: String(localized: "New in \(notes.version)"))
             heading.font = .systemFont(ofSize: 15, weight: .semibold)  // title
             heading.textColor = Tokens.ink
-            let group = SettingsWindow.group(notes.features.map(Self.row))
+            let group = SettingsWindow.group(notes.features.map(row))
             column.addArrangedSubview(heading)
             column.addArrangedSubview(group)
             column.setCustomSpacing(24, after: versionLabel)  // space-4
@@ -57,13 +61,25 @@ final class AboutWindow: NSObject {
     }
 
     func show() {
+        for (action, button) in actionButtons {
+            button.isHidden = !action.isShown(typingGranted: typingGranted())
+        }
+        // 버튼이 숨거나 나타나면 창 높이를 내용에 다시 맞춘다(창은 처음 연 크기를 그대로 두기 때문).
+        if let content = window.contentView { window.setContentSize(content.fittingSize) }
         if !window.isVisible { window.center() }
         NSApp.activateForWindow()
         window.makeKeyAndOrderFront(nil)
     }
 
-    // 왼쪽 accent 심볼, 오른쪽 이름(title)과 설명(body, muted). 위아래 12pt.
-    private static func row(_ feature: ReleaseNotes.Feature) -> NSView {
+    @objc private func act(_ sender: NSButton) {
+        switch actionButtons.first(where: { $0.button === sender })?.action {
+        case .enableTyping: onEnableTyping()
+        case nil: break
+        }
+    }
+
+    // 왼쪽 accent 심볼, 오른쪽 이름(title)과 설명(body, muted). 위아래 12pt. 동작이 있으면 설명 아래 설명 폭의 accent 버튼.
+    private func row(_ feature: ReleaseNotes.Feature) -> NSView {
         let symbol = NSImageView(image: NSImage(systemSymbolName: feature.symbol, accessibilityDescription: nil) ?? NSImage())
         symbol.symbolConfiguration = .init(pointSize: 17, weight: .regular)
         symbol.contentTintColor = Tokens.accent
@@ -84,6 +100,15 @@ final class AboutWindow: NSObject {
         text.orientation = .vertical
         text.alignment = .leading
         text.spacing = 2
+        if let action = feature.action {
+            let button = NSButton(title: String(localized: "Turn On Typing Statistics"), target: self, action: #selector(act))
+            button.bezelStyle = .push
+            button.bezelColor = .controlAccentColor
+            text.addArrangedSubview(button)
+            button.widthAnchor.constraint(equalTo: detail.widthAnchor).isActive = true  // 설명 폭에 꽉 차게
+            text.setCustomSpacing(8, after: detail)  // space-2
+            actionButtons.append((action, button))
+        }
         symbol.translatesAutoresizingMaskIntoConstraints = false
         text.translatesAutoresizingMaskIntoConstraints = false
         // 심볼은 24×20pt 칸 가운데에 두고 이름 줄의 세로 가운데에 맞춘다. 텍스트와는 space-2.

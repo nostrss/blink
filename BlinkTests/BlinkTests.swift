@@ -434,6 +434,17 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(origin(.right, p), CGPoint(x: 515, y: 481))
     }
 
+    // 메뉴바(위 25pt)와 Dock(아래 70pt) 위에서는 배지를 숨긴다. 자동으로 가리면 visibleFrame이 화면 전체라 숨기지 않는다.
+    func testBadgeHidesOverMenuBarAndDock() {
+        let visible = CGRect(x: 0, y: 70, width: 1440, height: 805)  // 화면 1440×900
+        XCTAssertFalse(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 500, y: 500), visibleFrame: visible))
+        XCTAssertTrue(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 500, y: 890), visibleFrame: visible))  // 메뉴바
+        XCTAssertTrue(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 500, y: 900), visibleFrame: visible))  // 화면 맨 위 끝
+        XCTAssertTrue(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 500, y: 30), visibleFrame: visible))  // Dock
+        XCTAssertFalse(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 500, y: 30), visibleFrame: CGRect(x: 0, y: 0, width: 1440, height: 875)))  // Dock 자동 가리기
+        XCTAssertTrue(BadgePlacement.isOverSystemBar(pointer: CGPoint(x: 30, y: 500), visibleFrame: CGRect(x: 70, y: 0, width: 1370, height: 875)))  // 왼쪽 Dock
+    }
+
     // 넘친 축만 반대쪽으로 뒤집고, 그래도 넘치면 화면 안으로 밀어 넣는다.
     func testBadgePlacementFlipsAtScreenEdges() {
         let screen = CGRect(x: 0, y: 0, width: 1440, height: 875)
@@ -449,6 +460,42 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(BadgePlacement(saved: "sideways"), .bottomRight)  // 읽을 수 없는 값
         XCTAssertEqual(BadgePlacement(saved: BadgePlacement.top.rawValue), .top)
         XCTAssertEqual(BadgePlacement.allCases.count, 8)  // 가운데는 없다
+    }
+
+    // 정보 창의 타이핑 통계 켜기 버튼: 1.4.0 노트에만 있고, 권한이 이미 있으면 숨긴다.
+    func testReleaseNoteActions() {
+        XCTAssertEqual(ReleaseNotes.all["1.4.0"]?.compactMap(\.action), [.enableTyping])
+        XCTAssertEqual(ReleaseNotes.all["1.3.0"]?.compactMap(\.action), [])
+        XCTAssertTrue(ReleaseNotes.Action.enableTyping.isShown(typingGranted: false))
+        XCTAssertFalse(ReleaseNotes.Action.enableTyping.isShown(typingGranted: true))
+    }
+
+    // 배지 보기: 저장값이 없으면(새 설치, 1.3.0 이하에서 업데이트) 클릭할 때.
+    func testBadgeModeSavedValue() {
+        XCTAssertEqual(BadgeMode(saved: nil), .click)
+        XCTAssertEqual(BadgeMode(saved: "sideways"), .click)  // 읽을 수 없는 값
+        XCTAssertEqual(BadgeMode(saved: BadgeMode.always.rawValue), .always)  // 저장값이 이긴다
+        XCTAssertEqual(BadgeMode.allCases, [.always, .moving, .click])  // 팝업 순서
+    }
+
+    // 항상·움직일 때는 이동에, 클릭할 때는 클릭에 보인다. 더블·트리플클릭의 두 번째 이후는 무시하고, 전환에는 모두 보인다.
+    func testBadgeModeReactsToEvents() {
+        for mode in [BadgeMode.always, .moving] {
+            XCTAssertTrue(mode.reveals(on: .moved))
+            XCTAssertFalse(mode.reveals(on: .clicked(count: 1)))
+            XCTAssertTrue(mode.followsPointer)
+        }
+        XCTAssertFalse(BadgeMode.click.reveals(on: .moved))  // 움직여도 클릭한 자리에 남는다
+        XCTAssertTrue(BadgeMode.click.reveals(on: .clicked(count: 1)))
+        XCTAssertFalse(BadgeMode.click.reveals(on: .clicked(count: 2)))
+        XCTAssertFalse(BadgeMode.click.reveals(on: .clicked(count: 3)))
+        XCTAssertFalse(BadgeMode.click.followsPointer)
+        XCTAssertTrue(BadgeMode.allCases.allSatisfy { $0.reveals(on: .switched) })
+    }
+
+    // 항상만 계속 보이고, 나머지는 표시 시간 뒤 사라진다.
+    func testBadgeModeHidesAfterDuration() {
+        XCTAssertEqual(BadgeMode.allCases.map(\.hidesAfterDuration), [false, true, true])
     }
 
     // 배지 크기: HUD 크기와 따로 고르고, 글자 13 · 16 · 21pt에 높이는 글자 × 2.2, 좌우 패딩은 글자 × 0.5.
@@ -692,9 +739,99 @@ final class ReleaseNotesTests: XCTestCase {
 
     func testShippedNotesAreShortWithRealSymbols() {
         XCTAssertNotNil(ReleaseNotes.all["1.3.0"])
+        XCTAssertNotNil(ReleaseNotes.all["1.4.0"])
         for features in ReleaseNotes.all.values {
             XCTAssertTrue((1...3).contains(features.count))
             for feature in features { XCTAssertNotNil(NSImage(systemSymbolName: feature.symbol, accessibilityDescription: nil)) }
         }
     }
+
+    // MARK: 1.4.0 타이핑 통계·설정 사이드바
+
+    func testOldStatisticsFileLoadsWithoutTypingValues() throws {
+        let json = #"{"hours":{"1767225600":{"switches":3,"distance":1,"movingTime":1,"topSpeed":1,"leftClicks":1,"rightClicks":0,"doubleClicks":0,"scroll":0}},"days":{"2026-01-01":{"switches":3,"distance":1,"movingTime":1,"topSpeed":1,"leftClicks":1,"rightClicks":0,"doubleClicks":0,"scroll":0}}}"#
+        let log = try JSONDecoder().decode(StatsLog.self, from: Data(json.utf8))
+        let counts = log.total(from: .distantPast, to: .distantFuture, now: Date(timeIntervalSince1970: 1767229200))
+        XCTAssertEqual(counts.switches, 3)
+        XCTAssertEqual(counts.keystrokes, 0)
+        XCTAssertTrue(counts.sourceKeystrokes.isEmpty)
+    }
+
+    func testKeystrokesAddBySourceAndApp() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        let now = Date(timeIntervalSince1970: 1767241800)  // 2026-01-01 13:30 KST
+        var log = StatsLog()
+        log.add(.keystroke(source: "한국어", typingTime: 0.5), at: now, calendar: calendar)
+        log.add(.keystroke(source: "ABC", typingTime: 0), at: now, calendar: calendar)
+        log.addApps(["com.apple.Notes": ["한국어": 1, "ABC": 1]], at: now, calendar: calendar)
+        log.addApps(["com.apple.Notes": ["한국어": 2]], at: now.addingTimeInterval(-86400 * 3), calendar: calendar)
+        let counts = log.total(from: .distantPast, to: now, now: now)
+        XCTAssertEqual(counts.keystrokes, 2)
+        XCTAssertEqual(counts.typingTime, 0.5)
+        XCTAssertEqual(counts.sourceKeystrokes, ["한국어": 1, "ABC": 1])
+        XCTAssertEqual(counts.sourceTypingTime, ["한국어": 0.5])
+        XCTAssertEqual(log.apps(days: 1, now: now, calendar: calendar), ["com.apple.Notes": ["한국어": 1, "ABC": 1]])
+        XCTAssertEqual(log.apps(days: 7, now: now, calendar: calendar)["com.apple.Notes"]?["한국어"], 3)
+        // 저장했다 읽어도 같다.
+        XCTAssertEqual(try JSONDecoder().decode(StatsLog.self, from: JSONEncoder().encode(log)), log)
+    }
+
+    func testKeystrokeCountsEveryKeyButRepeats() {
+        XCTAssertTrue(Keystroke.counts(isRepeat: false))  // 글자, 단축키, 화살표 모두 센다
+        XCTAssertFalse(Keystroke.counts(isRepeat: true))  // 길게 눌러 반복된 키
+    }
+
+    func testTypingTimeCountsOnlyShortGaps() {
+        var meter = TypingMeter()
+        XCTAssertEqual(meter.press(at: 10), 0)  // 첫 키
+        XCTAssertEqual(meter.press(at: 10.5), 0.5)
+        XCTAssertEqual(meter.press(at: 12.5), 2)
+        XCTAssertEqual(meter.press(at: 20), 0)  // 멈췄다 다시 침
+    }
+
+    func testTypingState() {
+        XCTAssertEqual(TypingState.of(enabled: false, granted: true), .off)
+        XCTAssertEqual(TypingState.of(enabled: true, granted: false), .denied)
+        XCTAssertEqual(TypingState.of(enabled: true, granted: true), .on)
+    }
+
+    func testShareRowsKeepTopAndGroupTheRest() {
+        let rows = StatsShare.rows(["A": 55, "B": 30, "C": 10, "D": 3, "E": 2, "F": 0], limit: 3)
+        XCTAssertEqual(rows.map(\.name), ["A", "B", "C", nil])
+        XCTAssertEqual(rows.last?.otherCount, 2)
+        XCTAssertEqual(rows.last?.value, 5)
+        XCTAssertEqual(rows.map(\.percent), [55, 30, 10, 5])
+        // 반올림해도 합은 100
+        XCTAssertEqual(StatsShare.rows(["A": 1, "B": 1, "C": 1], limit: 3).map(\.percent).reduce(0, +), 100)
+        XCTAssertTrue(StatsShare.rows([:], limit: 3).isEmpty)
+    }
+
+    func testTypingFormat() {
+        XCTAssertEqual(TypingFormat.perMinute(keystrokes: 300, seconds: 60), 300)
+        XCTAssertEqual(TypingFormat.perMinute(keystrokes: 5, seconds: 0), 0)
+        XCTAssertEqual(TypingFormat.wpm(perMinute: 358), 72)
+        XCTAssertTrue(TypingFormat.showsWPM(language: "en"))
+        XCTAssertTrue(TypingFormat.showsWPM(language: "vi"))
+        XCTAssertTrue(TypingFormat.showsWPM(language: "fr-CA"))
+        XCTAssertFalse(TypingFormat.showsWPM(language: "ko"))
+        XCTAssertFalse(TypingFormat.showsWPM(language: "ja"))
+        XCTAssertFalse(TypingFormat.showsWPM(language: "zh-Hans"))
+        XCTAssertFalse(TypingFormat.showsWPM(language: "ru"))
+        XCTAssertFalse(TypingFormat.showsWPM(language: nil))
+        let sources = ["com.apple.inputmethod.Korean.2SetKorean": InputSourceInfo(name: "두벌식", language: "ko")]
+        XCTAssertEqual(TypingFormat.sourceName(id: "com.apple.inputmethod.Korean.2SetKorean", in: sources), "두벌식")
+        XCTAssertEqual(TypingFormat.sourceName(id: "com.apple.keylayout.ABC", in: sources), "ABC")  // 지운 입력소스는 ID 끝부분
+        XCTAssertEqual(TypingFormat.switchesTitle(sourceCount: 2), String(localized: "Input Source Switches"))
+        XCTAssertEqual(TypingFormat.switchesTitle(sourceCount: 3), String(localized: "Input Source Switches (3+)"))
+    }
+
+    func testSettingsSidebarGroupsHUDPanes() {
+        let hud = String(localized: "Input Source HUD")
+        XCTAssertEqual(SettingsWindow.sidebarRows, [.pane(.general), .header(hud), .pane(.hudShow), .pane(.position), .pane(.appearance),
+                                                    .pane(.pointer), .pane(.statistics)])
+        XCTAssertNil(SettingsWindow.Pane.general.group)
+        XCTAssertEqual(SettingsWindow.Pane.position.group, hud)
+    }
 }
+

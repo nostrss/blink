@@ -12,6 +12,11 @@ struct StatsCounts: Codable, Equatable {
     var rightClicks = 0.0
     var doubleClicks = 0.0
     var scroll = 0.0  // mm
+    // 타이핑 통계(1.4.0부터, 켰을 때만). 누른 키의 개수와 타이핑한 시간만, 입력소스 ID별로도 센다. 무슨 키인지는 없다.
+    var keystrokes = 0.0
+    var typingTime = 0.0  // 초
+    var sourceKeystrokes: [String: Double] = [:]
+    var sourceTypingTime: [String: Double] = [:]
 
     var clicks: Double { leftClicks + rightClicks + doubleClicks }
     var averageSpeed: Double { movingTime > 0 ? distance / movingTime : 0 }
@@ -26,6 +31,20 @@ struct StatsCounts: Codable, Equatable {
         rightClicks += other.rightClicks * fraction
         doubleClicks += other.doubleClicks * fraction
         scroll += other.scroll * fraction
+        keystrokes += other.keystrokes * fraction
+        typingTime += other.typingTime * fraction
+        for (name, value) in other.sourceKeystrokes { sourceKeystrokes[name, default: 0] += value * fraction }
+        for (name, value) in other.sourceTypingTime { sourceTypingTime[name, default: 0] += value * fraction }
+    }
+
+    // 키 하나. gap: 바로 앞 키와의 간격으로 더할 타이핑한 시간(TypingMeter).
+    static func keystroke(source: String, typingTime: Double) -> StatsCounts {
+        var counts = StatsCounts()
+        counts.keystrokes = 1
+        counts.typingTime = typingTime
+        counts.sourceKeystrokes[source] = 1
+        if typingTime > 0 { counts.sourceTypingTime[source] = typingTime }
+        return counts
     }
 
     // 누름 한 번. 두 번째 누름부터(clickCount 2 이상)는 더블로 센다. 가운데 버튼 등은 세지 않는다.
@@ -33,6 +52,26 @@ struct StatsCounts: Codable, Equatable {
         var counts = StatsCounts()
         if !left { counts.rightClicks = 1 } else if clickCount >= 2 { counts.doubleClicks = 1 } else { counts.leftClicks = 1 }
         return counts
+    }
+}
+
+// 1.3.0까지의 기록에는 타이핑 값이 없으므로 없는 키는 0으로 읽는다.
+extension StatsCounts {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        func number(_ key: CodingKeys) throws -> Double { try c.decodeIfPresent(Double.self, forKey: key) ?? 0 }
+        switches = try number(.switches)
+        distance = try number(.distance)
+        movingTime = try number(.movingTime)
+        topSpeed = try number(.topSpeed)
+        leftClicks = try number(.leftClicks)
+        rightClicks = try number(.rightClicks)
+        doubleClicks = try number(.doubleClicks)
+        scroll = try number(.scroll)
+        keystrokes = try number(.keystrokes)
+        typingTime = try number(.typingTime)
+        sourceKeystrokes = try c.decodeIfPresent([String: Double].self, forKey: .sourceKeystrokes) ?? [:]
+        sourceTypingTime = try c.decodeIfPresent([String: Double].self, forKey: .sourceTypingTime) ?? [:]
     }
 }
 
@@ -44,17 +83,60 @@ struct StatsLog: Codable, Equatable {
     private(set) var hours: [Int: StatsCounts] = [:]
     // 키: "2026-10-28". 지금은 보여 주지 않고, 시간 칸이 지워진 뒤의 '전체' 기간용으로 남긴다.
     private(set) var days: [String: StatsCounts] = [:]
+    // 앱별 키 입력은 하루 단위로만 둔다(시간 칸에 넣으면 기록이 커진다). 날 → 번들 ID → 입력소스 ID → 키 입력.
+    private(set) var appDays: [String: [String: [String: Double]]] = [:]
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        hours = try c.decode([Int: StatsCounts].self, forKey: .hours)
+        days = try c.decode([String: StatsCounts].self, forKey: .days)
+        appDays = try c.decodeIfPresent([String: [String: [String: Double]]].self, forKey: .appDays) ?? [:]
+    }
+
+    static func dayKey(_ date: Date, calendar: Calendar) -> String {
+        let day = calendar.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", day.year ?? 0, day.month ?? 0, day.day ?? 0)
+    }
 
     mutating func add(_ counts: StatsCounts, at date: Date, calendar: Calendar) {
         guard let hour = calendar.dateInterval(of: .hour, for: date)?.start else { return }
         hours[Int(hour.timeIntervalSince1970), default: StatsCounts()].add(counts)
-        let day = calendar.dateComponents([.year, .month, .day], from: date)
-        days[String(format: "%04d-%02d-%02d", day.year ?? 0, day.month ?? 0, day.day ?? 0), default: StatsCounts()].add(counts)
+        days[Self.dayKey(date, calendar: calendar), default: StatsCounts()].add(counts)
+    }
+
+    // apps: 번들 ID → 입력소스 ID → 키 입력.
+    mutating func addApps(_ apps: [String: [String: Double]], at date: Date, calendar: Calendar) {
+        let day = Self.dayKey(date, calendar: calendar)
+        for (app, sources) in apps {
+            for (source, value) in sources { appDays[day, default: [:]][app, default: [:]][source, default: 0] += value }
+        }
+    }
+
+    // 오늘 포함 최근 days일의 앱별 합계.
+    func apps(days count: Int, now: Date, calendar: Calendar) -> [String: [String: Double]] {
+        let start = calendar.date(byAdding: .day, value: 1 - count, to: calendar.startOfDay(for: now))!
+        var sum: [String: [String: Double]] = [:]
+        var day = start
+        while day <= now {
+            for (app, sources) in appDays[Self.dayKey(day, calendar: calendar)] ?? [:] {
+                for (source, value) in sources { sum[app, default: [:]][source, default: 0] += value }
+            }
+            day = calendar.date(byAdding: .day, value: 1, to: day)!
+        }
+        return sum
     }
 
     mutating func prune(now: Date) {
         let oldest = now.timeIntervalSince1970 - Self.hourRetention
         hours = hours.filter { Double($0.key) >= oldest }
+        // 앱별 하루 기록도 시간 칸과 같이 90일만 둔다.
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        let oldestDay = formatter.string(from: Date(timeIntervalSince1970: oldest))
+        appDays = appDays.filter { $0.key >= oldestDay }
     }
 
     // [from, to) 사이의 합계. 구간이 시간 칸 중간에서 끝나면 그 칸은 겹친 비율만큼 더한다.
@@ -123,12 +205,15 @@ struct StatsSummary: Equatable {
     var current: StatsCounts
     var previous: StatsCounts
     var bars: [Double]  // 칸마다 전환 횟수
+    var typingBars: [Double]  // 칸마다 키 입력
 
     init(log: StatsLog, period: StatsPeriod, now: Date, calendar: Calendar) {
         let ranges = period.ranges(now: now, calendar: calendar)
         current = log.total(from: ranges.current.start, to: ranges.current.end, now: now)
         previous = log.total(from: ranges.previous.start, to: ranges.previous.end, now: now)
-        bars = period.slots(now: now, calendar: calendar).map { log.total(from: $0.start, to: $0.end, now: now).switches }
+        let slots = period.slots(now: now, calendar: calendar).map { log.total(from: $0.start, to: $0.end, now: now) }
+        bars = slots.map(\.switches)
+        typingBars = slots.map(\.keystrokes)
     }
 }
 
@@ -144,12 +229,16 @@ enum StatsChange: Equatable {
         return percent > 0 ? .up(Int(percent.rounded())) : .down(Int((-percent).rounded()))
     }
 
-    func text(_ period: StatsPeriod) -> String {
-        let arrow = switch self {
+    // 메뉴 카드는 이름표 옆에 화살표와 %만 쓴다. 같으면 빈 문자열.
+    var arrow: String {
+        switch self {
         case .same: ""
         case .up(let percent): "▲\(percent)%"
         case .down(let percent): "▼\(percent)%"
         }
+    }
+
+    func text(_ period: StatsPeriod) -> String {
         switch (self, period) {
         case (.same, .today): return String(localized: "Same as yesterday")
         case (.same, .week): return String(localized: "Same as previous 7 days")
@@ -237,5 +326,92 @@ enum StatsFormat {
 
     static func speed(millimetersPerSecond: Double, locale: Locale) -> String {
         String(localized: "\(distance(millimeters: millimetersPerSecond, locale: locale))/s")
+    }
+}
+
+// 키 하나를 셀지. 누른 키는 모두 세고, 길게 눌러 저절로 반복된 것만 뺀다(반복은 1초에 30번쯤 들어와 숫자와 속도를 부풀린다).
+// 수식 키만 누른 것과 미디어 키는 keyDown으로 오지 않아 처음부터 세지 않는다.
+enum Keystroke {
+    static func counts(isRepeat: Bool) -> Bool { !isRepeat }
+}
+
+// 키 사이 간격이 2초 이하인 동안만 타이핑한 시간으로 더한다(포인터 '움직인 시간'과 같은 방식).
+struct TypingMeter {
+    static let idleGap: TimeInterval = 2
+    private var last: TimeInterval?
+
+    mutating func press(at time: TimeInterval) -> TimeInterval {
+        defer { last = time }
+        guard let last, time - last > 0, time - last <= Self.idleGap else { return 0 }
+        return time - last
+    }
+}
+
+// 타이핑 통계 상태: 꺼짐, 켰지만 입력 모니터링 권한이 없음, 세는 중.
+enum TypingState: Equatable {
+    case off, denied, on
+
+    static func of(enabled: Bool, granted: Bool) -> TypingState {
+        guard enabled else { return .off }
+        return granted ? .on : .denied
+    }
+}
+
+// 입력소스별·앱별 줄. 많이 쓴 limit개 + 나머지는 '그 밖 n개' 한 줄로 묶는다.
+struct StatsShare: Equatable {
+    var name: String?  // nil이면 '그 밖'
+    var value: Double
+    var percent: Int
+    var otherCount = 0
+
+    // 비율은 가장 큰 나머지 방식으로 맞춰 합이 100이 되게 한다.
+    static func rows(_ values: [String: Double], limit: Int) -> [StatsShare] {
+        let sorted = values.filter { $0.value > 0 }.sorted { $0.value != $1.value ? $0.value > $1.value : $0.key < $1.key }
+        let total = sorted.reduce(0) { $0 + $1.value }
+        guard total > 0 else { return [] }
+        var rows = sorted.prefix(limit).map { StatsShare(name: $0.key, value: $0.value, percent: 0) }
+        let rest = sorted.dropFirst(limit)
+        if !rest.isEmpty { rows.append(StatsShare(name: nil, value: rest.reduce(0) { $0 + $1.value }, percent: 0, otherCount: rest.count)) }
+        let exact = rows.map { $0.value / total * 100 }
+        var percents = exact.map { Int($0.rounded(.down)) }
+        let order = exact.indices.sorted { exact[$0] - Double(percents[$0]) > exact[$1] - Double(percents[$1]) }
+        for index in order.prefix(100 - percents.reduce(0, +)) { percents[index] += 1 }
+        for index in rows.indices { rows[index].percent = percents[index] }
+        return rows
+    }
+}
+
+// 켜진 입력소스 하나. 통계는 입력소스를 ID로 저장하고(시스템 언어를 바꿔도 한 줄로 모이게), 보여 줄 때 지금 언어의 이름을 쓴다.
+struct InputSourceInfo: Equatable {
+    var name: String
+    var language: String?  // kTISPropertyInputSourceLanguages의 첫 값
+}
+
+enum TypingFormat {
+    // 입력소스 ID의 이름. 목록에서 빠진(지운) 입력소스면 ID 끝부분을 쓴다(com.apple.keylayout.ABC → ABC).
+    static func sourceName(id: String, in sources: [String: InputSourceInfo]) -> String {
+        sources[id]?.name ?? String(id.split(separator: ".").last ?? Substring(id))
+    }
+
+    // 분당 키 입력. 타이핑한 시간이 없으면 0.
+    static func perMinute(keystrokes: Double, seconds: Double) -> Double {
+        seconds > 0 ? keystrokes / seconds * 60 : 0
+    }
+
+    // WPM(5타 = 1단어)은 라틴 문자로 쓰는 언어의 입력소스만 보여 준다. language: kTISPropertyInputSourceLanguages의 첫 값.
+    static func showsWPM(language: String?) -> Bool {
+        guard let language, !language.isEmpty else { return false }
+        let code = String(language.prefix { $0 != "-" && $0 != "_" })
+        let nonLatin: Set<String> = ["ko", "ja", "zh", "yue", "ru", "uk", "be", "bg", "mk", "sr", "kk", "ky", "mn", "tg", "tt", "ba", "cv",
+                                     "el", "ar", "fa", "ur", "ps", "sd", "ug", "he", "yi", "hi", "mr", "ne", "sa", "bn", "as", "pa", "gu",
+                                     "or", "ta", "te", "kn", "ml", "si", "th", "lo", "km", "my", "bo", "dz", "ka", "hy", "am", "ti", "iu", "chr", "dv"]
+        return !nonLatin.contains(code)
+    }
+
+    static func wpm(perMinute: Double) -> Int { Int((perMinute / 5).rounded()) }
+
+    // 전환 횟수의 이름: 입력소스가 둘 이하면 '한/영 전환', 셋 이상이면 '입력소스 전환'.
+    static func switchesTitle(sourceCount: Int) -> String {
+        sourceCount >= 3 ? String(localized: "Input Source Switches (3+)") : String(localized: "Input Source Switches")
     }
 }
