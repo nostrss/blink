@@ -59,6 +59,8 @@ https://claude.ai/artifact/3n9WYkuynDn61C23fgZ8Nw (Blink 디자인 시스템: �
 
 이 아티팩트는 늘 최신 설계(설계 중인 다음 버전 포함)다. 출시한 버전은 그 시점의 사본을 디자인 시스템 아티팩트로 따로 만들어 고정한다(예: [Blink 1.2.0](https://claude.ai/artifact/XLkVgM7oehKZFPEPWJgnKo)). 사본은 고치지 않는다. 다음 버전 작업을 시작하기 전에 직전 출시 버전의 사본을 만들고, 최신 README '버전' 표에 버전·사본 링크·바뀐 점 요약을 한 줄 추가한다.
 
+앱의 UI를 바꾸면 같은 작업 안에서 디자인 시스템도 고친다. 파일 구조, 고치고 올리는 순서, 같이 고칠 곳, 쓰는 법, 프리뷰 높이 상한(4,000px), 버전 사본 만드는 법은 [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)에 있다.
+
 ## 제출 문안
 
 App Store Connect에 넣는 문안과 스크린샷은 [docs/appstore/](docs/appstore/)에 버전 폴더, 그 아래 언어 폴더(App Store Connect 로케일: `en-US`, `ko`)로 둔다.
