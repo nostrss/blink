@@ -47,6 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let statsCard = StatsCardView()
     private let statsCardItem = NSMenuItem()
     private let statsCardSeparator = NSMenuItem.separator()
+    private var statsCardTimer: Timer?
 
     // 지금 입력소스 ID. 입력소스가 바뀔 때만 읽는다.
     private var currentSourceID: String?
@@ -133,10 +134,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         statistics.save()
     }
 
-    // 메뉴를 열 때마다 통계 카드를 새로 읽는다.
+    // 메뉴를 열 때 통계 카드를 새로 읽는다.
     func menuNeedsUpdate(_ menu: NSMenu) {
         statsCardItem.isHidden = !statistics.isEnabled
         statsCardSeparator.isHidden = !statistics.isEnabled
+        reloadStatsCard()
+    }
+
+    // 열려 있는 동안은 통계 창과 같이 2초마다 새로 읽는다. 메뉴를 추적하는 동안에도 돌도록 common 모드에 건다.
+    func menuWillOpen(_ menu: NSMenu) {
+        guard statistics.isEnabled else { return }
+        let timer = Timer(timeInterval: StatsWindow.refreshInterval, repeats: true) { [weak self] _ in self?.reloadStatsCard() }
+        RunLoop.main.add(timer, forMode: .common)
+        statsCardTimer = timer
+    }
+
+    func menuDidClose(_ menu: NSMenu) {
+        statsCardTimer?.invalidate()
+        statsCardTimer = nil
+    }
+
+    private func reloadStatsCard() {
         if statistics.isEnabled { statsCard.reload(statistics.snapshot, typing: statistics.typingState, sources: Self.sourceInfo()) }
     }
 

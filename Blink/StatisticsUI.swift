@@ -710,7 +710,7 @@ private final class StatsTileView: NSView {
 // 메뉴 '통계…'로 여는 창. 오늘 · 7일 · 30일 기간을 골라 전환 횟수와 포인터 사용량을 본다.
 final class StatsWindow: NSObject {
     private static let width: CGFloat = 480
-    private static let refreshInterval: TimeInterval = 2
+    static let refreshInterval: TimeInterval = 2  // 메뉴 카드도 열려 있는 동안 같은 간격으로 새로 읽는다
 
     private let window = ClosableWindow(contentRect: .zero, styleMask: [.titled, .closable], backing: .buffered, defer: true)
     private let recorder: StatsRecorder

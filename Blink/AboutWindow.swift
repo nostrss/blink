@@ -64,7 +64,8 @@ final class AboutWindow: NSObject {
         for (action, button) in actionButtons {
             button.isHidden = !action.isShown(typingGranted: typingGranted())
         }
-        window.layoutIfNeeded()
+        // 버튼이 숨거나 나타나면 창 높이를 내용에 다시 맞춘다(창은 처음 연 크기를 그대로 두기 때문).
+        if let content = window.contentView { window.setContentSize(content.fittingSize) }
         if !window.isVisible { window.center() }
         NSApp.activateForWindow()
         window.makeKeyAndOrderFront(nil)
