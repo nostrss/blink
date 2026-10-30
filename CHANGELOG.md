@@ -2,7 +2,7 @@
 
 [한국어](CHANGELOG.ko.md)
 
-## 1.4.0 - Unreleased (in App Store review)
+## 1.4.0 - 2026-11-01
 
 - **Typing statistics.** See your keystrokes and keys per minute, by input source and by app. Turn it on in Settings > Statistics. It asks for Input Monitoring permission and counts keys only, never which keys or what you type. It's off until you turn it on.
 - **Today at a glance.** The top of the menu shows a summary card for today: switches, typing and pointer use.
