@@ -462,12 +462,19 @@ final class BlinkTests: XCTestCase {
         XCTAssertEqual(BadgePlacement.allCases.count, 8)  // 가운데는 없다
     }
 
-    // 배지 보기: 저장값이 없으면(1.3.0 이하) '포인터가 멈추면 숨기기'에서 옮긴다.
+    // 정보 창의 타이핑 통계 켜기 버튼: 1.4.0 노트에만 있고, 권한이 이미 있으면 숨긴다.
+    func testReleaseNoteActions() {
+        XCTAssertEqual(ReleaseNotes.all["1.4.0"]?.compactMap(\.action), [.enableTyping])
+        XCTAssertEqual(ReleaseNotes.all["1.3.0"]?.compactMap(\.action), [])
+        XCTAssertTrue(ReleaseNotes.Action.enableTyping.isShown(typingGranted: false))
+        XCTAssertFalse(ReleaseNotes.Action.enableTyping.isShown(typingGranted: true))
+    }
+
+    // 배지 보기: 저장값이 없으면(새 설치, 1.3.0 이하에서 업데이트) 클릭할 때.
     func testBadgeModeSavedValue() {
-        XCTAssertEqual(BadgeMode(saved: nil, hidesWhenIdle: false), .always)  // 새 설치·숨기기 꺼짐
-        XCTAssertEqual(BadgeMode(saved: nil, hidesWhenIdle: true), .moving)  // 숨기기 켜짐
-        XCTAssertEqual(BadgeMode(saved: "sideways", hidesWhenIdle: true), .moving)  // 읽을 수 없는 값
-        XCTAssertEqual(BadgeMode(saved: BadgeMode.click.rawValue, hidesWhenIdle: true), .click)  // 저장값이 이긴다
+        XCTAssertEqual(BadgeMode(saved: nil), .click)
+        XCTAssertEqual(BadgeMode(saved: "sideways"), .click)  // 읽을 수 없는 값
+        XCTAssertEqual(BadgeMode(saved: BadgeMode.always.rawValue), .always)  // 저장값이 이긴다
         XCTAssertEqual(BadgeMode.allCases, [.always, .moving, .click])  // 팝업 순서
     }
 

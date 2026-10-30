@@ -2599,66 +2599,66 @@
         }
       }
     },
-    "Choose “When Clicking” for “Show Badge” in Pointer Badge settings, and the badge appears briefly where you click instead of following the pointer.": {
+    "The pointer badge now appears briefly where you click instead of following the pointer. You can change this in “Show Badge” in Pointer Badge settings.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose “When Clicking” for “Show Badge” in Pointer Badge settings, and the badge appears briefly where you click instead of following the pointer."
+            "value": "The pointer badge now appears briefly where you click instead of following the pointer. You can change this in “Show Badge” in Pointer Badge settings."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "'포인터 배지' 설정의 '배지 보기'에서 '클릭할 때'를 고르면, 배지가 포인터를 따라다니지 않고 클릭한 자리에 잠깐 보입니다."
+            "value": "이제 포인터 배지가 포인터를 따라다니지 않고 클릭한 자리에 잠깐 보입니다. '포인터 배지' 설정의 '배지 보기'에서 바꿀 수 있습니다."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "「ポインタバッジ」設定の「バッジを表示」で「クリック時」を選ぶと、バッジがポインタを追わず、クリックした場所に少しの間表示されます。"
+            "value": "ポインタバッジがポインタを追わず、クリックした場所に少しの間表示されるようになりました。「ポインタバッジ」設定の「バッジを表示」で変更できます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在“指针徽章”设置的“显示徽章”中选择“点按时”，徽章将不再跟随指针，而是在点按处短暂显示。"
+            "value": "指针徽章现在不再跟随指针，而是在点按处短暂显示。可在“指针徽章”设置的“显示徽章”中更改。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "在「指標徽章」設定的「顯示徽章」中選擇「按一下時」，徽章將不再跟隨指標，而是在按一下處短暫顯示。"
+            "value": "指標徽章現在不再跟隨指標，而是在按一下處短暫顯示。可在「指標徽章」設定的「顯示徽章」中更改。"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wähle in den Zeigerabzeichen-Einstellungen bei „Abzeichen zeigen“ die Option „Beim Klicken“, und das Abzeichen erscheint kurz dort, wo du klickst, statt dem Zeiger zu folgen."
+            "value": "Das Zeigerabzeichen erscheint jetzt kurz dort, wo du klickst, statt dem Zeiger zu folgen. Du kannst das in den Zeigerabzeichen-Einstellungen bei „Abzeichen zeigen“ ändern."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Elige «Al hacer clic» en «Mostrar insignia» en los ajustes de Insignia del puntero, y la insignia aparecerá brevemente donde hagas clic en lugar de seguir al puntero."
+            "value": "La insignia del puntero ahora aparece brevemente donde haces clic en lugar de seguir al puntero. Puedes cambiarlo en «Mostrar insignia» en los ajustes de Insignia del puntero."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choisissez « Au clic » pour « Afficher le badge » dans les réglages Badge du pointeur : le badge apparaît brièvement là où vous cliquez au lieu de suivre le pointeur."
+            "value": "Le badge du pointeur apparaît désormais brièvement là où vous cliquez au lieu de suivre le pointeur. Vous pouvez changer cela dans « Afficher le badge » des réglages Badge du pointeur."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escolha “Ao clicar” em “Mostrar selo” nos ajustes de Selo do ponteiro, e o selo aparece brevemente onde você clica em vez de seguir o ponteiro."
+            "value": "O selo do ponteiro agora aparece brevemente onde você clica em vez de seguir o ponteiro. Você pode mudar isso em “Mostrar selo” nos ajustes de Selo do ponteiro."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Выберите «При нажатии» в пункте «Показывать значок» в настройках «Значок указателя», и значок будет ненадолго появляться там, где вы нажали, а не следовать за указателем."
+            "value": "Значок указателя теперь ненадолго появляется там, где вы нажали, а не следует за указателем. Это можно изменить в пункте «Показывать значок» в настройках «Значок указателя»."
           }
         }
       }
@@ -5735,66 +5735,66 @@
         }
       }
     },
-    "Permission is off, so keystrokes aren’t counted": {
+    "Input Monitoring permission is off": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Permission is off, so keystrokes aren’t counted"
+            "value": "Input Monitoring permission is off"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "권한이 꺼져 있어 세지 못하고 있어요"
+            "value": "입력 모니터링 권한이 꺼져 있습니다"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "許可がオフのため数えられていません"
+            "value": "入力監視の許可がオフです"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "权限已关闭，无法统计"
+            "value": "输入监控权限已关闭"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "權限已關閉，無法統計"
+            "value": "輸入監控權限已關閉"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Berechtigung ist aus, daher wird nicht gezählt"
+            "value": "Die Berechtigung Eingabeüberwachung ist aus"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El permiso está desactivado, así que no se cuenta"
+            "value": "El permiso de Monitorización de entrada está desactivado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’autorisation est désactivée, rien n’est compté"
+            "value": "L’autorisation Surveillance de l’entrée est désactivée"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A permissão está desativada, então nada é contado"
+            "value": "A permissão Monitoramento de Entrada está desativada"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Разрешение выключено, нажатия не считаются"
+            "value": "Разрешение «Мониторинг ввода» выключено"
           }
         }
       }

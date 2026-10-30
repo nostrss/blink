@@ -518,7 +518,7 @@ final class TypingPromoView: NSView {
     func show(_ state: TypingState) {
         self.state = state
         let denied = state == .denied
-        title.stringValue = denied ? String(localized: "Permission is off, so keystrokes aren’t counted")
+        title.stringValue = denied ? String(localized: "Input Monitoring permission is off")
             : String(localized: "Curious how many keys you pressed today?")
         detail.stringValue = denied ? String(localized: "Turn on Blink in System Settings › Privacy & Security › Input Monitoring to start counting.")
             : String(localized: "Turn on typing statistics to see your keystrokes and speed, by input source and by app.")

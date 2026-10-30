@@ -26,7 +26,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private lazy var cursorBadge = CursorBadge()
     // 입력소스가 바뀔 때 열려 있는 창의 이름만 갱신하려고, 처음 열 때 만든다.
     private var settingsWindow: SettingsWindow?
-    private lazy var aboutWindow = AboutWindow()
+    private lazy var aboutWindow: AboutWindow = {
+        let window = AboutWindow()
+        window.typingGranted = { [weak self] in self?.statistics.typingGranted ?? false }
+        // 메뉴 카드의 켜기와 같다: 켠 뒤 설정 '통계'를 열어 권한 상태가 보이게 한다.
+        window.onEnableTyping = { [weak self] in
+            self?.statistics.setTyping(true)
+            self?.showSettings(.statistics)
+        }
+        return window
+    }()
     private let statistics = StatsRecorder()
     private lazy var statsWindow: StatsWindow = {
         let window = StatsWindow(recorder: statistics, sources: { Self.sourceInfo() })
@@ -47,7 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [Self.showOnSwitchKey: true, HUD.durationKey: 1.0,
                                                   HUD.positionXKey: 0.5, HUD.positionYKey: 0.5, HUD.showCapsLockKey: false,
-                                                  CursorBadge.enabledKey: false, CursorBadge.hidesWhenIdleKey: false,
+                                                  CursorBadge.enabledKey: false,
                                                   StatsRecorder.enabledKey: true, StatsRecorder.typingKey: false])
 
         let image = NSImage(named: "MenuBarIcon")
@@ -75,6 +84,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let statsItem = NSMenuItem(title: String(localized: "Statistics…"), action: #selector(openStatistics), keyEquivalent: "")
         let settingsItem = NSMenuItem(title: String(localized: "Settings…"), action: #selector(openSettings), keyEquivalent: "")
         let aboutItem = NSMenuItem(title: String(localized: "About Blink"), action: #selector(openAbout), keyEquivalent: "")
+        // macOS 26부터 시스템이 '설정…'·'종료'에 아이콘을 붙이므로, 나머지 항목에도 붙여 모두 맞춘다.
+        if #available(macOS 26, *) {
+            statsItem.image = NSImage(systemSymbolName: "chart.bar", accessibilityDescription: nil)
+            aboutItem.image = NSImage(systemSymbolName: "info.circle", accessibilityDescription: nil)
+        }
         for item in [statsItem, settingsItem, aboutItem] {
             item.target = self
             menu.addItem(item)

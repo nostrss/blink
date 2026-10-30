@@ -7,9 +7,9 @@ enum BadgeMode: String, CaseIterable {
         case moved, clicked(count: Int), switched
     }
 
-    // 저장된 값. 없거나 읽을 수 없으면 1.3.0까지의 '포인터가 멈추면 숨기기'로 정한다(켜짐이면 움직일 때).
-    init(saved: String?, hidesWhenIdle: Bool) {
-        self = saved.flatMap(Self.init(rawValue:)) ?? (hidesWhenIdle ? .moving : .always)
+    // 저장된 값. 없거나 읽을 수 없으면 클릭할 때(1.3.0까지의 '포인터가 멈추면 숨기기'는 옮기지 않는다).
+    init(saved: String?) {
+        self = saved.flatMap(Self.init(rawValue:)) ?? .click
     }
 
     // 포인터를 따라가면 마우스 이동을, 아니면 클릭만 감시한다.

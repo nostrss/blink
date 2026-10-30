@@ -4,8 +4,6 @@ import AppKit
 // 클릭만 감시해 클릭한 자리에 보인다. 마우스 이벤트 감시는 키 이벤트와 달리 권한이 필요 없어 샌드박스에서도 쓸 수 있다.
 final class CursorBadge {
     static let enabledKey = "showPointerBadge"
-    // 1.3.0까지의 '포인터가 멈추면 숨기기'. 배지 보기가 저장되지 않았을 때만 읽는다.
-    static let hidesWhenIdleKey = "pointerBadgeHidesWhenIdle"
     static let modeKey = "pointerBadgeMode"
     static let placementKey = "pointerBadgePlacement"
     static let sizeKey = "pointerBadgeSize"
@@ -48,7 +46,7 @@ final class CursorBadge {
     }
 
     static var savedMode: BadgeMode {
-        get { BadgeMode(saved: UserDefaults.standard.string(forKey: modeKey), hidesWhenIdle: UserDefaults.standard.bool(forKey: hidesWhenIdleKey)) }
+        get { BadgeMode(saved: UserDefaults.standard.string(forKey: modeKey)) }
         set { UserDefaults.standard.set(newValue.rawValue, forKey: modeKey) }
     }
 
