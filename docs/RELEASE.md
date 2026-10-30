@@ -24,7 +24,6 @@ App Store에 새 버전을 제출하기 전에 이 순서대로 한다. 단계�
 
 시작 전에 백업하고, 끝나면 되돌린다:
 
-- 번들 ID는 Debug 빌드(Blink Dev)가 `com.jintaek.blink.dev`, Release 빌드가 `com.jintaek.blink`다. 아래 명령은 확인하는 빌드의 번들 ID로 쓴다.
 - 설정: `defaults export com.jintaek.blink <파일>` → `defaults import com.jintaek.blink <파일>`. 샌드박스 컨테이너 plist를 직접 고치지 않는다. 앱 인자(`--args -hudDuration 1`)로 덮는 쪽이 덜 위험하다.
 - 통계: `~/Library/Containers/com.jintaek.blink/Data/Library/Application Support/Statistics.json`을 복사해 둔다.
 - 다크/라이트, 숨긴 앱, 입력소스: 바꿨으면 원래대로 돌린다.
@@ -48,7 +47,6 @@ App Store에 새 버전을 제출하기 전에 이 순서대로 한다. 단계�
 
 기존 스크린샷과 같은 모양: 위쪽 파란 그라데이션(앱 아이콘 색 `#5e9cf7` → `#2f68d6`)에 흰 제목·부제, 아래에 실제 화면 캡처를 위 모서리만 둥근 판으로 얹고 아래는 캔버스 밖으로 잘린다.
 
-0. Release 빌드(`-configuration Release`)로 찍는다. Debug 빌드는 메뉴바 아이콘에 개발용 점이 있다.
 1. 시스템을 라이트 모드로 바꾼다(기존 스크린샷이 모두 라이트).
 2. 보이는 앱 목록을 저장하고 모두 숨긴다(`set visible of every process whose visible is true and background only is false to false`). 되돌릴 때 이름에 공백이 있는 앱(`Google Chrome`)도 빠뜨리지 않는다.
 3. 통계처럼 숫자가 보이는 화면은 목데이터를 `Statistics.json`에 넣는다. 30일 증감이 어색하지 않게 75일치를 만든다.
