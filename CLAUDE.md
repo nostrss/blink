@@ -36,7 +36,7 @@ Debug 빌드는 **Blink Dev**(`Blink Dev.app`, 번들 ID `com.jintaek.blink.dev`
 - 다음 버전 작업은 `main`에서 `release/<버전>` 브랜치(예: `release/1.1.0`)를 만들어 한다. 브랜치를 만들면 먼저 `MARKETING_VERSION`을 그 버전으로 올린다. `v1.1.0`이나 `1.1.0`처럼 버전만 쓴 이름은 태그와 겹치므로 브랜치 이름으로 쓰지 않는다.
 - 한 버전에 브랜치 하나만 둔다. 기능별 브랜치는 나누지 않는다.
 - 빌드 번호(`CURRENT_PROJECT_VERSION`)는 App Store Connect에 올릴 때마다 올린다.
-- App Store에 제출한 버전은 `main`에 병합하고 그 커밋에 `v<버전>` 태그(예: `v1.1.0`)를 붙인다.
+- App Store에 제출한 버전은 `release/<버전>`에서 `main`으로 PR을 열어 병합하고(로컬 병합·`main` 직접 푸시 금지), 그 병합 커밋에 `v<버전>` 태그(예: `v1.1.0`)를 붙인다.
 - 출시된 버전의 급한 버그는 그 버전 태그에서 `release/<다음 PATCH 버전>`(예: `v1.0.0`에서 `release/1.0.1`)을 만들어 고친다.
 - 브랜치와 태그를 원격(`origin`)에 올리는 것은 커밋과 같이 사용자의 확인을 받은 뒤에 한다.
 
