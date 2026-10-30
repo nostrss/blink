@@ -28,11 +28,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var settingsWindow: SettingsWindow?
     private lazy var aboutWindow = AboutWindow()
     private let statistics = StatsRecorder()
-    private lazy var statsWindow = StatsWindow(recorder: statistics)
+    private lazy var statsWindow: StatsWindow = {
+        let window = StatsWindow(recorder: statistics, sources: { Self.sourceInfo() })
+        window.promo.onEnable = { [weak self] in self?.statistics.setTyping(true) }
+        window.promo.onOpenSystemSettings = { SettingsWindow.openInputMonitoringSettings() }
+        return window
+    }()
     // 메뉴 맨 위 통계 카드와 그 아래 구분선. '통계 모으기'를 끄면 숨긴다.
     private let statsCard = StatsCardView()
     private let statsCardItem = NSMenuItem()
     private let statsCardSeparator = NSMenuItem.separator()
+
+    // 지금 입력소스 ID. 입력소스가 바뀔 때만 읽는다.
+    private var currentSourceID: String?
 
     private var showOnSwitch: Bool { UserDefaults.standard.bool(forKey: Self.showOnSwitchKey) }
 
@@ -40,7 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         UserDefaults.standard.register(defaults: [Self.showOnSwitchKey: true, HUD.durationKey: 1.0,
                                                   HUD.positionXKey: 0.5, HUD.positionYKey: 0.5, HUD.showCapsLockKey: false,
                                                   CursorBadge.enabledKey: false, CursorBadge.hidesWhenIdleKey: false,
-                                                  StatsRecorder.enabledKey: true])
+                                                  StatsRecorder.enabledKey: true, StatsRecorder.typingKey: false])
 
         let image = NSImage(named: "MenuBarIcon")
         image?.isTemplate = true
@@ -51,21 +59,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let menu = NSMenu()
         menu.delegate = self
         statsCardItem.view = statsCard
+        // 메뉴 카드의 켜기 버튼: 메뉴를 닫고 켠 뒤 설정 '통계'를 열어 권한 상태가 보이게 한다.
+        statsCard.promo.onEnable = { [weak self] in
+            guard let self else { return }
+            self.statusItem.menu?.cancelTracking()
+            self.statistics.setTyping(true)
+            self.showSettings(.statistics)
+        }
+        statsCard.promo.onOpenSystemSettings = { [weak self] in
+            self?.statusItem.menu?.cancelTracking()
+            SettingsWindow.openInputMonitoringSettings()
+        }
         menu.addItem(statsCardItem)
         menu.addItem(statsCardSeparator)
         let statsItem = NSMenuItem(title: String(localized: "Statistics…"), action: #selector(openStatistics), keyEquivalent: "")
-        let settingsItem = NSMenuItem(title: String(localized: "Settings…"), action: #selector(openSettings), keyEquivalent: ",")
+        let settingsItem = NSMenuItem(title: String(localized: "Settings…"), action: #selector(openSettings), keyEquivalent: "")
         let aboutItem = NSMenuItem(title: String(localized: "About Blink"), action: #selector(openAbout), keyEquivalent: "")
         for item in [statsItem, settingsItem, aboutItem] {
             item.target = self
             menu.addItem(item)
         }
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: String(localized: "Quit Blink"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: String(localized: "Quit Blink"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: ""))
         statusItem.menu = menu
 
         refreshShowState()
         refreshCapsLockWatch()
+        currentSourceID = Self.currentInputSourceID()
+        statistics.currentSource = { [weak self] in self?.currentSourceID }
         statistics.reload()
 
         _ = tracker.update(Self.currentInputSource()?.name)
@@ -102,10 +123,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         statsCardItem.isHidden = !statistics.isEnabled
         statsCardSeparator.isHidden = !statistics.isEnabled
-        if statistics.isEnabled { statsCard.reload(statistics.snapshot) }
+        if statistics.isEnabled { statsCard.reload(statistics.snapshot, typing: statistics.typingState, sources: Self.sourceInfo()) }
     }
 
     @objc private func inputSourceChanged() {
+        currentSourceID = Self.currentInputSourceID()  // 타이핑 통계는 키마다 묻지 않고 이 값을 쓴다
         guard let change = tracker.update(Self.currentInputSource()?.name) else { return }
         NSLog("입력소스 변경: %@ → %@", change.from, change.to)
         statistics.countSwitch()  // HUD를 꺼도 센다
@@ -126,6 +148,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         var labels: [InputSourceLabel] = []
         for label in list.compactMap(label(of:)) where !labels.contains(where: { $0.name == label.name }) { labels.append(label) }
         return labels
+    }
+
+    // 켜진 입력소스 ID → 이름·첫 언어. 통계의 입력소스 이름, 전환 이름(한/영·입력소스), WPM을 정할 때 쓴다.
+    private static func sourceInfo() -> [String: InputSourceInfo] {
+        let filter = [kTISPropertyInputSourceCategory: kTISCategoryKeyboardInputSource,
+                      kTISPropertyInputSourceIsSelectCapable: true] as CFDictionary
+        guard let list = TISCreateInputSourceList(filter, false)?.takeRetainedValue() as? [TISInputSource] else { return [:] }
+        var result: [String: InputSourceInfo] = [:]
+        for source in list {
+            guard let id = string(source, kTISPropertyInputSourceID), let name = string(source, kTISPropertyLocalizedName) else { continue }
+            let languages = TISGetInputSourceProperty(source, kTISPropertyInputSourceLanguages)
+                .flatMap { Unmanaged<AnyObject>.fromOpaque($0).takeUnretainedValue() as? [String] }
+            result[id] = InputSourceInfo(name: name, language: languages?.first)
+        }
+        return result
+    }
+
+    private static func string(_ source: TISInputSource, _ key: CFString) -> String? {
+        TISGetInputSourceProperty(source, key).map { Unmanaged<CFString>.fromOpaque($0).takeUnretainedValue() as String }
+    }
+
+    private static func currentInputSourceID() -> String? {
+        TISCopyCurrentKeyboardInputSource().flatMap { string($0.takeRetainedValue(), kTISPropertyInputSourceID) }
     }
 
     // 추적기는 이름만 기억하므로, 약자는 켜진 목록에서 같은 이름을 찾아 얻는다. 목록에서 빠졌으면 이름으로 만든다.
@@ -152,6 +197,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc private func openSettings() {
+        showSettings(.general)
+    }
+
+    private func showSettings(_ pane: SettingsWindow.Pane) {
         if settingsWindow == nil {
             settingsWindow = SettingsWindow(
                 onShowChanged: { [weak self] in self?.refreshShowState() },
@@ -159,6 +208,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 onPointerChanged: { [weak self] in self?.reloadCursorBadge() },
                 onStatisticsChanged: { [weak self] in self?.statistics.reload() },
                 onClearStatistics: { [weak self] in self?.statistics.clear() },
+                onTypingChanged: { [weak self] on in self?.statistics.setTyping(on) },
                 preview: { [weak self] position in
                     guard let self else { return }
                     let names = self.sampleNames()
@@ -167,7 +217,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 },
                 sampleNames: { [weak self] in self?.sampleNames() ?? (from: InputSourceLabel(name: "", abbreviation: ""), to: nil) })
         }
-        settingsWindow?.show()
+        settingsWindow?.show(pane)
     }
 
     @objc private func openStatistics() {

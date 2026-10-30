@@ -14,7 +14,9 @@ enum ReleaseNotes {
     static var all: [String: [Feature]] {
         ["1.4.0": [
             Feature(symbol: "cursorarrow.click", title: String(localized: "Badge Where You Click"),
-                    detail: String(localized: "Choose “When Clicking” for “Show Badge” in Pointer settings, and the badge appears briefly where you click instead of following the pointer.")),
+                    detail: String(localized: "Choose “When Clicking” for “Show Badge” in Pointer Badge settings, and the badge appears briefly where you click instead of following the pointer.")),
+            Feature(symbol: "keyboard", title: String(localized: "Typing Statistics"),
+                    detail: String(localized: "Turn on Typing Statistics in Statistics settings to see your keystrokes and speed by input source and app. Blink counts keys, never what you type.")),
          ],
          "1.3.0": [
             Feature(symbol: "chart.bar.fill", title: String(localized: "Input Statistics"),

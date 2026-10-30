@@ -1,6 +1,6 @@
 import AppKit
 
-// 설정 창의 '포인터' 항목. 포인터 배지를 켜고, 배지 위치(포인터 둘레 8방위)·크기와 배지 보기를 정한다.
+// 설정 창의 '포인터 배지' 항목. 포인터 배지를 켜고, 배지 위치(포인터 둘레 8방위)·크기와 배지 보기를 정한다.
 // 켜면 설정 창 위의 실제 포인터에 배지가 바로 붙으므로 따로 미리보기를 띄우지 않는다.
 final class PointerPane: NSStackView {
     private let showSwitch = NSSwitch()
@@ -53,7 +53,7 @@ final class PointerPane: NSStackView {
         alignment = .leading
         spacing = 16  // space-3
         edgeInsets = NSEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)  // space-3
-        let showRow = SettingsWindow.group([SettingsWindow.row(String(localized: "Show Input Source Next to Pointer"), [showSwitch])])
+        let showRow = SettingsWindow.group([SettingsWindow.row(String(localized: "Input Source Badge Next to Pointer"), [showSwitch])])
         [showRow, details].forEach(addArrangedSubview)
         NSLayoutConstraint.activate([
             showRow.widthAnchor.constraint(equalTo: widthAnchor, constant: -32),
