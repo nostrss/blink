@@ -60,7 +60,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                                                   CursorBadge.enabledKey: false,
                                                   StatsRecorder.enabledKey: true, StatsRecorder.typingKey: false])
 
-        let image = NSImage(named: "MenuBarIcon")
+        var image = NSImage(named: "MenuBarIcon")
+        #if DEBUG
+        // 개발 빌드(Blink Dev)는 오른쪽 위에 점을 찍어 설치된 Blink와 메뉴바에서 구분한다.
+        if let base = image {
+            image = NSImage(size: base.size, flipped: false) { rect in
+                base.draw(in: rect)
+                NSColor.black.setFill()
+                NSBezierPath(ovalIn: NSRect(x: rect.maxX - 4, y: rect.maxY - 4, width: 4, height: 4)).fill()
+                return true
+            }
+        }
+        #endif
         image?.isTemplate = true
         image?.accessibilityDescription = "Blink"
         statusItem.button?.image = image

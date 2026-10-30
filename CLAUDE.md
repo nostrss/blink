@@ -18,9 +18,9 @@ macOS 전용 타깃(최소 13.0, `LSUIElement`), 진입점은 `Blink/AppDelegate
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project Blink.xcodeproj -scheme Blink -configuration Debug -derivedDataPath build test
 ```
 
-결과물: `build/Build/Products/Debug/Blink.app` (`build/`는 gitignore됨). App Store판과 번들 ID(`com.jintaek.blink`)가 같아서 설정·통계·권한을 함께 쓴다. 띄울 때는 다른 Blink를 메뉴의 "Blink 종료"로 끄고 `open -n "$PWD/build/Build/Products/Debug/Blink.app"`처럼 경로로 띄운다. 입력 모니터링 권한은 서명 하나에만 붙으므로, 개발 빌드에 줄 때는 시스템 설정 목록의 'Blink.app'을 지우고 [+]로 위 경로의 앱을 추가해 켠다(설치된 앱을 추가하면 개발 빌드는 '허용 안 됨'이 된다).
+결과물: `build/Build/Products/Debug/Blink Dev.app` (`build/`는 gitignore됨).
 
-출력 끝의 `TEST SUCCEEDED`만 믿지 말고 `Test case ... passed` 줄로 테스트가 실제로 돌았는지 확인한다.
+Debug 빌드는 **Blink Dev**(`Blink Dev.app`, 번들 ID `com.jintaek.blink.dev`, 메뉴바 아이콘 오른쪽 위에 점)라서, App Store에서 설치한 `/Applications/Blink.app`(`com.jintaek.blink`)과 설정·통계·권한을 따로 쓴다. 띄우기 전에 설치된 Blink를 메뉴의 "Blink 종료"로 끄고(둘 다 뜨면 HUD가 두 번 뜬다), `open -n "$PWD/build/Build/Products/Debug/Blink Dev.app"`처럼 경로로 띄운다. System Events의 프로세스 이름은 `Blink Dev`, 설치된 앱은 `Blink`다. 출력 끝의 `TEST SUCCEEDED`만 믿지 말고 `Test case ... passed` 줄로 테스트가 실제로 돌았는지 확인한다.
 
 빌드 설정(배포 타깃, 번들 ID, 서명, entitlements)은 `Blink.xcodeproj/project.pbxproj`에 있다. 직접 편집은 최소한으로 하고, 바꾼 뒤에는 위 빌드로 확인한다.
 

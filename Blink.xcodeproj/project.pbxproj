@@ -324,8 +324,9 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.4.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jintaek.blink;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.jintaek.blink.dev;
+				PRODUCT_MODULE_NAME = Blink;
+				PRODUCT_NAME = "Blink Dev";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -387,7 +388,7 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Blink.app/Contents/MacOS/Blink";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Blink Dev.app/Contents/MacOS/Blink Dev";
 			};
 			name = Debug;
 		};
